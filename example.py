@@ -29,20 +29,16 @@ interface
 
 from neq.spec.database import SpecDatabase
 from neq.spec.calc import MergeSlabs, SerialSlabs
-from neq.phys.conv import nm2cm
-from neq.misc.basics import norm
 import matplotlib.pyplot as plt 
 import numpy as np
 from numpy import linspace, array
-from matplotlib.widgets import Slider, Button, RadioButtons
 from matplotlib.widgets import MultiCursor
-import textwrap
 from scipy.interpolate import griddata, splev, splrep
 from publib import set_style
 from neq.math.smooth import als_baseline
-from os.path import join
 
 from selection_tool import CaseSelector
+from grid3x3_tool import Grid3x3
 
 set_style('origin')
 
@@ -224,37 +220,8 @@ dbInteractx = Slablist[slbInteractx]['db']
 dbInteracty = Slablist[slbInteracty]['db']
 
 
-def norm(a, normby=None, how='max'):
-    ''' Normalize a numpy array with its maximum. Or normalize it with another
-    vector. Works if array contains nans.
-    
-    Input
-    ------
-    
-    normby: array, or None
-        if array, norm with this other array's maximum. If None, normalize with
-        its maximum.
-    '''
-
-    if not normby is None:
-        normby = np.abs(normby)
-    else:
-        normby = np.abs(a)
-    
-    if how=='mean':
-        return a / np.nanmean(normby)
-    elif how=='max':
-        return a / np.nanmax(normby)
-    else:
-        raise ValueError('Unknown normalisation method')
-
-def norm_on(w, a, wmin=4173, wmax=4180, how='mean'):
-#def norm_on(w, a, wmin=4460, wmax=4560, how='mean'):
-    imin = np.argmin((w-wmin)**2) if wmin else None
-    imax = np.argmin((w-wmax)**2) if wmax else None
-    if imin > imax:
-        imin, imax = imax, imin
-    return norm(a, normby=a[imin:imax], how=how)
+from tools import Normalizer
+norm_on = Normalizer(4173, 4180, how='mean')
 
 #Lroom = 100
 #nC02room = 400e-6
@@ -262,25 +229,42 @@ def norm_on(w, a, wmin=4173, wmax=4180, how='mean'):
 #Tvibstep = 0.05
 #Trotstep = 0.1
 
-# Generate Figure Layout
-plt.figure(2, figsize=(16, 12)).clear()
-fig2, ax2 = plt.subplots(3, 3, sharex=True, sharey=True,
-                       num=2)
-lineexp = {}
-linesim = {}
-linemarkers = {}
-plt.tight_layout()
-
-
-# Generate Figure 3 layout
-plt.figure(3, figsize=(12,8)).clear()
-fig3, ax3 = plt.subplots(3, 1, num=3, sharex=True)
-line3up = {}
-line3cent = {}
-line3down = {}
-plt.tight_layout()
+# Print score for 2D mapping
+def get_residual(s, norm='not_implemented'):
+    ''' Different between experimental and simulated spectra 
     
+    norm not implemented yet 
+    # TODO
+    
+    Implementation
+    -------
 
+    interpolate experimental is harder (because of noise, and overlapping)
+    we interpolate each new spectrum on the experiment
+    
+    '''
+    
+    b = np.argsort(wexp)
+    wsort, Isort = wexp[b], Iexpcalib[b]
+    
+    
+    w, I = s.get(plotquantity, xunit='nm', yunit=unit)
+    w, I = w[::-1], I[::-1]
+    
+    tck = splrep(w, I)
+    
+    Iint = splev(wsort, tck)
+    
+#    error = np.sqrt(np.trapz(np.abs((Iint-Isort)/(Iint+Isort)), x=wsort).sum())
+    error = np.sqrt(np.trapz(np.abs(Iint-Isort), x=wsort).sum())
+#    error = np.sqrt(((Ixp-I)**2).sum())
+
+
+    return error
+
+
+# Generate Figure Layout
+    
 # Plot database
 def plot_params(dbInteractx, xparam, dbInteracty, yparam, nfig=None): 
     x = dbInteractx.df[xparam]
@@ -301,9 +285,69 @@ def plot_params(dbInteractx, xparam, dbInteracty, yparam, nfig=None):
     
     return fig, ax
 
+def calc_slabs(**slabsconfig):
+    ''' 
+    Input
+    ------
+    
+    slabsconfig: 
+        list of dictionaries. Each dictionary as a database key `db` and 
+        as many conditions to filter the database
+
+    '''
+
+    slabs = {}  # slabs
+    fconds = {}   # closest conditions found in database
+    
+    for slabname, slabcfg in slabsconfig.items():
+        cfg = slabcfg.copy()
+        dbi = cfg.pop('db')
+#        cfg['verbose'] = verbose
+
+        si = dbi.get_closest(scale_if_possible=True, verbose=verbose, **cfg)
+#        try:
+#            del slabcfg['verbose']
+#        except KeyError:
+#            pass
+
+        fcondsi = {}
+        for k in cfg:
+            fcondsi[k] = si.conditions[k]
+        slabs[slabname] = si.copy()
+        fconds[slabname] = fcondsi
+
+    s = config(**slabs)
+    s.apply_slit(slit, norm_by='area', shape='triangular')
+    
+    return s, slabs, fconds
+    
+
+
+
 plt.close(1)
 fig1, ax1 = plot_params(dbInteracty, yparam, dbInteractx, xparam, nfig=1)   # yeah, i flipped it -_-
 
+gridTool = Grid3x3(calc_slabs=calc_slabs, 
+                   slbInteractx=slbInteractx, slbInteracty=slbInteracty, 
+                   xparam=xparam, yparam=yparam,
+                   plotquantity=plotquantity, unit=unit,
+                   normalize=False, normalizer=norm_on,
+                   wexp=wexp, Iexpcalib=Iexpcalib, wexp_shift=wexp_shift,
+                   get_residual=get_residual,
+                   MultiSlabPlot=None,
+                   CaseSelector=None,
+                   Slablist=Slablist)
+
+fig2 = gridTool.fig
+ax2 = gridTool.ax
+    
+# Generate Figure 3 layout
+plt.figure(3, figsize=(12,8)).clear()
+fig3, ax3 = plt.subplots(3, 1, num=3, sharex=True)
+line3up = {}
+line3cent = {}
+line3down = {}
+plt.tight_layout()
 
 
 ##    s0 = db0.get(path_length=Lroom, Tgas=Troom)[0] 
@@ -320,46 +364,6 @@ fig1, ax1 = plot_params(dbInteracty, yparam, dbInteractx, xparam, nfig=1)   # ye
 ##    Iexpcalib /= 1.2
 #    Iexpcalib /= 1
 #    print('Warning. Tungsten 20% stronger hypothesis')
-
-def format_coord(x, y):
-    return 'x = {0:.2f} nm, y = {1:.4f} {2}  '.format(x, y, unit)
-
-def calc_slabs(**slabsconfig):
-    ''' 
-    Input
-    ------
-    
-    slabsconfig: 
-        list of dictionaries. Each dictionary as a database key `db` and 
-        as many conditions to filter the database
-        
-    '''
-    
-    slabs = {}  # slabs
-    fconds = {}   # closest conditions found in database
-    
-    for slabname, slabcfg in slabsconfig.items():
-        cfg = slabcfg.copy()
-        dbi = cfg.pop('db')
-#        cfg['verbose'] = verbose
-
-        si = dbi.get_closest(scale_if_possible=True, verbose=verbose, **cfg)
-#        try:
-#            del slabcfg['verbose']
-#        except KeyError:
-#            pass
-        
-        fcondsi = {}
-        for k in cfg:
-            fcondsi[k] = si.conditions[k]
-        slabs[slabname] = si.copy()
-        fconds[slabname] = fcondsi
-
-    s = config(**slabs)
-    s.apply_slit(slit, norm_by='area', shape='triangular')
-    
-    return s, slabs, fconds
-    
 
 def plot_all_slabs(s, slabs):
     
@@ -417,119 +421,7 @@ def plot_all_slabs(s, slabs):
         ax3[0].set_ylabel(si.units['radiance'])
         ax3[2].set_ylabel(si.units['transmittance'])
         fig3.tight_layout()
-    
-legends2 = {}
 
-def plot_case(i, j, **slabsconfig):
-    
-    axij = ax2[i][j]
-    axij.format_coord = format_coord
-    
-#        fexp = r"12_StepAndGlue_30us_Cathode_0us_stacked.txt"
-    
-    ydata = norm_on(wexp, Iexpcalib) if normalize else Iexpcalib
-    try:
-        lineexp[(i,j)].set_data(wexp+wexp_shift, ydata)
-    except KeyError:
-        line, = axij.plot(wexp+wexp_shift, ydata,'-k',lw=2)
-        lineexp[(i,j)] = line
-        
-    s, slabs, fconfig = calc_slabs(**slabsconfig)
-    
-    res = get_residual(s)
-    
-    w, I = s.get(plotquantity, xunit='nm', yunit=unit)
-    
-    # Get final values
-    ymarker = fconfig[slbInteractx][xparam]  # yes i flipped it -_-
-    xmarker = fconfig[slbInteracty][yparam]
-#    for _, config in enumerate(slabsconfig):
-#        if config is not slbInteract:
-#            continue
-#        else:
-#            for k in config:
-#                if xparam == k:
-#                    ymarker = fconfig[k] 
-#                elif yparam == k:
-#                    xmarker = fconfig[k]
-    markerpos = (xmarker, ymarker)
-    
-    ydata = norm_on(w, I) if normalize else I
-    try:
-        linesim[(i,j)].set_data(w, ydata)
-        legends2[(i,j)].texts[0].set_text('res: {0:.3g}'.format(res))
-    except KeyError:
-        line, = axij.plot(w, ydata, 'r')
-        linesim[(i,j)] = line
-        legends2[(i,j)] = axij.legend((line,), ('res: {0:.3g}'.format(res), ), 
-                loc='upper left', prop={'size':10})
-#        
-#    if markerpos == (None, None):
-#        try:
-#            linemarkers[(i,j)].set_visible(False)
-#        except KeyError:
-#            pass
-#    else:
-    
-    try:
-        linemarkers[(i,j)].set_visible(True)
-        linemarkers[(i,j)].set_data(*markerpos)
-    except KeyError:
-        line, = ax1.plot(*markerpos, 'or', markersize=12, mfc='none')
-        linemarkers[(i,j)] = line
-        
-    if i == 2: axij.set_xlabel('Wavelength')
-    if j == 0: 
-        if xparam == 'mole_fraction':
-            axij.set_ylabel('{0} {1:.2g}'.format(xparam, fconfig[slbInteractx][xparam]))
-        else:
-            axij.set_ylabel('{0} {1:.1f}'.format(xparam, fconfig[slbInteractx][xparam]))
-    if i == 0: 
-        if yparam == 'mole_fraction':
-            axij.set_title('{0} {1:.2g}'.format(yparam, fconfig[slbInteracty][yparam]), size=20)
-        else:
-            axij.set_title('{0} {1:.1f}'.format(yparam, fconfig[slbInteracty][yparam]), size=20)
-    #TODO: add a set of all labels on line, instead (deals with different values per line)
-    
-    if i == 1 and j == 1:
-        plot_all_slabs(s, slabs)
-    
-# Print score for 2D mapping
-def get_residual(s, norm='not_implemented'):
-    ''' Different between experimental and simulated spectra 
-    
-    norm not implemented yet 
-    # TODO
-    
-    Implementation
-    -------
-
-    interpolate experimental is harder (because of noise, and overlapping)
-    we interpolate each new spectrum on the experiment
-    
-    '''
-    
-    b = np.argsort(wexp)
-    wsort, Isort = wexp[b], Iexpcalib[b]
-    
-    
-    w, I = s.get(plotquantity, xunit='nm', yunit=unit)
-    w, I = w[::-1], I[::-1]
-    
-    tck = splrep(w, I)
-    
-    Iint = splev(wsort, tck)
-    
-#    error = np.sqrt(np.trapz(np.abs((Iint-Isort)/(Iint+Isort)), x=wsort).sum())
-    error = np.sqrt(np.trapz(np.abs(Iint-Isort), x=wsort).sum())
-#    error = np.sqrt(((Ixp-I)**2).sum())
-
-
-    return error
-
-
-      
-    
 # Map x, y
 # -----------
 xvar = Slablist[slbInteractx][xparam]
@@ -539,46 +431,7 @@ xspace = linspace(xvar*(1-xstep), xvar*(1+xstep), 3)
 yspace = linspace(yvar*(1-ystep), yvar*(1+ystep), 3)
 
 
-
-def plot_3times3(xspace, yspace): 
-
-    config0 = {k:c.copy() for k, c in Slablist.items()}
-    
-    # dont calculate these when the figure is not shown (for performance)
-    try:  # works in Qt
-        updateSideAxes = not fig2.canvas.manager.window.isMinimized()
-    except:
-        updateSideAxes = True
-    
-    for i, xvari in enumerate(xspace[::-1]):
-        for j, yvarj in enumerate(yspace):
-            if not (i==1 and j==1) and not updateSideAxes: continue
-            config0[slbInteractx][xparam] = xvari
-            config0[slbInteracty][yparam] = yvarj
-            plot_case(i, j, **config0)
-#    plt.figure(1).canvas.show()
-
-    # Plot title with all slabs conditions
-    del config0[slbInteractx][xparam]      # dont print variable parameter
-    del config0[slbInteracty][yparam]
-    msg = ''
-    for k, cfgi in config0.items():
-        msg += k+' - '
-        msg += ' '.join(
-            ['{0}:{1:.3g}'.format(k,v) for (k,v) in cfgi.items() if not k in ['db']])
-        msg += ' || '
-    msg = msg[:-4]
-    msg = textwrap.wrap(msg, width=200)
-    fig2.suptitle('\n'.join(msg), size=10)
-    fig2.tight_layout()
-    fig2.subplots_adjust(top=0.93-0.02*len(msg))
-    
-#    plt.figure(2).canvas.show()
-    fig2.canvas.show()
-    plt.show()
-    plt.pause(0.05)
-
-plot_3times3(xspace, yspace)
+gridTool.plot_3times3(xspace, yspace)
 
 # Database inspect
 # -------------------------------------
@@ -669,7 +522,9 @@ if precompute_residual:
 
 # %%
 
-c = CaseSelector(ax1=ax1, fig2=fig2, fig3=fig3, update_function=plot_3times3)
+selectTool = CaseSelector(ax1=ax1, fig2=fig2, fig3=fig3, gridTool=gridTool)
+gridTool.CaseSelector = selectTool
+
 
 # %%
 #
