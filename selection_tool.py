@@ -20,7 +20,8 @@ interface
 
 import matplotlib.pyplot as plt
 from matplotlib.widgets import RectangleSelector
-import numpy as np
+from numpy import array, meshgrid, empty_like
+from scipy.interpolate import griddata
 
 class CaseSelector():
 
@@ -34,13 +35,16 @@ class CaseSelector():
         self.gridTool = gridTool
         self.slabsTool = slabsTool
 
-        self.slbInteractx=slbInteractx
-        self.slbInteracty=slbInteracty
+        self.dbInteractx = dbInteractx
+        self.dbInteracty = dbInteracty
+        self.slbInteractx = slbInteractx
+        self.slbInteracty = slbInteracty
+        self.xparam = xparam
+        self.yparam = yparam
+        self.nfig = nfig
         
         # Init figure
-        fig, ax = self.plot_params(dbInteractx, dbInteracty, xparam, yparam, 
-                                   slbInteractx=slbInteractx, slbInteracty=slbInteracty, 
-                                   nfig=nfig)
+        fig, ax = self._plot_params()
         self.ax = ax
         self.fig = fig
 
@@ -53,11 +57,19 @@ class CaseSelector():
                                            interactive=True)
         plt.connect('key_press_event', self.toggle_selector)
 
-    def plot_params(self, dbInteractx, dbInteracty, xparam, yparam, 
-                    slbInteractx='', slbInteracty='',
-                    nfig=None): 
+    def _plot_params(self): 
         ''' Plot database '''
         
+        # Get inputs
+        dbInteractx = self.dbInteractx
+        dbInteracty = self.dbInteracty
+        slbInteractx = self.slbInteractx
+        slbInteracty = self.slbInteracty
+        xparam = self.xparam
+        yparam = self.yparam
+        nfig = self.nfig 
+        
+        # Plot 
         plt.figure(nfig).clear()
         
         x = dbInteractx.df[xparam]
@@ -69,7 +81,7 @@ class CaseSelector():
             ax.plot(x, y, 'ok')
             
         else:
-            xx, yy = np.meshgrid(list(set(x)), list(set(y)))
+            xx, yy = meshgrid(list(set(x)), list(set(y)))
             ax.plot(xx, yy, 'ok')
         # TODO: add units from spectrum here. (but maybe units arent the same for all database????)
         # load it up first and check? 
@@ -161,3 +173,83 @@ class CaseSelector():
             self.linemarkers[(i,j)] = line
         return
             
+    
+    def precompute_residual(self, Slablist, calc_slabs, get_residual):
+        ''' Plot residual for all points in database '''
+    
+        dbInteractx = self.dbInteractx
+        dbInteracty = self.dbInteracty
+        slbInteractx = self.slbInteractx
+        slbInteracty = self.slbInteracty
+        xparam = self.xparam
+        yparam = self.yparam
+        
+        ax1 = self.ax
+        fig1 = self.fig 
+        
+    
+        if dbInteractx == dbInteracty and False:
+            ''' Doesnt work... fix later?
+            I think it doesnt like the sorting
+            '''
+    
+    
+            # only calculate database points
+            xspace, yspace = zip(*array(dbInteractx.view()[[xparam, yparam]]))
+            # kill duplicates
+            xspace, yspace = zip(*set(list(zip(xspace, yspace))))
+    
+            xx, yy = meshgrid(xspace, yspace)
+    
+            res = []  #np.empty_like(xx)
+    
+            for xvari, yvarj in zip(xspace, yspace):
+                config0 = {k:c.copy() for k, c in Slablist.items()}
+                config0[slbInteractx][xparam] = xvari
+                config0[slbInteracty][yparam] = yvarj
+    
+            #        fexp = r"12_StepAndGlue_30us_Cathode_0us_stacked.txt"
+    
+                s, slabs, fconfig = calc_slabs(**config0)
+    
+                resij = get_residual(s)
+    
+                print(xparam, xvari, yparam, yvarj, resij)
+    
+                res.append(resij)  # yes flipped it
+    
+            res = array(res)
+            # Create a 2D grid by interpolating database data
+            res = griddata((yspace, xspace), res, (yy, xx))   # yes flipped it
+    
+        else:
+            # do a mapping of all possible cases
+            xspace = array(sorted(set(dbInteractx.view()[xparam])))
+            yspace = array(sorted(set(dbInteracty.view()[yparam])))
+    
+            xx, yy = meshgrid(xspace, yspace)
+    
+            res = empty_like(xx)
+    
+            for i, xvari in enumerate(xspace):
+                for j, yvarj in enumerate(yspace):
+                    config0 = {k:c.copy() for k, c in Slablist.items()}
+                    config0[slbInteractx][xparam] = xvari
+                    config0[slbInteracty][yparam] = yvarj
+    
+                #        fexp = r"12_StepAndGlue_30us_Cathode_0us_stacked.txt"
+    
+                    s, slabs, fconfig = calc_slabs(**config0)
+    
+                    resij = get_residual(s)
+    
+                    print(xparam, xvari, yparam, yvarj, resij)
+    
+                    res[j][i] = resij  # yes flipped it
+    
+        cf = ax1.contourf(yy, xx, res, 40, cmap=plt.get_cmap('viridis_r'))  # flipped it
+        cbar = fig1.colorbar(cf)
+        cbar.ax.set_ylabel('residual')
+        plt.tight_layout()
+    
+    

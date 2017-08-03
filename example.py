@@ -7,7 +7,7 @@ Created on Fri Apr 14 22:41:43 2017
 Description
 -----
 
-Functions to build a 2D, multislabs fitting room with a pure Python (Matplotlib) 
+Functions to build a 2D, multislabs fitting room with a pure Python (Matplotlib)
 interface that displays:
 
     (1) a window to select conditions along two axis (to calculate, or retrieve
@@ -20,20 +20,18 @@ interface that displays:
 Todo
 -----
 
-interface 
+interface
  - used keyboards keys to move rectangle selector
-    
+
 """
 
 #DEBUG. TEST CASE increase mole_fraction then decrease
 
 from neq.spec.database import SpecDatabase
 from neq.spec.calc import MergeSlabs, SerialSlabs
-import matplotlib.pyplot as plt 
 import numpy as np
-from numpy import linspace, array
-from matplotlib.widgets import MultiCursor
-from scipy.interpolate import griddata, splev, splrep
+from numpy import linspace
+from scipy.interpolate import splev, splrep
 from publib import set_style
 from neq.math.smooth import als_baseline
 
@@ -49,7 +47,7 @@ set_style('origin')
 dbp = SpecDatabase('co2SpecDatabase')   # plasma
 dbpco = SpecDatabase('CO_SpecDatabase_noneq1iso')   # plasma CO
 db0 = SpecDatabase('co2SpecDatabase_eq')   # room
-dbco = SpecDatabase(r'coSpecDatabase_eq')  # post discharge CO 
+dbco = SpecDatabase(r'coSpecDatabase_eq')  # post discharge CO
 dbh = SpecDatabase(r'H2O_SpecDatabase_eq')   # room
 #
 ## Fix nans
@@ -57,7 +55,7 @@ dbh = SpecDatabase(r'H2O_SpecDatabase_eq')   # room
 #    w, I = sp['radiance_noslit']
 #    I[np.isnan(I)] = 0
 #    sp['radiance_noslit'] = w, I
-      
+
 
 # %% `Plot fit
 
@@ -111,24 +109,24 @@ slbRoomH2O = {
          'mole_fraction':0.02,
          }
 
-Slablist = {'sPlasmaCO2':slbPlasmaCO2, 
-            'sPlasmaCO':slbPlasmaCO, 
-            'sPostCO2': slbPostCO2, 
-            'sPostCO': slbPostCO, 
-            'sRoomCO2': slbRoomCO2, 
+Slablist = {'sPlasmaCO2':slbPlasmaCO2,
+            'sPlasmaCO':slbPlasmaCO,
+            'sPostCO2': slbPostCO2,
+            'sPostCO': slbPostCO,
+            'sRoomCO2': slbRoomCO2,
             'sRoomH2O': slbRoomH2O}
 
 def config(**slabs):
     ''' args must correspond to slablist. Indexes and order is important '''
-    
+
 #    return SerialSlabs(sPlasmaCO2, sPlasmaCO, sPostCO2, sPostCO, sRoomCO2, sRoomH2O)
-    
+
     globals().update({'spectra':slabs})
-    
+
     return SerialSlabs(
-#                       MergeSlabs(slabs['sPlasmaCO2'], slabs['sPlasmaCO'], accept_different_lengths=True), 
-                       MergeSlabs(sBaseline, accept_different_lengths=True), 
-                       MergeSlabs(slabs['sPlasmaCO'], accept_different_lengths=True), 
+#                       MergeSlabs(slabs['sPlasmaCO2'], slabs['sPlasmaCO'], accept_different_lengths=True),
+                       MergeSlabs(sBaseline, accept_different_lengths=True),
+                       MergeSlabs(slabs['sPlasmaCO'], accept_different_lengths=True),
                        MergeSlabs(slabs['sPostCO2'], slabs['sPostCO'], accept_different_lengths=True),
                        MergeSlabs(slabs['sRoomCO2'], slabs['sRoomH2O'], accept_different_lengths=True),
                        )
@@ -150,10 +148,10 @@ slit = 1.5  # r"D:\These Core\1_Projets\201702_CO2_insitu\20170505_TeteDeBandeTr
 
 verbose=False
 normalize = False
-precompute_residual = False
+precompute_residual = True
 
 
-# Experimental 
+# Experimental
 
 wexp_shift = 1
 
@@ -166,16 +164,16 @@ if plotquantity == 'radiance':
     fexp = r"data\15_20kHz_StepAndGlue_10us_jetCathode_Cathode_t0us_avg_stacked.txt"
 #    fexp = r"data\14_20kHz_StepAndGlue_30us_jetCathode_Cathode_t20us_avg_stacked.txt"
     wexp, Iexp = np.loadtxt(fexp).T
-    
+
     # Absolute calibration
-    wglo, Iglo = np.loadtxt(r"D:\These Core\1_Projets\201702_CO2_insitu\20170505_TeteDeBandeTrot\Calibration\calibOL550\calibration_globarThorlabs.txt", 
+    wglo, Iglo = np.loadtxt(r"D:\These Core\1_Projets\201702_CO2_insitu\20170505_TeteDeBandeTrot\Calibration\calibOL550\calibration_globarThorlabs.txt",
                             skiprows=2, delimiter=',').T  # calib globar
     tck = splrep(wglo, Iglo)
     Icalib = splev(wexp, tck)
     from neq import planck
     Ioldcalib = planck(wexp, 1500, eps=1, unit=unit)   # formerly calibrated with planck eps=1, T=1500K
     Iexpcalib = Iexp / Ioldcalib * Icalib   # ▓calibrated in absolute
-    
+
     # ARBITRARY... based on Tungsten lamp being 20% strong than the other
     # Todo. Check. Don't take for granted.
     #if True:
@@ -185,28 +183,26 @@ if plotquantity == 'radiance':
 
 
 elif plotquantity == 'transmittance':
-    
-    # Note: we correctly measure transmittance only if blackbody ~ constant on 
-    # experimental slit length (because T = (I/I0)_slit !=  I_slit/I0_slit in 
+
+    # Note: we correctly measure transmittance only if blackbody ~ constant on
+    # experimental slit length (because T = (I/I0)_slit !=  I_slit/I0_slit in
     # general )
-    
+
     fexp = r"data\2_CathodeJet_20kHz_Vref1_3mmBelowCat_stacked.txt"
     #fexp = r"14_20kHz_StepAndGlue_30us_jetCathode_Cathode_t20us_avg_stacked.txt"
     wexp, Iexp = np.loadtxt(fexp).T
     fexpref = r"data\8_Reference_atmAir_stacked.txt"
     wexpref, Iexpref = np.loadtxt(fexpref).T
-    
-    
+
+
 #    fexp2 = r"data\7_CathodeJet_20kHz_Vref1_5mmAboveCat_stacked.txt"
 #    wexp2, Iexp2 = np.loadtxt(fexp2).T
-#    
-#    Iem = Iexp - Iexp2 
-#    
+#
+#    Iem = Iexp - Iexp2
+#
 #    assert((wexp==wexpref).all())
-#    Iexpcalib = Iexp/Iexpref    
-#    
-    # TODO: calibrer
-    
+#    Iexpcalib = Iexp/Iexpref
+
 # %% Get baseline
 
 from neq.spec import theoretical_spectrum
@@ -226,7 +222,7 @@ from tools import Normalizer
 norm_on = Normalizer(4173, 4180, how='mean')
 
 # -----------------------------------------------------------------------------
-# NON USER PARAM PART 
+# NON USER PARAM PART
 # -----------------------------------------------------------------------------
 
 
@@ -246,30 +242,30 @@ dbInteracty = Slablist[slbInteracty]['db']
 
 # Print score for 2D mapping
 def get_residual(s, norm='not_implemented'):
-    ''' Different between experimental and simulated spectra 
-    
-    norm not implemented yet 
+    ''' Different between experimental and simulated spectra
+
+    norm not implemented yet
     # TODO
-    
+
     Implementation
     -------
 
     interpolate experimental is harder (because of noise, and overlapping)
     we interpolate each new spectrum on the experiment
-    
+
     '''
-    
+
     b = np.argsort(wexp)
     wsort, Isort = wexp[b], Iexpcalib[b]
-    
-    
+
+
     w, I = s.get(plotquantity, xunit='nm', yunit=unit)
     w, I = w[::-1], I[::-1]
-    
+
     tck = splrep(w, I)
-    
+
     Iint = splev(wsort, tck)
-    
+
 #    error = np.sqrt(np.trapz(np.abs((Iint-Isort)/(Iint+Isort)), x=wsort).sum())
     error = np.sqrt(np.trapz(np.abs(Iint-Isort), x=wsort).sum())
 #    error = np.sqrt(((Ixp-I)**2).sum())
@@ -279,21 +275,21 @@ def get_residual(s, norm='not_implemented'):
 
 
 # Generate Figure Layout
-    
+
 def calc_slabs(**slabsconfig):
-    ''' 
+    '''
     Input
     ------
-    
-    slabsconfig: 
-        list of dictionaries. Each dictionary as a database key `db` and 
+
+    slabsconfig:
+        list of dictionaries. Each dictionary as a database key `db` and
         as many conditions to filter the database
 
     '''
 
     slabs = {}  # slabs
     fconds = {}   # closest conditions found in database
-    
+
     for slabname, slabcfg in slabsconfig.items():
         cfg = slabcfg.copy()
         dbi = cfg.pop('db')
@@ -313,12 +309,12 @@ def calc_slabs(**slabsconfig):
 
     s = config(**slabs)
     s.apply_slit(slit, norm_by='area', shape='triangular')
-    
-    return s, slabs, fconds
-    
 
-gridTool = Grid3x3(calc_slabs=calc_slabs, 
-                   slbInteractx=slbInteractx, slbInteracty=slbInteracty, 
+    return s, slabs, fconds
+
+
+gridTool = Grid3x3(calc_slabs=calc_slabs,
+                   slbInteractx=slbInteractx, slbInteracty=slbInteracty,
                    xparam=xparam, yparam=yparam,
                    plotquantity=plotquantity, unit=unit,
                    normalize=False, normalizer=norm_on,
@@ -328,16 +324,13 @@ gridTool = Grid3x3(calc_slabs=calc_slabs,
                    CaseSelector=None,
                    Slablist=Slablist)
 
-fig2 = gridTool.fig
-ax2 = gridTool.ax
-    
 slabsTool = MultiSlabPlot(plotquantity=plotquantity, unit=unit,
                           normalize=False, normalizer=norm_on,
                           wexp=wexp, Iexpcalib=Iexpcalib, wexp_shift=wexp_shift,
                           nfig=3, slit=slit)
 
 selectTool = CaseSelector(dbInteracty, dbInteractx, yparam, xparam, nfig=1,   # inverted!
-                          slbInteractx=slbInteractx, slbInteracty=slbInteracty, 
+                          slbInteractx=slbInteractx, slbInteracty=slbInteracty,
                           gridTool=gridTool, slabsTool=slabsTool)
 fig1 = selectTool.fig
 ax1 = selectTool.ax
@@ -357,77 +350,7 @@ yspace = linspace(yvar*(1-ystep), yvar*(1+ystep), 3)
 gridTool.plot_3times3(xspace, yspace)
 
 
-# %% 2D mapping
+# 2D mapping
 
 if precompute_residual:
-    # Plot residual for all points in database
-    
-#    import warnings
-#    with warnings.catch_warnings():
-#        warnings.filterwarnings('error')
-
-    if dbInteractx == dbInteracty and False:
-        ''' Doesnt work... fix later? 
-        I think it doesnt like the sorting
-        '''
-        
-        
-        # only calculate database points 
-        xspace, yspace = zip(*array(dbInteractx.view()[[xparam, yparam]]))
-        # kill duplicates
-        xspace, yspace = zip(*set(list(zip(xspace, yspace))))
-
-        xx, yy = np.meshgrid(xspace, yspace)        
-        
-        res = []  #np.empty_like(xx)
-            
-        for xvari, yvarj in zip(xspace, yspace):
-            config0 = {k:c.copy() for k, c in Slablist.items()}
-            config0[slbInteractx][xparam] = xvari
-            config0[slbInteracty][yparam] = yvarj
-                
-        #        fexp = r"12_StepAndGlue_30us_Cathode_0us_stacked.txt"
-
-            s, slabs, fconfig = calc_slabs(**config0)
-                    
-            resij = get_residual(s)
-            
-            print(xparam, xvari, yparam, yvarj, resij)
-                
-            res.append(resij)  # yes flipped it
-            
-        res = array(res)
-        # Create a 2D grid by interpolating database data
-        res = griddata((yspace, xspace), res, (yy, xx))   # yes flipped it
-
-    else:
-        # do a mapping of all possible cases
-        xspace = array(sorted(set(dbInteractx.view()[xparam])))
-        yspace = array(sorted(set(dbInteracty.view()[yparam])))
-        
-        xx, yy = np.meshgrid(xspace, yspace)        
-        
-        res = np.empty_like(xx)
-            
-        for i, xvari in enumerate(xspace):
-            for j, yvarj in enumerate(yspace):
-                config0 = {k:c.copy() for k, c in Slablist.items()}
-                config0[slbInteractx][xparam] = xvari
-                config0[slbInteracty][yparam] = yvarj
-                    
-            #        fexp = r"12_StepAndGlue_30us_Cathode_0us_stacked.txt"
-    
-                s, slabs, fconfig = calc_slabs(**config0)
-                        
-                resij = get_residual(s)
-
-                print(xparam, xvari, yparam, yvarj, resij)
-                    
-                res[j][i] = resij  # yes flipped it
-
-    cf = ax1.contourf(yy, xx, res, 40, cmap=plt.get_cmap('viridis_r'))  # flipped it
-    cbar = fig1.colorbar(cf)
-    cbar.ax.set_ylabel('residual')
-    plt.tight_layout()
-
-
+    selectTool.precompute_residual(Slablist, calc_slabs, get_residual)
