@@ -27,11 +27,12 @@ class CaseSelector():
 
     def __init__(self, dbInteractx, dbInteracty, xparam, yparam, nfig=None,
                  slbInteractx=None, slbInteracty=None, 
-                 gridTool=None, slabsTool=None):
+                 solver=None, gridTool=None, slabsTool=None):
 
         # Init variables        
         self.linemarkers = {}
 
+        self.solver = solver
         self.gridTool = gridTool
         self.slabsTool = slabsTool
 
@@ -174,15 +175,21 @@ class CaseSelector():
         return
             
     
-    def precompute_residual(self, Slablist, calc_slabs, get_residual):
+    def precompute_residual(self, Slablist):
         ''' Plot residual for all points in database '''
     
+        if self.solver is None:
+            raise ValueError('No solver defined')
+        
         dbInteractx = self.dbInteractx
         dbInteracty = self.dbInteracty
         slbInteractx = self.slbInteractx
         slbInteracty = self.slbInteracty
         xparam = self.xparam
         yparam = self.yparam
+        
+        calc_slabs = self.solver.calc_slabs
+        get_residual = self.solver.get_residual
         
         ax1 = self.ax
         fig1 = self.fig 

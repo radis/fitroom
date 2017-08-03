@@ -38,6 +38,7 @@ from neq.math.smooth import als_baseline
 from selection_tool import CaseSelector
 from grid3x3_tool import Grid3x3
 from multislab_tool import MultiSlabPlot
+from solver import SlabsConfigSolver
 
 set_style('origin')
 
@@ -225,101 +226,25 @@ norm_on = Normalizer(4173, 4180, how='mean')
 # NON USER PARAM PART
 # -----------------------------------------------------------------------------
 
-
+dbInteractx = Slablist[slbInteractx]['db']
+dbInteracty = Slablist[slbInteracty]['db']
+        
 import warnings
 warnings.filterwarnings("ignore", "Using default event loop until function specific"+\
                         "to this GUI is implemented")
 
 
-dbInteractx = Slablist[slbInteractx]['db']
-dbInteracty = Slablist[slbInteracty]['db']
+solver = SlabsConfigSolver(config=config, 
+                           wexp=wexp, Iexpcalib=Iexpcalib, wexp_shift=wexp_shift,
+                           plotquantity=plotquantity, unit=unit,
+                           slit=slit)
 
-#Lroom = 100
-#nC02room = 400e-6
-# ... look around with step
-#Tvibstep = 0.05
-#Trotstep = 0.1
-
-# Print score for 2D mapping
-def get_residual(s, norm='not_implemented'):
-    ''' Different between experimental and simulated spectra
-
-    norm not implemented yet
-    # TODO
-
-    Implementation
-    -------
-
-    interpolate experimental is harder (because of noise, and overlapping)
-    we interpolate each new spectrum on the experiment
-
-    '''
-
-    b = np.argsort(wexp)
-    wsort, Isort = wexp[b], Iexpcalib[b]
-
-
-    w, I = s.get(plotquantity, xunit='nm', yunit=unit)
-    w, I = w[::-1], I[::-1]
-
-    tck = splrep(w, I)
-
-    Iint = splev(wsort, tck)
-
-#    error = np.sqrt(np.trapz(np.abs((Iint-Isort)/(Iint+Isort)), x=wsort).sum())
-    error = np.sqrt(np.trapz(np.abs(Iint-Isort), x=wsort).sum())
-#    error = np.sqrt(((Ixp-I)**2).sum())
-
-
-    return error
-
-
-# Generate Figure Layout
-
-def calc_slabs(**slabsconfig):
-    '''
-    Input
-    ------
-
-    slabsconfig:
-        list of dictionaries. Each dictionary as a database key `db` and
-        as many conditions to filter the database
-
-    '''
-
-    slabs = {}  # slabs
-    fconds = {}   # closest conditions found in database
-
-    for slabname, slabcfg in slabsconfig.items():
-        cfg = slabcfg.copy()
-        dbi = cfg.pop('db')
-#        cfg['verbose'] = verbose
-
-        si = dbi.get_closest(scale_if_possible=True, verbose=verbose, **cfg)
-#        try:
-#            del slabcfg['verbose']
-#        except KeyError:
-#            pass
-
-        fcondsi = {}
-        for k in cfg:
-            fcondsi[k] = si.conditions[k]
-        slabs[slabname] = si.copy()
-        fconds[slabname] = fcondsi
-
-    s = config(**slabs)
-    s.apply_slit(slit, norm_by='area', shape='triangular')
-
-    return s, slabs, fconds
-
-
-gridTool = Grid3x3(calc_slabs=calc_slabs,
-                   slbInteractx=slbInteractx, slbInteracty=slbInteracty,
+gridTool = Grid3x3(slbInteractx=slbInteractx, slbInteracty=slbInteracty,
                    xparam=xparam, yparam=yparam,
                    plotquantity=plotquantity, unit=unit,
                    normalize=False, normalizer=norm_on,
                    wexp=wexp, Iexpcalib=Iexpcalib, wexp_shift=wexp_shift,
-                   get_residual=get_residual,
+                   SlabsConfigSolver=solver,
                    MultiSlabPlot=None,
                    CaseSelector=None,
                    Slablist=Slablist)
@@ -331,7 +256,7 @@ slabsTool = MultiSlabPlot(plotquantity=plotquantity, unit=unit,
 
 selectTool = CaseSelector(dbInteracty, dbInteractx, yparam, xparam, nfig=1,   # inverted!
                           slbInteractx=slbInteractx, slbInteracty=slbInteracty,
-                          gridTool=gridTool, slabsTool=slabsTool)
+                          solver=solver, gridTool=gridTool, slabsTool=slabsTool)
 fig1 = selectTool.fig
 ax1 = selectTool.ax
 
@@ -353,4 +278,4 @@ gridTool.plot_3times3(xspace, yspace)
 # 2D mapping
 
 if precompute_residual:
-    selectTool.precompute_residual(Slablist, calc_slabs, get_residual)
+    selectTool.precompute_residual(Slablist)
