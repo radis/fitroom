@@ -39,6 +39,7 @@ from neq.math.smooth import als_baseline
 
 from selection_tool import CaseSelector
 from grid3x3_tool import Grid3x3
+from multislab_tool import MultiSlabPlot
 
 set_style('origin')
 
@@ -265,26 +266,6 @@ def get_residual(s, norm='not_implemented'):
 
 # Generate Figure Layout
     
-# Plot database
-def plot_params(dbInteractx, xparam, dbInteracty, yparam, nfig=None): 
-    x = dbInteractx.df[xparam]
-    y = dbInteracty.df[yparam]
-
-    # Plot
-    fig, ax = plt.subplots(num=nfig)
-    if dbInteractx == dbInteracty:
-        ax.plot(x, y, 'ok')
-        
-    else:
-        xx, yy = np.meshgrid(list(set(x)), list(set(y)))
-        ax.plot(xx, yy, 'ok')
-    # TODO: add units from spectrum here. (but maybe units arent the same for all database????)
-    # load it up first and check? 
-    ax.set_xlabel('{0} {1}'.format(slbInteracty, xparam))   # flipped x y
-    ax.set_ylabel('{0} {1}'.format(slbInteractx, yparam))
-    
-    return fig, ax
-
 def calc_slabs(**slabsconfig):
     ''' 
     Input
@@ -322,11 +303,6 @@ def calc_slabs(**slabsconfig):
     return s, slabs, fconds
     
 
-
-
-plt.close(1)
-fig1, ax1 = plot_params(dbInteracty, yparam, dbInteractx, xparam, nfig=1)   # yeah, i flipped it -_-
-
 gridTool = Grid3x3(calc_slabs=calc_slabs, 
                    slbInteractx=slbInteractx, slbInteracty=slbInteracty, 
                    xparam=xparam, yparam=yparam,
@@ -348,6 +324,16 @@ line3up = {}
 line3cent = {}
 line3down = {}
 plt.tight_layout()
+
+selectTool = CaseSelector(dbInteracty, dbInteractx, yparam, xparam, nfig=1,   # inverted!
+                          slbInteractx=slbInteractx, slbInteracty=slbInteracty, 
+                          fig3=fig3, gridTool=gridTool)
+fig1 = selectTool.fig
+ax1 = selectTool.ax
+
+gridTool.CaseSelector = selectTool
+
+
 
 
 ##    s0 = db0.get(path_length=Lroom, Tgas=Troom)[0] 
@@ -430,16 +416,11 @@ yvar = Slablist[slbInteracty][yparam]
 xspace = linspace(xvar*(1-xstep), xvar*(1+xstep), 3)
 yspace = linspace(yvar*(1-ystep), yvar*(1+ystep), 3)
 
-
 gridTool.plot_3times3(xspace, yspace)
 
 # Database inspect
 # -------------------------------------
 
-
-
-multi2 = MultiCursor(fig2.canvas, (*ax2[0], *ax2[1], *ax2[2]), color='r', lw=1,
-                    alpha=0.2, horizOn=False, vertOn=True)
 
 multi3 = MultiCursor(fig3.canvas, (ax3[0], ax3[1], ax3[2]), color='r', lw=1,
                     alpha=0.2, horizOn=False, vertOn=True)
@@ -519,11 +500,6 @@ if precompute_residual:
     cbar = fig1.colorbar(cf)
     cbar.ax.set_ylabel('residual')
     plt.tight_layout()
-
-# %%
-
-selectTool = CaseSelector(ax1=ax1, fig2=fig2, fig3=fig3, gridTool=gridTool)
-gridTool.CaseSelector = selectTool
 
 
 # %%

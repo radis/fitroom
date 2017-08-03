@@ -20,27 +20,64 @@ interface
 
 import matplotlib.pyplot as plt
 from matplotlib.widgets import RectangleSelector
+import numpy as np
 
 class CaseSelector():
 
-    def __init__(self, ax1, fig2, fig3, gridTool=None):
+    def __init__(self, dbInteractx, dbInteracty, xparam, yparam, nfig=None,
+                 slbInteractx=None, slbInteracty=None, 
+                 fig3=None, gridTool=None):
 
-#        self.fig = plt.figure()
-        self.ax1 = ax1
-        self.fig2 = fig2
+        # Init variables
         self.fig3 = fig3
         
         self.linemarkers = {}
 
         self.gridTool = gridTool
 
-        self.RS = RectangleSelector(ax1, self.line_select_callback,
+        self.slbInteractx=slbInteractx
+        self.slbInteracty=slbInteracty
+        
+        # Init figure
+        fig, ax = self.plot_params(dbInteractx, dbInteracty, xparam, yparam, 
+                                   slbInteractx=slbInteractx, slbInteracty=slbInteracty, 
+                                   nfig=nfig)
+        self.ax = ax
+        self.fig = fig
+
+        # Add Rectangle Selector to figure
+        self.RS = RectangleSelector(ax, self.line_select_callback,
                                            drawtype='box', useblit=True,
                                            button=[1], #, 3],  # left button
                                            minspanx=5, minspany=5,
                                            spancoords='pixels',
                                            interactive=True)
         plt.connect('key_press_event', self.toggle_selector)
+
+    def plot_params(self, dbInteractx, dbInteracty, xparam, yparam, 
+                    slbInteractx='', slbInteracty='',
+                    nfig=None): 
+        ''' Plot database '''
+        
+        plt.figure(nfig).clear()
+        
+        x = dbInteractx.df[xparam]
+        y = dbInteracty.df[yparam]
+    
+        # Plot
+        fig, ax = plt.subplots(num=nfig)
+        if dbInteractx == dbInteracty:
+            ax.plot(x, y, 'ok')
+            
+        else:
+            xx, yy = np.meshgrid(list(set(x)), list(set(y)))
+            ax.plot(xx, yy, 'ok')
+        # TODO: add units from spectrum here. (but maybe units arent the same for all database????)
+        # load it up first and check? 
+        ax.set_xlabel('{0} {1}'.format(slbInteractx, xparam))   # flipped x y
+        ax.set_ylabel('{0} {1}'.format(slbInteracty, yparam))
+        
+        return fig, ax
 
     def update_action(self, xmin, xmax, ymin, ymax):
         if self.gridTool is not None:
@@ -56,8 +93,12 @@ class CaseSelector():
     def line_select_callback(self, eclick, erelease):
         'eclick and erelease are the press and release events'
 
+        if self.gridTool is None:
+            print('No gridTool defined. Aborting')
+            return 
+        
         fig3 = self.fig3
-        fig2 = self.fig2
+        fig2 = self.gridTool.fig
 
         try:
             plt.ioff()
@@ -112,7 +153,7 @@ class CaseSelector():
             self.linemarkers[(i,j)].set_visible(True)
             self.linemarkers[(i,j)].set_data(*markerpos)
         except KeyError:
-            line, = self.ax1.plot(*markerpos, 'or', markersize=12, mfc='none')
+            line, = self.ax.plot(*markerpos, 'or', markersize=12, mfc='none')
             self.linemarkers[(i,j)] = line
         return
             

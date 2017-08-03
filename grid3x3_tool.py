@@ -9,6 +9,7 @@ Tool to plot on 9 graphes along 2 axes (2 conditions)
 
 import matplotlib.pyplot as plt
 import textwrap
+from matplotlib.widgets import MultiCursor
 
 class Grid3x3():
     
@@ -28,9 +29,11 @@ class Grid3x3():
         plt.figure(2, figsize=(16, 12)).clear()
         fig2, ax2 = plt.subplots(3, 3, sharex=True, sharey=True,
                                num=2)
-        
+                
         self.fig = fig2
         self.ax = ax2
+        self.multi2 = None  # used to save the multicursor afterwards
+        
         self.lineexp = {}
         self.linesim = {}
         self.legends2 = {}
@@ -62,14 +65,14 @@ class Grid3x3():
         if self.CaseSelector is not None:
             self.CaseSelector.update_markers(i, j, *markerpos)
         else:
-            print('Not case selector defined')
+            print('... Not case selector defined')
         return
     
     def plot_all_slabs(self, s, slabs):
         if self.MultiSlabPlot is not None:
             self.MultiSlabPlot.plot_all_slabs(s, slabs)
         else:
-            print('Not MultiSlabPlot defined')
+            print('... Not MultiSlabPlot defined')
         return
     
     def format_coord(self, x, y):
@@ -147,16 +150,16 @@ class Grid3x3():
     #        except KeyError:
     #            pass
     #    else:
-    
+
         self.update_markers(i, j, *markerpos)
-        
+
         if i == 2: axij.set_xlabel('Wavelength')
-        if j == 0: 
+        if j == 0:
             if xparam == 'mole_fraction':
                 axij.set_ylabel('{0} {1:.2g}'.format(xparam, fconfig[slbInteractx][xparam]))
             else:
                 axij.set_ylabel('{0} {1:.1f}'.format(xparam, fconfig[slbInteractx][xparam]))
-        if i == 0: 
+        if i == 0:
             if yparam == 'mole_fraction':
                 axij.set_title('{0} {1:.2g}'.format(yparam, fconfig[slbInteracty][yparam]), size=20)
             else:
@@ -166,6 +169,18 @@ class Grid3x3():
         if i == 1 and j == 1:
             self.plot_all_slabs(s, slabs)
         
+        
+    def add_multicursor(self):
+        ''' Add vertical bar (if not there already)'''
+    
+        if self.multi2 is None:
+            ax = self.ax 
+            multi2 = MultiCursor(self.fig.canvas, (*ax[0], *ax[1], *ax[2]), 
+                                 color='r', lw=1,
+                                alpha=0.2, horizOn=False, vertOn=True)
+            self.multi2 = multi2
+        else:
+            pass
         
     
     def plot_3times3(self, xspace, yspace): 
@@ -177,7 +192,7 @@ class Grid3x3():
         yparam = self.yparam 
         
         fig2 = self.fig
-    
+        
         config0 = {k:c.copy() for k, c in Slablist.items()}
         
         # dont calculate these when the figure is not shown (for performance)
@@ -209,6 +224,8 @@ class Grid3x3():
         fig2.tight_layout()
         fig2.subplots_adjust(top=0.93-0.02*len(msg))
         
+        self.add_multicursor()
+    
     #    plt.figure(2).canvas.show()
         fig2.canvas.show()
         plt.show()
