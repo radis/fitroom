@@ -124,8 +124,8 @@ class Grid3x3():
         w, I = s.get(plotquantity, xunit='nm', yunit=unit)
 
         # Get final values
-        ymarker = fconfig[slbInteractx][xparam]  # yes i flipped it -_-
-        xmarker = fconfig[slbInteracty][yparam]
+        xmarker = fconfig[slbInteractx][xparam]
+        ymarker = fconfig[slbInteracty][yparam]
     #    for _, config in enumerate(slabsconfig):
     #        if config is not slbInteract:
     #            continue
@@ -158,15 +158,15 @@ class Grid3x3():
 
         if i == 2: axij.set_xlabel('Wavelength')
         if j == 0:
-            if xparam == 'mole_fraction':
-                axij.set_ylabel('{0} {1:.2g}'.format(xparam, fconfig[slbInteractx][xparam]))
-            else:
-                axij.set_ylabel('{0} {1:.1f}'.format(xparam, fconfig[slbInteractx][xparam]))
-        if i == 0:
             if yparam == 'mole_fraction':
-                axij.set_title('{0} {1:.2g}'.format(yparam, fconfig[slbInteracty][yparam]), size=20)
+                axij.set_ylabel('{0} {1:.2g}'.format(yparam, fconfig[slbInteracty][yparam]))
             else:
-                axij.set_title('{0} {1:.1f}'.format(yparam, fconfig[slbInteracty][yparam]), size=20)
+                axij.set_ylabel('{0} {1:.1f}'.format(yparam, fconfig[slbInteracty][yparam]))
+        if i == 0:
+            if xparam == 'mole_fraction':
+                axij.set_title('{0} {1:.2g}'.format(xparam, fconfig[slbInteractx][xparam]), size=20)
+            else:
+                axij.set_title('{0} {1:.1f}'.format(xparam, fconfig[slbInteractx][xparam]), size=20)
         #TODO: add a set of all labels on line, instead (deals with different values per line)
 
         if i == 1 and j == 1:

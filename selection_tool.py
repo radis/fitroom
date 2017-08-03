@@ -25,8 +25,8 @@ from scipy.interpolate import griddata
 
 class CaseSelector():
 
-    def __init__(self, dbInteractx, dbInteracty, xparam, yparam, nfig=None,
-                 slbInteractx=None, slbInteracty=None, 
+    def __init__(self, dbInteractx, dbInteracty, xparam, yparam, 
+                 slbInteractx=None, slbInteracty=None, nfig=None,
                  solver=None, gridTool=None, slabsTool=None):
 
         # Init variables        
@@ -86,7 +86,7 @@ class CaseSelector():
             ax.plot(xx, yy, 'ok')
         # TODO: add units from spectrum here. (but maybe units arent the same for all database????)
         # load it up first and check? 
-        ax.set_xlabel('{0} {1}'.format(slbInteractx, xparam))   # flipped x y
+        ax.set_xlabel('{0} {1}'.format(slbInteractx, xparam))
         ax.set_ylabel('{0} {1}'.format(slbInteracty, yparam))
         
         return fig, ax
@@ -97,7 +97,7 @@ class CaseSelector():
             xcen = (xmin + xmax)/2
             ycen = (ymin + ymax)/2
             
-            self.gridTool.plot_3times3([ymin, ycen, ymax], [xmin, xcen, xmax])  # yes i flipped it -_-
+            self.gridTool.plot_3times3([xmin, xcen, xmax], [ymin, ycen, ymax])
         else:
             print('No gridTool defined')
         return
@@ -194,7 +194,6 @@ class CaseSelector():
         ax1 = self.ax
         fig1 = self.fig 
         
-    
         if dbInteractx == dbInteracty and False:
             ''' Doesnt work... fix later?
             I think it doesnt like the sorting
@@ -223,20 +222,20 @@ class CaseSelector():
     
                 print(xparam, xvari, yparam, yvarj, resij)
     
-                res.append(resij)  # yes flipped it
+                res.append(resij)
     
             res = array(res)
             # Create a 2D grid by interpolating database data
-            res = griddata((yspace, xspace), res, (yy, xx))   # yes flipped it
+            res = griddata((xspace, yspace), res, (xx, yy))
     
         else:
             # do a mapping of all possible cases
             xspace = array(sorted(set(dbInteractx.view()[xparam])))
             yspace = array(sorted(set(dbInteracty.view()[yparam])))
     
-            xx, yy = meshgrid(xspace, yspace)
+            xx, yy = meshgrid(xspace, yspace, indexing='ij')
     
-            res = empty_like(xx)
+            res = empty_like(yy)
     
             for i, xvari in enumerate(xspace):
                 for j, yvarj in enumerate(yspace):
@@ -252,9 +251,9 @@ class CaseSelector():
     
                     print(xparam, xvari, yparam, yvarj, resij)
     
-                    res[j][i] = resij  # yes flipped it
+                    res[i][j] = resij
     
-        cf = ax1.contourf(yy, xx, res, 40, cmap=plt.get_cmap('viridis_r'))  # flipped it
+        cf = ax1.contourf(xx, yy, res, 40, cmap=plt.get_cmap('viridis_r'))
         cbar = fig1.colorbar(cf)
         cbar.ax.set_ylabel('residual')
         plt.tight_layout()

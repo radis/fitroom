@@ -135,7 +135,7 @@ def config(**slabs):
 # Sensibility analysis
 
 slbInteractx = 'sPlasmaCO'
-xparam = 'Tvib'
+xparam = 'path_length'
 slbInteracty = 'sPlasmaCO'
 yparam = 'Trot'
 #slbInteract = slbPostCO
@@ -220,7 +220,7 @@ sBaseline = theoretical_spectrum(wbas, Ibas, wunit='nm', Iunit='mW/cm2/sr/nm')
 
 
 from tools import Normalizer
-norm_on = Normalizer(4173, 4180, how='mean')
+normalizer = Normalizer(4173, 4180, how='mean')
 
 # -----------------------------------------------------------------------------
 # NON USER PARAM PART
@@ -240,9 +240,9 @@ solver = SlabsConfigSolver(config=config,
                            slit=slit)
 
 gridTool = Grid3x3(slbInteractx=slbInteractx, slbInteracty=slbInteracty,
-                   xparam=xparam, yparam=yparam,
+                   xparam=xparam, yparam=yparam, 
                    plotquantity=plotquantity, unit=unit,
-                   normalize=False, normalizer=norm_on,
+                   normalize=False, normalizer=normalizer,
                    wexp=wexp, Iexpcalib=Iexpcalib, wexp_shift=wexp_shift,
                    SlabsConfigSolver=solver,
                    MultiSlabPlot=None,
@@ -250,15 +250,14 @@ gridTool = Grid3x3(slbInteractx=slbInteractx, slbInteracty=slbInteracty,
                    Slablist=Slablist)
 
 slabsTool = MultiSlabPlot(plotquantity=plotquantity, unit=unit,
-                          normalize=False, normalizer=norm_on,
+                          normalize=False, normalizer=normalizer,
                           wexp=wexp, Iexpcalib=Iexpcalib, wexp_shift=wexp_shift,
                           nfig=3, slit=slit)
 
-selectTool = CaseSelector(dbInteracty, dbInteractx, yparam, xparam, nfig=1,   # inverted!
-                          slbInteractx=slbInteractx, slbInteracty=slbInteracty,
+selectTool = CaseSelector(dbInteractx, dbInteracty, xparam, yparam, 
+                          slbInteractx=slbInteractx, slbInteracty=slbInteracty,  
+                          nfig=1,   
                           solver=solver, gridTool=gridTool, slabsTool=slabsTool)
-fig1 = selectTool.fig
-ax1 = selectTool.ax
 
 gridTool.CaseSelector = selectTool
 gridTool.MultiSlabPlot = slabsTool
@@ -276,6 +275,5 @@ gridTool.plot_3times3(xspace, yspace)
 
 
 # 2D mapping
-
 if precompute_residual:
     selectTool.precompute_residual(Slablist)
