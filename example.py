@@ -40,17 +40,20 @@ import textwrap
 from scipy.interpolate import griddata, splev, splrep
 from publib import set_style
 from neq.math.smooth import als_baseline
+from os.path import join
+
+from selection_tool import CaseSelector
 
 set_style('origin')
 
 # %% Load Database
 # -----------------------------------------------------------------------------
 
-#dbp = SpecDatabase('co2SpecDatabase')   # plasma
-#dbpco = SpecDatabase('CO_SpecDatabase_noneq1iso')   # plasma CO
-#db0 = SpecDatabase('co2SpecDatabase_eq')   # room
-#dbco = SpecDatabase('coSpecDatabase_eq')  # post discharge CO 
-#dbh = SpecDatabase(r'H2O_SpecDatabase_eq')   # room
+dbp = SpecDatabase('co2SpecDatabase')   # plasma
+dbpco = SpecDatabase('CO_SpecDatabase_noneq1iso')   # plasma CO
+db0 = SpecDatabase('co2SpecDatabase_eq')   # room
+dbco = SpecDatabase(r'coSpecDatabase_eq')  # post discharge CO 
+dbh = SpecDatabase(r'H2O_SpecDatabase_eq')   # room
 #
 ## Fix nans
 #for sp in dbpco.get():
@@ -252,7 +255,6 @@ def norm_on(w, a, wmin=4173, wmax=4180, how='mean'):
     if imin > imax:
         imin, imax = imax, imin
     return norm(a, normby=a[imin:imax], how=how)
-
 
 #Lroom = 100
 #nC02room = 400e-6
@@ -582,69 +584,6 @@ plot_3times3(xspace, yspace)
 # -------------------------------------
 
 
-from matplotlib.widgets import RectangleSelector
-
-def line_select_callback(eclick, erelease):
-    'eclick and erelease are the press and release events'
-    
-    try:
-        plt.ioff()
-        toggle_selector.RS.set_active(False)
-        
-        x1, y1 = eclick.xdata, eclick.ydata
-        x2, y2 = erelease.xdata, erelease.ydata
-        
-        xmin = min(x1, x2)
-        xmax = max(x1, x2)
-        ymin = min(y1, y2)
-        ymax = max(y1, y2)
-        xcen = (xmin + xmax)/2
-        ycen = (ymin + ymax)/2
-        
-        plot_3times3([ymin, ycen, ymax], [xmin, xcen, xmax])  # yes i flipped it -_-
-
-        # This is when the plots are updated:
-        # note: to increase perfs if windows is minimized we dont update it
-        # this mean it wont be updated once it is visible again, though.
-        try:  # works in Qt
-            updatefig = not fig2.canvas.manager.window.isMinimized()
-        except:
-            updatefig = True
-        if updatefig:
-            plt.figure(2).show()
-            plt.pause(0.1)  # make sure the figure is replotted
-        try:  # works in Qt
-            updatefig = not fig3.canvas.manager.window.isMinimized()
-        except:
-            updatefig = True
-        if updatefig:
-            plt.figure(3).show()
-            plt.pause(0.1)  # make sure the figure is replotted
-        toggle_selector.RS.set_active(True)
-        plt.ion()
-        
-    except:
-        import sys
-        print(sys.exc_info())
-        raise
-        
-def toggle_selector(event):
-    if event.key in ['Q', 'q'] and toggle_selector.RS.active:
-        print(' RectangleSelector deactivated.')
-        toggle_selector.RS.set_active(False)
-    if event.key in ['A', 'a'] and not toggle_selector.RS.active:
-        print(' RectangleSelector activated.')
-        toggle_selector.RS.set_active(True)
-
-
-toggle_selector.RS = RectangleSelector(ax1, line_select_callback,
-                                       drawtype='box', useblit=True,
-                                       button=[1], #, 3],  # left button
-                                       minspanx=5, minspany=5,
-                                       spancoords='pixels',
-                                       interactive=True)
-plt.connect('key_press_event', toggle_selector)
-
 
 multi2 = MultiCursor(fig2.canvas, (*ax2[0], *ax2[1], *ax2[2]), color='r', lw=1,
                     alpha=0.2, horizOn=False, vertOn=True)
@@ -729,6 +668,8 @@ if precompute_residual:
     plt.tight_layout()
 
 # %%
+
+c = CaseSelector(ax1=ax1, fig2=fig2, fig3=fig3, update_function=plot_3times3)
 
 # %%
 #
