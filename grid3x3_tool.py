@@ -65,14 +65,14 @@ class Grid3x3():
         if self.CaseSelector is not None:
             self.CaseSelector.update_markers(i, j, *markerpos)
         else:
-            print('... Not case selector defined')
+            print('... No case selector defined')
         return
     
     def plot_all_slabs(self, s, slabs):
         if self.MultiSlabPlot is not None:
             self.MultiSlabPlot.plot_all_slabs(s, slabs)
         else:
-            print('... Not MultiSlabPlot defined')
+            print('... No MultiSlabPlot defined')
         return
     
     def format_coord(self, x, y):
@@ -170,7 +170,7 @@ class Grid3x3():
             self.plot_all_slabs(s, slabs)
         
         
-    def add_multicursor(self):
+    def _add_multicursor(self):
         ''' Add vertical bar (if not there already)'''
     
         if self.multi2 is None:
@@ -224,7 +224,7 @@ class Grid3x3():
         fig2.tight_layout()
         fig2.subplots_adjust(top=0.93-0.02*len(msg))
         
-        self.add_multicursor()
+        self._add_multicursor()
     
     #    plt.figure(2).canvas.show()
         fig2.canvas.show()

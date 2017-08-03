@@ -175,6 +175,13 @@ if plotquantity == 'radiance':
     from neq import planck
     Ioldcalib = planck(wexp, 1500, eps=1, unit=unit)   # formerly calibrated with planck eps=1, T=1500K
     Iexpcalib = Iexp / Ioldcalib * Icalib   # ▓calibrated in absolute
+    
+    # ARBITRARY... based on Tungsten lamp being 20% strong than the other
+    # Todo. Check. Don't take for granted.
+    #if True:
+    ##    Iexpcalib /= 1.2
+    #    Iexpcalib /= 1
+    #    print('Warning. Tungsten 20% stronger hypothesis')
 
 
 elif plotquantity == 'transmittance':
@@ -199,8 +206,7 @@ elif plotquantity == 'transmittance':
 #    Iexpcalib = Iexp/Iexpref    
 #    
     # TODO: calibrer
-
-
+    
 # %% Get baseline
 
 from neq.spec import theoretical_spectrum
@@ -215,14 +221,22 @@ wbas = dbp.get()[0].get('radiance_noslit')[0]
 Ibas = splev(wbas, tck)
 sBaseline = theoretical_spectrum(wbas, Ibas, wunit='nm', Iunit='mW/cm2/sr/nm')
 
-# -----------------------------------------------------------------------------
-
-dbInteractx = Slablist[slbInteractx]['db']
-dbInteracty = Slablist[slbInteracty]['db']
-
 
 from tools import Normalizer
 norm_on = Normalizer(4173, 4180, how='mean')
+
+# -----------------------------------------------------------------------------
+# NON USER PARAM PART 
+# -----------------------------------------------------------------------------
+
+
+import warnings
+warnings.filterwarnings("ignore", "Using default event loop until function specific"+\
+                        "to this GUI is implemented")
+
+
+dbInteractx = Slablist[slbInteractx]['db']
+dbInteracty = Slablist[slbInteracty]['db']
 
 #Lroom = 100
 #nC02room = 400e-6
@@ -317,96 +331,20 @@ gridTool = Grid3x3(calc_slabs=calc_slabs,
 fig2 = gridTool.fig
 ax2 = gridTool.ax
     
-# Generate Figure 3 layout
-plt.figure(3, figsize=(12,8)).clear()
-fig3, ax3 = plt.subplots(3, 1, num=3, sharex=True)
-line3up = {}
-line3cent = {}
-line3down = {}
-plt.tight_layout()
+slabsTool = MultiSlabPlot(plotquantity=plotquantity, unit=unit,
+                          normalize=False, normalizer=norm_on,
+                          wexp=wexp, Iexpcalib=Iexpcalib, wexp_shift=wexp_shift,
+                          nfig=3, slit=slit)
 
 selectTool = CaseSelector(dbInteracty, dbInteractx, yparam, xparam, nfig=1,   # inverted!
                           slbInteractx=slbInteractx, slbInteracty=slbInteracty, 
-                          fig3=fig3, gridTool=gridTool)
+                          gridTool=gridTool, slabsTool=slabsTool)
 fig1 = selectTool.fig
 ax1 = selectTool.ax
 
 gridTool.CaseSelector = selectTool
+gridTool.MultiSlabPlot = slabsTool
 
-
-
-
-##    s0 = db0.get(path_length=Lroom, Tgas=Troom)[0] 
-#    s0 = db0.get_closest(path_length=Lroom, Tgas=Troom, mole_fraction=1, verbose=verbose)
-#    s1 = db0.get_closest(path_length=Lroom1, Tgas=Troom1, verbose=verbose)
-#    s2 = db0.get_closest(path_length=Lroom2, Tgas=Troom2, mole_fraction=408e-6, verbose=verbose)
-#    sCO = dbco.get_closest(path_length=6, Tgas=TgasCO, mole_fraction=0.03, verbose=verbose)
-#    sH2O = dbh.get_closest(path_length=373, Tgas=300, mole_fraction=0.02, verbose=verbose)
-    
-
-# ARBITRARY... based on Tungsten lamp being 20% strong than the other
-# Todo. Check. Don't take for granted.
-#if True:
-##    Iexpcalib /= 1.2
-#    Iexpcalib /= 1
-#    print('Warning. Tungsten 20% stronger hypothesis')
-
-def plot_all_slabs(s, slabs):
-    
-    # Central axe: model vs experiment
-    w, I = s.get(plotquantity)
-    ydata = norm_on(w, I) if normalize else I
-    try:
-        line3cent[1].set_data(w, ydata)
-#        line3cent[1].set_data(*s.get('radiance'))
-    except KeyError:
-        line3cent[1] = ax3[1].plot(w, ydata, color='r', lw=1, 
-                 label='Model')[0]
-        ax3[1].set_ylabel(s.units[plotquantity])
-        
-    ydata = norm_on(wexp, Iexpcalib) if normalize else Iexpcalib
-    try:        
-        line3cent[0].set_data(wexp+wexp_shift, ydata)
-    except KeyError:
-        line3cent[0] = ax3[1].plot(wexp+wexp_shift, ydata,'-k', lw=1, zorder=-1, 
-                 label='Experiment')[0]
-        ax3[1].legend()
-        
-    def colorserie():
-        i = 0
-        colorlist = ['r', 'b', 'g', 'y', 'k', 'm']
-        while True:
-            yield colorlist[i%len(colorlist)]
-            i += 1
-            
-    # Upper axe: emission   &    lower axe: transmittance
-    try:
-        colors = colorserie()
-        for i, (name, s) in enumerate(slabs.items()):
-            s.apply_slit(slit)
-            color = next(colors)
-            line3up[i].set_data(*s.get('radiance'))
-            line3down[i].set_data(*s.get('transmittance'))
-    except KeyError:  # first time: init lines
-        colors = colorserie()
-        for i, (name, si) in enumerate(slabs.items()):
-            si.apply_slit(slit)
-            color = next(colors)
-            line3up[i] = ax3[0].plot(*si.get('radiance'), color=color, lw=2, 
-                   label=name)[0]
-            line3down[i] = ax3[2].plot(*si.get('transmittance'), color=color, lw=2, 
-                     label=name)[0]
-        if not normalize: 
-            ax3[2].set_ylim((-0.008, 0.179)) # Todo: remove that 
-        ax3[2].set_ylim((0,1))
-        ax3[0].legend()
-        ax3[2].legend()
-        ax3[0].xaxis.label.set_visible(False)
-        ax3[1].xaxis.label.set_visible(False)
-        ax3[2].set_xlabel(s.wavespace())
-        ax3[0].set_ylabel(si.units['radiance'])
-        ax3[2].set_ylabel(si.units['transmittance'])
-        fig3.tight_layout()
 
 # Map x, y
 # -----------
@@ -418,15 +356,6 @@ yspace = linspace(yvar*(1-ystep), yvar*(1+ystep), 3)
 
 gridTool.plot_3times3(xspace, yspace)
 
-# Database inspect
-# -------------------------------------
-
-
-multi3 = MultiCursor(fig3.canvas, (ax3[0], ax3[1], ax3[2]), color='r', lw=1,
-                    alpha=0.2, horizOn=False, vertOn=True)
-#plt.figure(2)
-#plt.xlim((4455.5123188889647, 4559.3683455836699))
-#plt.ylim(ymin=0)
 
 # %% 2D mapping
 
@@ -502,33 +431,3 @@ if precompute_residual:
     plt.tight_layout()
 
 
-# %%
-#
-#slit = params['slit']
-#
-#
-#plt.figure(10).clear()
-#
-#plt.plot(wexp+1, Iexpcalib/Iexpcalib.max()*0.01, 'k')
-#s.plot('radiance', nfig=10, c='b')
-#
-#sco = dbco.get('mole_fraction == 0.01 & Tgas == 350')
-#assert(len(sco)==1)
-#sco = sco[0]
-
-#
-#st = ETR(s, sco)
-#st.apply_slit(slit)
-#st.plot('radiance', nfig=10, c='r')
-#
-
-#sco.apply_slit(slit)
-#sco.plot('radiance', nfig=10, c='b')
-
-
-
-
-
-
-
-# %% -----

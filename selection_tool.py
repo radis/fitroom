@@ -26,14 +26,13 @@ class CaseSelector():
 
     def __init__(self, dbInteractx, dbInteracty, xparam, yparam, nfig=None,
                  slbInteractx=None, slbInteracty=None, 
-                 fig3=None, gridTool=None):
+                 gridTool=None, slabsTool=None):
 
-        # Init variables
-        self.fig3 = fig3
-        
+        # Init variables        
         self.linemarkers = {}
 
         self.gridTool = gridTool
+        self.slabsTool = slabsTool
 
         self.slbInteractx=slbInteractx
         self.slbInteracty=slbInteracty
@@ -93,11 +92,16 @@ class CaseSelector():
     def line_select_callback(self, eclick, erelease):
         'eclick and erelease are the press and release events'
 
+        if self.slabsTool is None:
+            print('No slabsTool defined. Aborting')
+            return 
+        
         if self.gridTool is None:
             print('No gridTool defined. Aborting')
             return 
         
-        fig3 = self.fig3
+        
+        fig3 = self.slabsTool.fig
         fig2 = self.gridTool.fig
 
         try:
