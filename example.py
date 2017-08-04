@@ -243,7 +243,7 @@ if __name__ == '__main__':
                             "to this GUI is implemented")
     
     
-    solver = SlabsConfigSolver(config=config, 
+    solver = SlabsConfigSolver(config=config, mode='database',
                                wexp=wexp, Iexpcalib=Iexpcalib, wexp_shift=wexp_shift,
                                plotquantity=plotquantity, unit=unit,
                                slit=slit)
