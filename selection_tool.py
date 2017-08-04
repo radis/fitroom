@@ -166,11 +166,12 @@ class CaseSelector():
 
     def update_markers(self, i, j, *markerpos):
         
+        x, y= markerpos
         try:
             self.linemarkers[(i,j)].set_visible(True)
-            self.linemarkers[(i,j)].set_data(*markerpos)
+            self.linemarkers[(i,j)].set_data(x, y)
         except KeyError:
-            line, = self.ax.plot(*markerpos, 'or', markersize=12, mfc='none')
+            line, = self.ax.plot(x, y, 'or', markersize=12, mfc='none')
             self.linemarkers[(i,j)] = line
         return
             

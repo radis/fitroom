@@ -178,7 +178,13 @@ class Grid3x3():
 
         if self.multi2 is None:
             ax = self.ax
-            multi2 = MultiCursor(self.fig.canvas, (*ax[0], *ax[1], *ax[2]),
+#            multi2 = MultiCursor(self.fig.canvas, (*ax[0], *ax[1], *ax[2]),
+#                                 color='r', lw=1,
+#                                alpha=0.2, horizOn=False, vertOn=True)
+           # Python 2 compatible (but ugly haha switch to Python3 now!)
+            multi2 = MultiCursor(self.fig.canvas, (ax[0][0], ax[0][1], ax[0][2],
+                                                   ax[1][0], ax[1][1], ax[1][2],
+                                                   ax[2][0], ax[2][1], ax[2][2]),
                                  color='r', lw=1,
                                 alpha=0.2, horizOn=False, vertOn=True)
             self.multi2 = multi2
