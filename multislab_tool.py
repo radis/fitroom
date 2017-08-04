@@ -19,7 +19,7 @@ class MultiSlabPlot():
     
     def __init__(self, 
                  plotquantity='radiance', unit= 'mW/cm2/sr/nm', 
-                 normalize=False, normalizer=None,
+                 normalizer=None,
                  wexp=None, Iexpcalib=None, wexp_shift=0,
                  nfig=None,
                  slit=None,  # add in a ExperimentConditions class?
@@ -35,7 +35,7 @@ class MultiSlabPlot():
         
         self.plotquantity = plotquantity
         self.unit = unit
-        self.normalize = normalize 
+        self.normalize = normalizer is not None
         self.normalizer = normalizer
         
         self.wexp = wexp

@@ -16,7 +16,7 @@ class Grid3x3():
     def __init__(self, slbInteractx=None, slbInteracty=None,
                  xparam='', yparam='',
                  plotquantity='radiance', unit= 'mW/cm2/sr/nm',
-                 normalize=False, normalizer=None,
+                 normalizer=None,
                  wexp=None, Iexpcalib=None, wexp_shift=0,
                  # Other tools
                  SlabsConfigSolver=None,
@@ -46,7 +46,7 @@ class Grid3x3():
 
         self.plotquantity = plotquantity
         self.unit = unit
-        self.normalize = normalize
+        self.normalize = normalizer is not None
         self.normalizer = normalizer
 
         self.wexp = wexp
