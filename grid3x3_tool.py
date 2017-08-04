@@ -71,16 +71,26 @@ class Grid3x3():
         if self.MultiSlabPlot is not None:
             self.MultiSlabPlot.plot_all_slabs(s, slabs)
         else:
-            print('... No MultiSlabPlot defined')
+            print('log ... No MultiSlabPlot defined')
         return
 
     def format_coord(self, x, y):
         return 'x = {0:.2f} nm, y = {1:.4f} {2}  '.format(x, y, self.unit)
 
-    def plot_case(self, i, j, **slabsconfig):
+    def plot_case(self, j, i, **slabsconfig):
+        ''' notice j, i and not i, j 
+        i is y, j is x? or the other way round. It's always complicated
+        with indexes anyway... (y goes up but j goes down) you see what i mean
+        it works with this anyway '''
 
         if self.SlabsConfigSolver is None:
             raise ValueError('No SlabsConfigSolver defined')
+            
+            
+#        print('dEBUG')
+#        print(i,j)
+#        print(slabsconfig)
+#        print('')
 
         ax2 = self.ax
         lineexp = self.lineexp
@@ -210,8 +220,8 @@ class Grid3x3():
         except:
             updateSideAxes = True
 
-        for i, xvari in enumerate(xspace[::-1]):
-            for j, yvarj in enumerate(yspace):
+        for i, xvari in enumerate(xspace):
+            for j, yvarj in enumerate(yspace[::-1]):
                 if not (i==1 and j==1) and not updateSideAxes: continue
                 config0[slbInteractx][xparam] = xvari
                 config0[slbInteracty][yparam] = yvarj
@@ -225,7 +235,8 @@ class Grid3x3():
         for k, cfgi in config0.items():
             msg += k+' - '
             msg += ' '.join(
-                ['{0}:{1:.3g}'.format(k,v) for (k,v) in cfgi.items() if not k in ['db']])
+                ['{0}:{1:.3g}'.format(k,v) for (k,v) in cfgi.items() 
+                if not k in ['db','factory']])
             msg += ' || '
         msg = msg[:-4]
         msg = textwrap.wrap(msg, width=200)

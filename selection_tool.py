@@ -141,24 +141,20 @@ class CaseSelector():
             
             self.gridTool.plot_3times3([xmin, xcen, xmax], [ymin, ycen, ymax])
         else:
-            print('No gridTool defined')
+            print('log ... No gridTool defined')
         return
 
     def line_select_callback(self, eclick, erelease):
         'eclick and erelease are the press and release events'
 
-        if self.slabsTool is None:
-            print('No slabsTool defined. Aborting')
-            return 
+#        if self.slabsTool is None:
+#            print('No slabsTool defined. Aborting')
+#            return 
         
-        if self.gridTool is None:
-            print('No gridTool defined. Aborting')
-            return 
+#        if self.gridTool is None:
+#            print('No gridTool defined. Aborting')
+#            return 
         
-        
-        fig3 = self.slabsTool.fig
-        fig2 = self.gridTool.fig
-
         try:
             plt.ioff()
             self.RS.set_active(False)
@@ -176,20 +172,36 @@ class CaseSelector():
             # This is when the plots are updated:
             # note: to increase perfs if windows is minimized we dont update it
             # this mean it wont be updated once it is visible again, though.
-            try:  # works in Qt
-                updatefig = not fig2.canvas.manager.window.isMinimized()
-            except:
-                updatefig = True
-            if updatefig:
-                plt.figure(2).show()
-                plt.pause(0.1)  # make sure the figure is replotted
-            try:  # works in Qt
-                updatefig = not fig3.canvas.manager.window.isMinimized()
-            except:
-                updatefig = True
-            if updatefig:
-                plt.figure(3).show()
-                plt.pause(0.1)  # make sure the figure is replotted
+            
+            # Update GridTool
+            if self.gridTool is not None:
+                fig2 = self.gridTool.fig
+                try:  # works in Qt
+                    updatefig = not fig2.canvas.manager.window.isMinimized()
+                except:
+                    updatefig = True
+                if updatefig:
+                    plt.figure(2).show()
+                    plt.pause(0.1)  # make sure the figure is replotted
+#            else:
+#                print('Log: no gridtool')
+                
+            # Update SlabsTool
+            if self.slabsTool is not None:
+                fig3 = self.slabsTool.fig
+                try:  # works in Qt
+                    updatefig = not fig3.canvas.manager.window.isMinimized()
+                except:
+                    updatefig = True
+                if updatefig:
+                    plt.figure(3).show()
+                    plt.pause(0.1)  # make sure the figure is replotted
+                    
+#            else:
+#                print('Log: no slabstool')
+                    
+                
+                
             self.RS.set_active(True)
             plt.ion()
 
