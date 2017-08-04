@@ -20,14 +20,16 @@ interface
 
 import matplotlib.pyplot as plt
 from matplotlib.widgets import RectangleSelector
-from numpy import array, meshgrid, empty_like
+from numpy import array, meshgrid, empty_like, linspace
 from scipy.interpolate import griddata
 
 class CaseSelector():
 
-    def __init__(self, dbInteractx, dbInteracty, xparam, yparam, 
+    def __init__(self, dbInteractx=None, dbInteracty=None, xparam='', yparam='',
                  slbInteractx=None, slbInteracty=None, nfig=None,
-                 solver=None, gridTool=None, slabsTool=None):
+                 solver=None, gridTool=None, slabsTool=None,
+                 xmin=0, xmax=0, ymin=0, ymax=0):
+
 
         # Init variables        
         self.linemarkers = {}
@@ -38,14 +40,28 @@ class CaseSelector():
 
         self.dbInteractx = dbInteractx
         self.dbInteracty = dbInteracty
+#        self.factoryx = factoryx
+#        self.factoryy = factoryy
         self.slbInteractx = slbInteractx
         self.slbInteracty = slbInteracty
         self.xparam = xparam
         self.yparam = yparam
         self.nfig = nfig
         
+        if dbInteractx is not None and dbInteracty is not None:
+            self.mode = 'database'
+        else:
+            self.mode = 'calculate'
+#            assert(factoryx is not None and factoryy is not None)
+#            assert(x0=0, y0=0, xstep=0, ystep=0)
+        
         # Init figure
-        fig, ax = self._plot_params()
+        if self.mode == 'database':
+            fig, ax = self._plot_db_params()
+        else:
+            fig, ax = self._plot_calc_range(xmin, xmax, ymin, ymax)
+            
+            
         self.ax = ax
         self.fig = fig
 
@@ -58,7 +74,33 @@ class CaseSelector():
                                            interactive=True)
         plt.connect('key_press_event', self.toggle_selector)
 
-    def _plot_params(self): 
+    def _plot_calc_range(self, xmin, xmax, ymin, ymax):
+
+        # Get inputs
+        slbInteractx = self.slbInteractx
+        slbInteracty = self.slbInteracty
+        xparam = self.xparam
+        yparam = self.yparam
+        nfig = self.nfig 
+        
+        # Plot 
+        plt.figure(nfig).clear()
+        
+        # Plot
+        fig, ax = plt.subplots(num=nfig)
+
+        # TODO: add units from spectrum here. (but maybe units arent the same for all database????)
+        # load it up first and check? 
+        ax.set_xlabel('{0} {1}'.format(slbInteractx, xparam))
+        ax.set_ylabel('{0} {1}'.format(slbInteracty, yparam))
+        
+        ax.set_xlim((xmin, xmax))
+        ax.set_ylim((ymin, ymax))
+        
+        return fig, ax
+
+
+    def _plot_db_params(self): 
         ''' Plot database '''
         
         # Get inputs

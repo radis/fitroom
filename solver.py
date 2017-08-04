@@ -18,7 +18,7 @@ class SlabsConfigSolver():
     get the correct slab input, then calls the appropriate functions in neq.spec engine
     '''
 
-    def __init__(self, config,
+    def __init__(self, config, mode=None,
                  wexp=None, Iexpcalib=None, wexp_shift=0,
                  plotquantity='radiance', unit='mW/cm2/sr/nm',
                  slit=None,
@@ -37,6 +37,9 @@ class SlabsConfigSolver():
         self.slit = slit
 
         self.verbose = verbose
+        
+        
+        self.mode = mode
 
     def get_residual(self, s, norm='not_implemented'):
         ''' Different between experimental and simulated spectra
@@ -97,14 +100,26 @@ class SlabsConfigSolver():
 
         for slabname, slabcfg in slabsconfig.items():
             cfg = slabcfg.copy()
-            dbi = cfg.pop('db')
-    #        cfg['verbose'] = verbose
-
-            si = dbi.get_closest(scale_if_possible=True, verbose=verbose, **cfg)
-    #        try:
-    #            del slabcfg['verbose']
-    #        except KeyError:
-    #            pass
+            
+            
+            if self.mode == 'database':
+            
+                dbi = cfg.pop('db')
+        #        cfg['verbose'] = verbose
+    
+                si = dbi.get_closest(scale_if_possible=True, verbose=verbose, **cfg)
+        #        try:
+        #            del slabcfg['verbose']
+        #        except KeyError:
+        #            pass
+    
+            elif self.mode == 'calculate':
+                
+                sfi = cfg.pop('factory')
+                si = sfi.eq_spectrum(**cfg)
+                
+            else:
+                raise ValueError('Unknown mode: {0}'.format(self.mode))
 
             fcondsi = {}
             for k in cfg:
@@ -116,3 +131,5 @@ class SlabsConfigSolver():
         s.apply_slit(slit, norm_by='area', shape='triangular')
 
         return s, slabs, fconds
+
+
