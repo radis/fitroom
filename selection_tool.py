@@ -275,8 +275,6 @@ class CaseSelector():
     
                 resij = get_residual(s)
     
-                print(xparam, xvari, yparam, yvarj, resij)
-    
                 res.append(resij)
     
             res = array(res)
@@ -303,8 +301,6 @@ class CaseSelector():
                     s, slabs, fconfig = calc_slabs(**config0)
     
                     resij = get_residual(s)
-    
-                    print(xparam, xvari, yparam, yvarj, resij)
     
                     res[i][j] = resij
     

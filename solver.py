@@ -64,19 +64,23 @@ class SlabsConfigSolver():
         b = np.argsort(wexp)
         wsort, Isort = wexp[b], Iexpcalib[b]
 
-
         w, I = s.get(plotquantity, xunit='nm', yunit=unit)
-        w, I = w[::-1], I[::-1]
+        
+        # crop to overlapping range
+        b = (wsort>w.min()) & (wsort<w.max())
+        wsort, Isort = wsort[b], Isort[b]
+        b = (w>wsort.min()) & (w<wsort.max())
+        w, I= w[b], I[b]
+        
+        if w[0]>w[-1]:
+            w, I = w[::-1], I[::-1]
 
         tck = splrep(w, I)
-
         Iint = splev(wsort, tck)
 
     #    error = np.sqrt(np.trapz(np.abs((Iint-Isort)/(Iint+Isort)), x=wsort).sum())
         error = np.sqrt(np.trapz(np.abs(Iint-Isort), x=wsort).sum())
-    #    error = np.sqrt(((Ixp-I)**2).sum())
-
-
+        
         return error
 
 
