@@ -21,7 +21,7 @@ class SlabsConfigSolver():
     def __init__(self, config, mode=None,
                  wexp=None, Iexpcalib=None, wexp_shift=0,
                  plotquantity='radiance', unit='mW/cm2/sr/nm',
-                 slit=None,
+                 slit=None, slit_options={'norm_by':'area', 'shape':'triangular'},
                  verbose=True):
 
 #        self.dbInteractx = dbInteractx
@@ -35,6 +35,7 @@ class SlabsConfigSolver():
         self.plotquantity = plotquantity
         self.unit = unit
         self.slit = slit
+        self.slit_options = slit_options
 
         self.verbose = verbose
         
@@ -132,7 +133,7 @@ class SlabsConfigSolver():
             fconds[slabname] = fcondsi
 
         s = config(**slabs)
-        s.apply_slit(slit, norm_by='area', shape='triangular')
+        s.apply_slit(slit, **self.slit_options)
 
         return s, slabs, fconds
 
