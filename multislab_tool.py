@@ -23,7 +23,8 @@ class MultiSlabPlot():
                  wexp=None, Iexpcalib=None, wexp_shift=0,
                  nfig=None,
                  slit=None,  # add in a ExperimentConditions class?
-                 slit_options={'norm_by':'area', 'shape':'triangular'},
+                 slit_options={'norm_by':'area', 'shape':'triangular',
+                               'slit_unit':'nm'},
                  ):
         
         # Init variables
