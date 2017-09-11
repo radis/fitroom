@@ -86,12 +86,6 @@ class Grid3x3():
         if self.SlabsConfigSolver is None:
             raise ValueError('No SlabsConfigSolver defined')
             
-            
-#        print('dEBUG')
-#        print(i,j)
-#        print(slabsconfig)
-#        print('')
-
         ax2 = self.ax
         lineexp = self.lineexp
         linesim = self.linesim
@@ -114,11 +108,8 @@ class Grid3x3():
         calc_slabs = self.SlabsConfigSolver.calc_slabs
         get_residual = self.SlabsConfigSolver.get_residual
 
-
         axij = ax2[i][j]
         axij.format_coord = self.format_coord
-
-    #        fexp = r"12_StepAndGlue_30us_Cathode_0us_stacked.txt"
 
         ydata = norm_on(wexp, Iexpcalib) if normalize else Iexpcalib
         try:
@@ -132,22 +123,14 @@ class Grid3x3():
         res = get_residual(s)
 
         w, I = s.get(plotquantity, xunit='nm', yunit=unit)
-
+        
         # Get final values
         xmarker = fconfig[slbInteractx][xparam]
         ymarker = fconfig[slbInteracty][yparam]
-    #    for _, config in enumerate(slabsconfig):
-    #        if config is not slbInteract:
-    #            continue
-    #        else:
-    #            for k in config:
-    #                if xparam == k:
-    #                    ymarker = fconfig[k]
-    #                elif yparam == k:
-    #                    xmarker = fconfig[k]
         markerpos = (xmarker, ymarker)
 
         ydata = norm_on(w, I) if normalize else I
+        
         try:
             linesim[(i,j)].set_data(w, ydata)
             legends2[(i,j)].texts[0].set_text('res: {0:.3g}'.format(res))
@@ -156,14 +139,7 @@ class Grid3x3():
             linesim[(i,j)] = line
             legends2[(i,j)] = axij.legend((line,), ('res: {0:.3g}'.format(res), ),
                     loc='upper left', prop={'size':10})
-    #
-    #    if markerpos == (None, None):
-    #        try:
-    #            linemarkers[(i,j)].set_visible(False)
-    #        except KeyError:
-    #            pass
-    #    else:
-
+            
         self.update_markers(i, j, *markerpos)
 
         if i == 2: axij.set_xlabel('Wavelength')
@@ -191,7 +167,7 @@ class Grid3x3():
 #            multi2 = MultiCursor(self.fig.canvas, (*ax[0], *ax[1], *ax[2]),
 #                                 color='r', lw=1,
 #                                alpha=0.2, horizOn=False, vertOn=True)
-           # Python 2 compatible (but ugly haha switch to Python3 now!)
+           # Python 2 compatible (but ugly... switch to Python3 now!)
             multi2 = MultiCursor(self.fig.canvas, (ax[0][0], ax[0][1], ax[0][2],
                                                    ax[1][0], ax[1][1], ax[1][2],
                                                    ax[2][0], ax[2][1], ax[2][2]),
@@ -226,7 +202,6 @@ class Grid3x3():
                 config0[slbInteractx][xparam] = xvari
                 config0[slbInteracty][yparam] = yvarj
                 self.plot_case(i, j, **config0)
-    #    plt.figure(1).canvas.show()
 
         # Plot title with all slabs conditions
         del config0[slbInteractx][xparam]      # dont print variable parameter
