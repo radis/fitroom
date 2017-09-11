@@ -23,6 +23,7 @@ class MultiSlabPlot():
                  wexp=None, Iexpcalib=None, wexp_shift=0,
                  nfig=None,
                  slit=None,  # add in a ExperimentConditions class?
+                 slit_options={'norm_by':'area', 'shape':'triangular'},
                  ):
         
         # Init variables
@@ -43,6 +44,7 @@ class MultiSlabPlot():
         self.wexp_shift = wexp_shift
         
         self.slit = slit
+        self.slit_options = slit_options
         
     
     def _init_plot(self, nfig=None):
@@ -75,6 +77,7 @@ class MultiSlabPlot():
         wexp_shift = self.wexp_shift
         
         slit = self.slit
+        slit_options = self.slit_options
         
         
         # Central axe: model vs experiment
@@ -107,14 +110,14 @@ class MultiSlabPlot():
         try:
             colors = colorserie()
             for i, (name, s) in enumerate(slabs.items()):
-                s.apply_slit(slit)
+                s.apply_slit(slit, **slit_options)
                 color = next(colors)
                 line3up[i].set_data(*s.get('radiance'))
                 line3down[i].set_data(*s.get('transmittance'))
         except KeyError:  # first time: init lines
             colors = colorserie()
             for i, (name, si) in enumerate(slabs.items()):
-                si.apply_slit(slit)
+                si.apply_slit(slit, **slit_options)
                 color = next(colors)
                 line3up[i] = ax3[0].plot(*si.get('radiance'), color=color, lw=2, 
                        label=name)[0]
