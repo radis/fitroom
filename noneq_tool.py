@@ -20,8 +20,10 @@ class Overpopulator():
         Input
         ------
         
-        action:
-            action to perform when a change is made on the Overpopulation selector
+        slab:
+            slab to connect to. Must be a slab calculated with from_band source 
+            mode
+            
         '''
         
         self.fitroom = None
@@ -43,21 +45,32 @@ class Overpopulator():
         
         bandlist = slab['bandlist']
         self.bandlist = bandlist
-        bands = bandlist.bands.keys()
+        bands = bandlist.bands_ref.keys()
         E_bands = bandlist.E_bands
+        
+        # initial overpopulation distribution
+        if 'overpopulation' in slab:
+            overpopulation=slab['overpopulation']
+        else:
+            overpopulation = None
         
         #axes_bands = {}
         #slider_bands = {}
         circles = {}
         for i, br in enumerate(bands):
             xcoord = cm2eV(E_bands[br])
+            try:
+                ycoord = overpopulation[br]
+            except:
+                ycoord = 1
+            
         #    axband = plt.axes([xcoord, 0.25, 0.03, 0.5])
             print(br, xcoord, 'eV')
         #    axes_bands[br] = axband
         #    slider_bands[br] = Slider(axband, br, 0, 5, valinit=overpopulation[br])
             
         #    circles[br] = patches.Circle((xcoord, 1), 0.01, fc='k', alpha=0.7)
-            circles[br] = patches.Ellipse((xcoord, 1), 0.03, 4.5*0.03, fc='k', alpha=0.7)
+            circles[br] = patches.Ellipse((xcoord, ycoord), 0.03, 4.5*0.03, fc='k', alpha=0.7)
         #    circles[br],  = plt.plot(xcoord, 1, 'ok')
         
         self.circles = circles

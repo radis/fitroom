@@ -134,16 +134,29 @@ class CaseSelector():
         return fig, ax
 
     def update_action(self, xmin, xmax, ymin, ymax):
-        if self.fitroom.gridTool is not None:
+
+        xcen = (xmin + xmax)/2
+        ycen = (ymin + ymax)/2
+        
+        self.update_target_config(xcen, ycen)
             
-            xcen = (xmin + xmax)/2
-            ycen = (ymin + ymax)/2
+        self.fitroom.update([xmin, xcen, xmax], [ymin, ycen, ymax])
             
-            self.fitroom.update([xmin, xcen, xmax], [ymin, ycen, ymax])
-            
-        else:
-            print('log ... No gridTool defined')
         return
+    
+    def update_target_config(self, xcen, ycen):
+        
+        slbInteractx = self.slbInteractx
+        slbInteracty = self.slbInteracty
+        xparam = self.xparam
+        yparam = self.yparam
+
+        # update center
+        Slablist = self.fitroom.Slablist
+        Slablist[slbInteractx][xparam] = xcen
+        Slablist[slbInteracty][yparam] = ycen
+        
+        return 
 
     def line_select_callback(self, eclick, erelease):
         'eclick and erelease are the press and release events'

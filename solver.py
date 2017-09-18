@@ -51,6 +51,7 @@ class SlabsConfigSolver():
 
         self.verbose = verbose
 
+        self.save_rescaled_bands = False  # not a public option, but can be changed manually
 
         self.source = source
 
@@ -173,7 +174,9 @@ class SlabsConfigSolver():
                     del cfg['db']
 
                 sfi = cfg.pop('bandlist')
+                cfg['save_rescaled_bands'] = self.save_rescaled_bands
                 si = sfi.non_eq_spectrum(**cfg)
+                del cfg['save_rescaled_bands']
 
             else:
                 raise ValueError('Unknown source mode: {0}'.format(self.source)+\

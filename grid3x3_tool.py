@@ -186,18 +186,21 @@ class Grid3x3():
         if yspace is None:
             yspace = self.yspace # use last ones
         
-        # update defaults
-        self.xspace = xspace
-        self.yspace = yspace
-
-        fig2 = self.fig
-
-        config0 = self.fitroom.get_config()
-
         slbInteractx = self.slbInteractx
         slbInteracty = self.slbInteracty
         xparam = self.xparam
         yparam = self.yparam
+
+        # update defaults
+        self.xspace = xspace
+        self.yspace = yspace
+        
+        # update center
+        self.fitroom.Slablist[slbInteractx][xparam] = xspace[1]
+        self.fitroom.Slablist[slbInteracty][yparam] = yspace[1]
+        
+        fig2 = self.fig
+        config0 = self.fitroom.get_config()   # create a copy 
 
         # dont calculate these when the figure is not shown (for performance)
         try:  # works in Qt
