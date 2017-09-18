@@ -25,8 +25,6 @@ interface
 
 """
 
-#DEBUG. TEST CASE increase mole_fraction then decrease
-
 from neq.spec.database import SpecDatabase
 from neq.spec.calc import MergeSlabs, SerialSlabs
 import numpy as np
@@ -40,12 +38,18 @@ try:
     from neq.math.fitroom import Grid3x3
     from neq.math.fitroom import MultiSlabPlot
     from neq.math.fitroom import SlabsConfigSolver
+    from neq.math.fitroom import Overpopulator
+    from neq.math.fitroom import FitRoom
 except:
     from .selection_tool import CaseSelector
     from .grid3x3_tool import Grid3x3
     from .multislab_tool import MultiSlabPlot
     from .solver import SlabsConfigSolver
+    from .noneq_tool import Overpopulator
+    from .room import FitRoom
     
+from neq.spec import SpectrumFactory
+from neq.spec.bands import BandList
     
 if __name__ == '__main__':
     
@@ -54,35 +58,52 @@ if __name__ == '__main__':
     # %% Load Database
     # -----------------------------------------------------------------------------
     
-    dbp = SpecDatabase('co2SpecDatabase')   # plasma
-    dbpco = SpecDatabase('CO_SpecDatabase_noneq1iso')   # plasma CO
-    db0 = SpecDatabase('co2SpecDatabase_eq')   # room
-    dbco = SpecDatabase(r'coSpecDatabase_eq')  # post discharge CO
-    dbh = SpecDatabase(r'H2O_SpecDatabase_eq')   # room
-    #
-    ## Fix nans
-    #for sp in dbpco.get():
-    #    w, I = sp['radiance_noslit']
-    #    I[np.isnan(I)] = 0
-    #    sp['radiance_noslit'] = w, I
+#    dbp = SpecDatabase('co2SpecDatabase')   # plasma
+#    dbpco = SpecDatabase('CO_SpecDatabase_noneq1iso')   # plasma CO
+#    db0 = SpecDatabase('co2SpecDatabase_eq')   # room
+#    dbco = SpecDatabase(r'coSpecDatabase_eq')  # post discharge CO
+#    dbh = SpecDatabase(r'H2O_SpecDatabase_eq')   # room
+##    
+#    # Fix nans
+#    for sp in dbpco.get():
+#        w, I = sp['radiance_noslit']
+#        I[np.isnan(I)] = 0
+#        sp['radiance_noslit'] = w, I
+        
     
+#    # Test 
+#    sf2 = SpectrumFactory(
+#                         wavelength_min=4170,
+#                         wavelength_max=4200,
+#                         mole_fraction=1,
+#                         path_length=0.025, 
+#                         cutoff=1e-25,
+#                         isotope_identifier=[1,2],
+#                         use_cached=True,
+#                         medium='air')
+#    sf2.load_databank('CDSD')
+#    s_bands2 = sf2.non_eq_bands(Tvib=Tvib, Trot=1500) #, return_lines=False)
+#    bandlist = BandList(s_bands2)
+
     
     # %% `Plot fit
     
     
-    
+    bandlistCO2 = bandlist
     
     slbPlasmaCO2 = {
              'db':dbp,
-             'Tvib':1200,
-             'Trot':1550,
+             'bandlist':bandlistCO2,
+             'Tvib':2500,
+             'Trot':1500,
              'path_length':0.025,
              'mole_fraction':1,
+             'source':'from_bands',
              }
     
     slbPlasmaCO = {
              'db':dbpco,
-             'Tvib':1300,
+             'Tvib':2500,
              'Trot':1450,
              'path_length':0.025,
              'mole_fraction':0.4,
@@ -134,19 +155,18 @@ if __name__ == '__main__':
         globals().update({'spectra':slabs})
     
         return SerialSlabs(
-    #                       MergeSlabs(slabs['sPlasmaCO2'], slabs['sPlasmaCO'], accept_different_lengths=True),
-                           MergeSlabs(sBaseline, accept_different_lengths=True),
-                           MergeSlabs(slabs['sPlasmaCO'], accept_different_lengths=True),
-                           MergeSlabs(slabs['sPostCO2'], slabs['sPostCO'], accept_different_lengths=True),
-                           MergeSlabs(slabs['sRoomCO2'], slabs['sRoomH2O'], accept_different_lengths=True),
-                           )
+                           MergeSlabs(slabs['sPlasmaCO2'], resample_wavespace='full'),
+#                           MergeSlabs(sBaseline, accept_different_lengths=True),
+                           MergeSlabs(slabs['sPostCO2'], slabs['sPostCO'], resample_wavespace='full'),
+                           MergeSlabs(slabs['sRoomCO2'], slabs['sRoomH2O'], resample_wavespace='full'),
+                           resample_wavespace='full')
     
     # Sensibility analysis
     
-    slbInteractx = 'sPlasmaCO'
-    xparam = 'path_length'
-    slbInteracty = 'sPlasmaCO'
-    yparam = 'Trot'
+    slbInteractx = 'sPlasmaCO2'
+    xparam = 'Tvib'
+    slbInteracty = 'sPlasmaCO2'
+    yparam = 'mole_fraction'
     #slbInteract = slbPostCO
     #xparam = 'Tgas'
     #yparam = 'path_length'
@@ -154,6 +174,8 @@ if __name__ == '__main__':
     ystep = 0.2
     slit = 1.5  # r"D:\These Core\1_Projets\201702_CO2_insitu\20170505_TeteDeBandeTrot\Calibration\slit_spectrum_cleaned.txt" #  1.7
     
+    # Add overpopulation on given slab
+    overpSlab = slbPlasmaCO2
     
     
     verbose=False
@@ -229,7 +251,7 @@ if __name__ == '__main__':
     
     
     from tools import Normalizer
-    normalizer = Normalizer(4173, 4180, how='mean')
+    normalizer = None #Normalizer(4173, 4180, how='mean')
     
     # -----------------------------------------------------------------------------
     # NON USER PARAM PART
@@ -243,7 +265,9 @@ if __name__ == '__main__':
                             "to this GUI is implemented")
     
     
-    solver = SlabsConfigSolver(config=config, mode='database',
+    fitroom = FitRoom()
+    
+    solver = SlabsConfigSolver(config=config, source='database',
                                wexp=wexp, Iexpcalib=Iexpcalib, wexp_shift=wexp_shift,
                                plotquantity=plotquantity, unit=unit,
                                slit=slit)
@@ -251,25 +275,27 @@ if __name__ == '__main__':
     gridTool = Grid3x3(slbInteractx=slbInteractx, slbInteracty=slbInteracty,
                        xparam=xparam, yparam=yparam, 
                        plotquantity=plotquantity, unit=unit,
-                       normalize=False, normalizer=normalizer,
+                       normalizer=normalizer,
                        wexp=wexp, Iexpcalib=Iexpcalib, wexp_shift=wexp_shift,
-                       SlabsConfigSolver=solver,
-                       MultiSlabPlot=None,
-                       CaseSelector=None,
                        Slablist=Slablist)
     
     slabsTool = MultiSlabPlot(plotquantity=plotquantity, unit=unit,
-                              normalize=False, normalizer=normalizer,
+                              normalizer=normalizer,
                               wexp=wexp, Iexpcalib=Iexpcalib, wexp_shift=wexp_shift,
                               nfig=3, slit=slit)
     
     selectTool = CaseSelector(dbInteractx, dbInteracty, xparam, yparam, 
                               slbInteractx=slbInteractx, slbInteracty=slbInteracty,  
-                              nfig=1,   
-                              solver=solver, gridTool=gridTool, slabsTool=slabsTool)
+                              nfig=1)
     
-    gridTool.CaseSelector = selectTool
-    gridTool.MultiSlabPlot = slabsTool
+    overpTool = Overpopulator(overpSlab)
+    
+    fitroom.add_tool(solver)
+    fitroom.add_tool(gridTool)
+    fitroom.add_tool(slabsTool)
+    fitroom.add_tool(selectTool)
+    fitroom.add_tool(overpTool)
+    
     
     
     # Map x, y
@@ -283,6 +309,8 @@ if __name__ == '__main__':
     gridTool.plot_3times3(xspace, yspace)
     
     
-    # 2D mapping
-    if precompute_residual:
-        selectTool.precompute_residual(Slablist)
+    # TODO: precompute not working on example. Fix it
+#    # 2D mapping
+#    if precompute_residual:
+#        selectTool.precompute_residual(Slablist)
+    

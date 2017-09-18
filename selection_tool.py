@@ -27,16 +27,16 @@ class CaseSelector():
 
     def __init__(self, dbInteractx=None, dbInteracty=None, xparam='', yparam='',
                  slbInteractx=None, slbInteracty=None, nfig=None,
-                 solver=None, gridTool=None, slabsTool=None,
                  xmin=0, xmax=0, ymin=0, ymax=0):
 
 
         # Init variables        
         self.linemarkers = {}
 
-        self.solver = solver
-        self.gridTool = gridTool
-        self.slabsTool = slabsTool
+        self.fitroom = None
+#        self.solver = solver
+#        self.gridTool = gridTool
+#        self.slabsTool = slabsTool
 
         self.dbInteractx = dbInteractx
         self.dbInteracty = dbInteracty
@@ -134,12 +134,13 @@ class CaseSelector():
         return fig, ax
 
     def update_action(self, xmin, xmax, ymin, ymax):
-        if self.gridTool is not None:
+        if self.fitroom.gridTool is not None:
             
             xcen = (xmin + xmax)/2
             ycen = (ymin + ymax)/2
             
-            self.gridTool.plot_3times3([xmin, xcen, xmax], [ymin, ycen, ymax])
+            self.fitroom.update([xmin, xcen, xmax], [ymin, ycen, ymax])
+            
         else:
             print('log ... No gridTool defined')
         return
@@ -147,6 +148,9 @@ class CaseSelector():
     def line_select_callback(self, eclick, erelease):
         'eclick and erelease are the press and release events'
 
+        if self.fitroom is None:
+            raise ValueError('Tool not connected to Fitroom')
+            
 #        if self.slabsTool is None:
 #            print('No slabsTool defined. Aborting')
 #            return 
@@ -173,35 +177,8 @@ class CaseSelector():
             # note: to increase perfs if windows is minimized we dont update it
             # this mean it wont be updated once it is visible again, though.
             
-            # Update GridTool
-            if self.gridTool is not None:
-                fig2 = self.gridTool.fig
-                try:  # works in Qt
-                    updatefig = not fig2.canvas.manager.window.isMinimized()
-                except:
-                    updatefig = True
-                if updatefig:
-                    plt.figure(2).show()
-                    plt.pause(0.1)  # make sure the figure is replotted
-#            else:
-#                print('Log: no gridtool')
-                
-            # Update SlabsTool
-            if self.slabsTool is not None:
-                fig3 = self.slabsTool.fig
-                try:  # works in Qt
-                    updatefig = not fig3.canvas.manager.window.isMinimized()
-                except:
-                    updatefig = True
-                if updatefig:
-                    plt.figure(3).show()
-                    plt.pause(0.1)  # make sure the figure is replotted
-                    
-#            else:
-#                print('Log: no slabstool')
-                    
-                
-                
+            self.fitroom.update_plots()
+            
             self.RS.set_active(True)
             plt.ion()
 
@@ -233,7 +210,9 @@ class CaseSelector():
     def precompute_residual(self, Slablist):
         ''' Plot residual for all points in database '''
     
-        if self.solver is None:
+        if self.fitroom is None:
+            raise ValueError('Tool not connected to Fitroom')
+        if self.fitroom.solver is None:
             raise ValueError('No solver defined')
         
         dbInteractx = self.dbInteractx
@@ -243,8 +222,8 @@ class CaseSelector():
         xparam = self.xparam
         yparam = self.yparam
         
-        calc_slabs = self.solver.calc_slabs
-        get_residual = self.solver.get_residual
+        calc_slabs = self.fitroom.solver.calc_slabs
+        get_residual = self.fitroom.solver.get_residual
         
         ax1 = self.ax
         fig1 = self.fig 

@@ -47,6 +47,8 @@ class MultiSlabPlot():
         self.slit = slit
         self.slit_options = slit_options
         
+        self.fitroom = None
+        
     
     def _init_plot(self, nfig=None):
                 

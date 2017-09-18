@@ -18,10 +18,6 @@ class Grid3x3():
                  plotquantity='radiance', unit= 'mW/cm2/sr/nm',
                  normalizer=None,
                  wexp=None, Iexpcalib=None, wexp_shift=0,
-                 # Other tools
-                 SlabsConfigSolver=None,
-                 CaseSelector=None,
-                 MultiSlabPlot=None,
                  # Other params
                  Slablist = None,
                  ):
@@ -43,6 +39,9 @@ class Grid3x3():
         self.slbInteracty = slbInteracty
         self.xparam = xparam
         self.yparam = yparam
+        
+        self.xspace = None
+        self.yspace = None
 
         self.plotquantity = plotquantity
         self.unit = unit
@@ -53,23 +52,29 @@ class Grid3x3():
         self.Iexpcalib = Iexpcalib
         self.wexp_shift = wexp_shift
 
-        self.SlabsConfigSolver = SlabsConfigSolver
-        self.CaseSelector = CaseSelector
-        self.MultiSlabPlot = MultiSlabPlot
+        self.fitroom = None
+#        self.SlabsConfigSolver = SlabsConfigSolver
+#        self.CaseSelector = CaseSelector
+#        self.MultiSlabPlot = MultiSlabPlot
 
         self.Slablist = Slablist
 
     def update_markers(self, i, j, *markerpos):
 
-        if self.CaseSelector is not None:
-            self.CaseSelector.update_markers(i, j, *markerpos)
+        if self.fitroom is None:
+            raise ValueError('Tool not connected to Fitroom')
+        if self.fitroom.selectTool is not None:
+            self.fitroom.selectTool.update_markers(i, j, *markerpos)
         else:
             print('... No case selector defined')
         return
 
     def plot_all_slabs(self, s, slabs):
-        if self.MultiSlabPlot is not None:
-            self.MultiSlabPlot.plot_all_slabs(s, slabs)
+        
+        if self.fitroom is None:
+            raise ValueError('Tool not connected to Fitroom')
+        if self.fitroom.slabsTool is not None:
+            self.fitroom.slabsTool.plot_all_slabs(s, slabs)
         else:
             print('log ... No MultiSlabPlot defined')
         return
@@ -83,7 +88,9 @@ class Grid3x3():
         with indexes anyway... (y goes up but j goes down) you see what i mean
         it works with this anyway '''
 
-        if self.SlabsConfigSolver is None:
+        if self.fitroom is None:
+            raise ValueError('Tool not connected to Fitroom')
+        if self.fitroom.solver is None:
             raise ValueError('No SlabsConfigSolver defined')
             
         ax2 = self.ax
@@ -105,8 +112,8 @@ class Grid3x3():
         Iexpcalib = self.Iexpcalib
         wexp_shift = self.wexp_shift
 
-        calc_slabs = self.SlabsConfigSolver.calc_slabs
-        get_residual = self.SlabsConfigSolver.get_residual
+        calc_slabs = self.fitroom.solver.calc_slabs
+        get_residual = self.fitroom.solver.get_residual
 
         axij = ax2[i][j]
         axij.format_coord = self.format_coord
@@ -139,9 +146,9 @@ class Grid3x3():
             linesim[(i,j)] = line
             legends2[(i,j)] = axij.legend((line,), ('res: {0:.3g}'.format(res), ),
                     loc='upper left', prop={'size':10})
-            
+        
         self.update_markers(i, j, *markerpos)
-
+        
         if i == 2: axij.set_xlabel('Wavelength')
         if j == 0:
             if yparam == 'mole_fraction':
@@ -178,7 +185,16 @@ class Grid3x3():
             pass
 
 
-    def plot_3times3(self, xspace, yspace):
+    def plot_3times3(self, xspace=None, yspace=None):
+        
+        if xspace is None:
+            xspace = self.xspace # use last ones
+        if yspace is None:
+            yspace = self.yspace # use last ones
+        
+        # update defaults
+        self.xspace = xspace
+        self.yspace = yspace
 
         Slablist = self.Slablist
         slbInteractx = self.slbInteractx
@@ -211,7 +227,9 @@ class Grid3x3():
             msg += k+' - '
             msg += ' '.join(
                 ['{0}:{1:.3g}'.format(k,v) for (k,v) in cfgi.items() 
-                if not k in ['db','factory']])
+                if not k in ['db','factory', 'bandlist','source',
+                             'overpopulation',  # readable but too many lines
+                             ]])
             msg += ' || '
         msg = msg[:-4]
         msg = textwrap.wrap(msg, width=200)
