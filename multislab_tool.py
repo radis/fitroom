@@ -60,6 +60,17 @@ class MultiSlabPlot():
         return fig, ax
     
     
+    def update(self):
+        ''' Get, calculate and plot the current config '''
+        
+        slabsconfig = self.fitroom.get_config()
+        
+        calc_slabs = self.fitroom.solver.calc_slabs
+
+        s, slabs, fconfig = calc_slabs(**slabsconfig)
+        
+        self.plot_all_slabs(s, slabs)
+    
         
     def plot_all_slabs(self, s, slabs):
         

@@ -25,15 +25,15 @@ class SlabsConfigSolver():
                  slit=None, slit_options={'norm_by':'area', 'shape':'triangular',
                                           'slit_unit':'nm'},
                  verbose=True):
-        ''' 
+        '''
         Input
         ------
-        
+
         source: 'database', 'calculate', 'from_bands'
-            Whether to calculate spectra from scratch, retrieve them from a database, 
-            or combine vibrational bands 
+            Whether to calculate spectra from scratch, retrieve them from a database,
+            or combine vibrational bands
             Mode can be overriden by a 'source' parameter in every slab
-            
+
         '''
 
 #        self.dbInteractx = dbInteractx
@@ -50,10 +50,10 @@ class SlabsConfigSolver():
         self.slit_options = slit_options
 
         self.verbose = verbose
-        
-        
+
+
         self.source = source
-        
+
         self.fitroom = None
 
     def get_residual(self, s, norm='not_implemented'):
@@ -80,13 +80,13 @@ class SlabsConfigSolver():
         wsort, Isort = wexp[b], Iexpcalib[b]
 
         w, I = s.get(plotquantity, xunit='nm', yunit=unit)
-        
+
         # crop to overlapping range
         b = (wsort>w.min()) & (wsort<w.max())
         wsort, Isort = wsort[b], Isort[b]
         b = (w>wsort.min()) & (w<wsort.max())
         w, I= w[b], I[b]
-        
+
         if w[0]>w[-1]:
             w, I = w[::-1], I[::-1]
 
@@ -95,7 +95,7 @@ class SlabsConfigSolver():
 
     #    error = np.sqrt(np.trapz(np.abs((Iint-Isort)/(Iint+Isort)), x=wsort).sum())
         error = np.sqrt(np.trapz(np.abs(Iint-Isort), x=wsort).sum())
-        
+
         return error
 
 
@@ -119,51 +119,51 @@ class SlabsConfigSolver():
 
         for slabname, slabcfg in slabsconfig.items():
             cfg = slabcfg.copy()
-            
+
             if 'source' in cfg:
                 source = cfg.pop('source')
             else:
-                source = self.source 
-            
-            
+                source = self.source
+
             if source == 'database':
-            
+
                 if 'overpopulation' in cfg:
                     warn('`overpopulation` not used if not in from_bands source mode')
                 if 'factory' in cfg:
                     warn('`factory` key dismissed in `database` source mode')
-    
+                if 'bandlist' in cfg:
+                    warn('`database` source mode used but `bandlist` is given')
+
                 dbi = cfg.pop('db')
-        #        cfg['verbose'] = verbose
-        
+
                 si = dbi.get_closest(scale_if_possible=True, verbose=verbose, **cfg)
-        #        try:
-        #            del slabcfg['verbose']
-        #        except KeyError:
-        #            pass
-    
+
             elif source == 'calculate':
-                
+
                 if 'overpopulation' in cfg:
                     warn('`overpopulation` not used if not in from_bands source mode')
                 if 'database' in cfg:
                     warn('`database` key dismissed in `calculate` source mode')
-    
+                if 'bandlist' in cfg:
+                    warn('`calculate` source mode used but `bandlist` is given')
+
                 sfi = cfg.pop('factory')
                 si = sfi.eq_spectrum(**cfg)
-                
+
             elif source == 'calculate_noneq':
-                
+
                 if 'overpopulation' in cfg:
                     warn('`overpopulation` not used if not in from_bands source mode')
                 if 'database' in cfg:
                     warn('`database` key dismissed in `calculate_noneq` source mode')
-    
+                if 'bandlist' in cfg:
+                    warn('`calculate_noneq` source mode used but `bandlist` is given')
+
                 sfi = cfg.pop('factory')
                 si = sfi.non_eq_spectrum(**cfg)
-                
+
             elif source == 'from_bands':
-                
+
                 if not 'overpopulation' in cfg:
                     cfg['overpopulation'] = None
                     warn('`from_bands` source mode used but `overpopulation` not given')
@@ -171,12 +171,10 @@ class SlabsConfigSolver():
                     warn('`database` key dismissed in `from_bands` source mode')
                 if 'db' in cfg:
                     del cfg['db']
-                
+
                 sfi = cfg.pop('bandlist')
                 si = sfi.non_eq_spectrum(**cfg)
-                
-                    
-                
+
             else:
                 raise ValueError('Unknown source mode: {0}'.format(self.source)+\
                                  ' Use calculate, calculate_non_eq, database or '+\

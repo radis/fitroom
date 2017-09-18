@@ -22,13 +22,15 @@ except:
 
 class FitRoom():
     
-    def __init__(self):
+    def __init__(self, Slablist):
         self.tools = []
         self.solver = None
         self.gridTool = None
         self.slabsTool = None
         self.selectTool = None
         self.overpTool = None
+        
+        self.Slablist = Slablist
     
     def add_tool(self, tool):
         if isinstance(tool, SlabsConfigSolver):
@@ -85,7 +87,22 @@ class FitRoom():
             
     def update(self, xspace=None, yspace=None):
             
-        if self.gridTool is None:
-            raise ValueError('GridTool not defined')
+        if self.gridTool is not None:
+            # Update gridTool (updating slabsTool is done in the middle of the 
+            # loop too)
+            self.gridTool.plot_3times3(xspace, yspace)
+        elif self.slabsTool is not None:
+            self.slabsTool.update()
+        else:
+            raise ValueError('Neither GridTool or SlabsTool defined')
             
-        self.gridTool.plot_3times3(xspace, yspace)
+            
+            
+    def get_config(self):
+        ''' Get values for Target configuration '''
+        
+        Slablist = self.Slablist
+        config0 = {k:c.copy() for k, c in Slablist.items()}
+
+        return config0
+        

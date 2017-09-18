@@ -84,6 +84,8 @@ if __name__ == '__main__':
 #    sf2.load_databank('CDSD')
 #    s_bands2 = sf2.non_eq_bands(Tvib=Tvib, Trot=1500) #, return_lines=False)
 #    bandlist = BandList(s_bands2)
+    
+#    bandlist.set_cutoff(1e-4)
 
     
     # %% `Plot fit
@@ -265,7 +267,7 @@ if __name__ == '__main__':
                             "to this GUI is implemented")
     
     
-    fitroom = FitRoom()
+    fitroom = FitRoom(Slablist)
     
     solver = SlabsConfigSolver(config=config, source='database',
                                wexp=wexp, Iexpcalib=Iexpcalib, wexp_shift=wexp_shift,
@@ -276,8 +278,7 @@ if __name__ == '__main__':
                        xparam=xparam, yparam=yparam, 
                        plotquantity=plotquantity, unit=unit,
                        normalizer=normalizer,
-                       wexp=wexp, Iexpcalib=Iexpcalib, wexp_shift=wexp_shift,
-                       Slablist=Slablist)
+                       wexp=wexp, Iexpcalib=Iexpcalib, wexp_shift=wexp_shift)
     
     slabsTool = MultiSlabPlot(plotquantity=plotquantity, unit=unit,
                               normalizer=normalizer,

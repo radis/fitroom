@@ -17,9 +17,7 @@ class Grid3x3():
                  xparam='', yparam='',
                  plotquantity='radiance', unit= 'mW/cm2/sr/nm',
                  normalizer=None,
-                 wexp=None, Iexpcalib=None, wexp_shift=0,
-                 # Other params
-                 Slablist = None,
+                 wexp=None, Iexpcalib=None, wexp_shift=0
                  ):
 
         plt.figure(2, figsize=(16, 12)).clear()
@@ -53,11 +51,6 @@ class Grid3x3():
         self.wexp_shift = wexp_shift
 
         self.fitroom = None
-#        self.SlabsConfigSolver = SlabsConfigSolver
-#        self.CaseSelector = CaseSelector
-#        self.MultiSlabPlot = MultiSlabPlot
-
-        self.Slablist = Slablist
 
     def update_markers(self, i, j, *markerpos):
 
@@ -126,7 +119,7 @@ class Grid3x3():
             lineexp[(i,j)] = line
 
         s, slabs, fconfig = calc_slabs(**slabsconfig)
-
+        
         res = get_residual(s)
 
         w, I = s.get(plotquantity, xunit='nm', yunit=unit)
@@ -162,6 +155,7 @@ class Grid3x3():
                 axij.set_title('{0} {1:.1f}'.format(xparam, fconfig[slbInteractx][xparam]), size=20)
         #TODO: add a set of all labels on line, instead (deals with different values per line)
 
+        # If centered, also update the multislab tool
         if i == 1 and j == 1:
             self.plot_all_slabs(s, slabs)
 
@@ -196,15 +190,14 @@ class Grid3x3():
         self.xspace = xspace
         self.yspace = yspace
 
-        Slablist = self.Slablist
+        fig2 = self.fig
+
+        config0 = self.fitroom.get_config()
+
         slbInteractx = self.slbInteractx
         slbInteracty = self.slbInteracty
         xparam = self.xparam
         yparam = self.yparam
-
-        fig2 = self.fig
-
-        config0 = {k:c.copy() for k, c in Slablist.items()}
 
         # dont calculate these when the figure is not shown (for performance)
         try:  # works in Qt
@@ -212,12 +205,13 @@ class Grid3x3():
         except:
             updateSideAxes = True
 
+        # Do the calculations 
         for i, xvari in enumerate(xspace):
             for j, yvarj in enumerate(yspace[::-1]):
                 if not (i==1 and j==1) and not updateSideAxes: continue
                 config0[slbInteractx][xparam] = xvari
                 config0[slbInteracty][yparam] = yvarj
-                self.plot_case(i, j, **config0)
+                self.plot_case(i, j, **config0)   # here we calculate and plot
 
         # Plot title with all slabs conditions
         del config0[slbInteractx][xparam]      # dont print variable parameter
@@ -237,9 +231,10 @@ class Grid3x3():
         fig2.tight_layout()
         fig2.subplots_adjust(top=0.93-0.02*len(msg))
 
+        # Add cursor than spans over all subplots
         self._add_multicursor()
 
-    #    plt.figure(2).canvas.show()
+        # Show figure
         fig2.canvas.show()
         plt.show()
         plt.pause(0.05)
