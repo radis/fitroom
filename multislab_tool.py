@@ -26,6 +26,11 @@ class MultiSlabPlot():
                  slit_options={'norm_by':'area', 'shape':'triangular',
                                'slit_unit':'nm'},
                  ):
+        ''' 
+        Input
+        -----
+        
+        '''
         
         # Init variables
         self.line3up = {}
@@ -82,7 +87,7 @@ class MultiSlabPlot():
         line3down = self.line3down
         
         plotquantity = self.plotquantity
-#        unit = self.unit 
+        unit = self.unit 
         normalize = self.normalize
         norm_on = self.normalizer
         
@@ -95,7 +100,7 @@ class MultiSlabPlot():
         
         
         # Central axe: model vs experiment
-        w, I = s.get(plotquantity)
+        w, I = s.get(plotquantity, yunit=unit)
         ydata = norm_on(w, I) if normalize else I
         try:
             line3cent[1].set_data(w, ydata)
@@ -103,7 +108,7 @@ class MultiSlabPlot():
         except KeyError:
             line3cent[1] = ax3[1].plot(w, ydata, color='r', lw=1, 
                      label='Model')[0]
-            ax3[1].set_ylabel(s.units[plotquantity])
+            ax3[1].set_ylabel(unit)
             
         ydata = norm_on(wexp, Iexpcalib) if normalize else Iexpcalib
         try:        
@@ -144,8 +149,8 @@ class MultiSlabPlot():
             ax3[2].legend()
             ax3[0].xaxis.label.set_visible(False)
             ax3[1].xaxis.label.set_visible(False)
-            ax3[2].set_xlabel(s.wavespace())
-            ax3[0].set_ylabel(si.units['radiance'])
+            ax3[2].set_xlabel('Wavelength (nm)')
+            ax3[0].set_ylabel(unit)
             ax3[2].set_ylabel(si.units['transmittance'])
             fig3.tight_layout()
             

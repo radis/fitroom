@@ -50,7 +50,7 @@ class Overpopulator():
         
         # initial overpopulation distribution
         if 'overpopulation' in slab:
-            overpopulation=slab['overpopulation']
+            overpopulation= slab['overpopulation']
         else:
             overpopulation = None
         
