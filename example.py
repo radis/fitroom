@@ -26,7 +26,7 @@ interface
 """
 
 from neq.spec.database import SpecDatabase
-from neq.spec.calc import MergeSlabs, SerialSlabs
+from neq.spec.slabs import MergeSlabs, SerialSlabs
 import numpy as np
 from numpy import linspace
 from scipy.interpolate import splev, splrep
