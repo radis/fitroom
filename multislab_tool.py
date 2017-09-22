@@ -13,7 +13,8 @@ a window to decompose the center slab along the different slabs
 
 import matplotlib.pyplot as plt
 from matplotlib.widgets import MultiCursor
-
+from mpldatacursor import HighlightingDataCursor
+from neq.phys.conv import cm2eV
 
 class MultiSlabPlot():
     
@@ -25,10 +26,17 @@ class MultiSlabPlot():
                  slit=None,  # add in a ExperimentConditions class?
                  slit_options={'norm_by':'area', 'shape':'triangular',
                                'slit_unit':'nm'},
+                 N_main_bands = 5
                  ):
         ''' 
         Input
         -----
+        
+        ...
+        
+        N_main_bands: int
+            show main emission bands in case an overpopulation tool is defined.
+            N_main_bands is the number of bands to show. Default 5. 
         
         '''
         
@@ -36,6 +44,7 @@ class MultiSlabPlot():
         self.line3up = {}
         self.line3cent = {}
         self.line3down = {}
+        self.line3upbands = {}  
         
         self.fig, self.ax = self._init_plot(nfig=nfig)
         self.multi3 = None 
@@ -53,6 +62,8 @@ class MultiSlabPlot():
         self.slit_options = slit_options
         
         self.fitroom = None
+        
+        self.N_main_bands = N_main_bands 
         
     
     def _init_plot(self, nfig=None):
@@ -154,7 +165,82 @@ class MultiSlabPlot():
             ax3[2].set_ylabel(si.units['transmittance'])
             fig3.tight_layout()
             
+        # Main bands
+        self._add_bands()
+            
+        # Cursors
         self._add_multicursor()
+
+
+    def _clean_datacursors(self):
+        
+        try:
+            self.fig._mpldatacursors
+        except AttributeError:
+            # no _mpldatacursors, go ahead
+            return
+
+        # Disable all         
+        for d in self.fig._mpldatacursors:
+            d.hide().disable()
+            del d 
+        
+        self.fig._mpldatacursors = []
+        
+    def _clean_highlights(self):
+        
+        try:
+            self.highlights
+        except AttributeError:
+            # no _mpldatacursors, go ahead
+            return
+        
+        # Delete previous highlights
+        for artist in self.highlights.highlights:
+            l = self.highlights.highlights[artist]
+            l.set_visible(False)
+            l.remove()
+
+    def _add_bands(self):
+        
+        if self.fitroom.overpTool is None:
+            return
+        else:
+            overpTool = self.fitroom.overpTool
+        slit = self.fitroom.solver.slit 
+        unit = self.fitroom.solver.unit
+        
+#        # Delete previous bands
+        line3upbands = self.line3upbands 
+#        if line3upbands is not None:
+#            for l in line3upbands:
+#                del l 
+                
+        # Clean previous datacursors
+        self._clean_datacursors()
+        
+##        # Clean previous highlights
+        self._clean_highlights()
+                
+        # Add main bands manually
+        ax0 = self.ax[0]
+        lines = []
+        for br in overpTool.bandlist.sorted_bands[:self.N_main_bands]:
+            sb = overpTool.bandlist.bands[br]
+            sb.apply_slit(slit, energy_threshold=0.2)
+            w, I = sb.get('radiance', yunit=unit)
+            if br in line3upbands.keys():
+                line3upbands[br].set_data(w, I)
+                lines.append(line3upbands[br])
+            else:
+                l, = ax0.plot(w, I, color='grey', label='{0} ({1:.2f}eV)'.format(br, 
+                              cm2eV(overpTool.bandlist.E_bands[br])))
+                line3upbands[br] = l
+                lines.append(l)
+        self.highlights = HighlightingDataCursor(lines)
+        
+        # store lines (so they dont disappear)
+        self.line3upbands = line3upbands
 
         
     def _add_multicursor(self):
