@@ -26,7 +26,8 @@ class MultiSlabPlot():
                  slit=None,  # add in a ExperimentConditions class?
                  slit_options={'norm_by':'area', 'shape':'triangular',
                                'slit_unit':'nm'},
-                 N_main_bands = 5
+                 N_main_bands = 5,
+                 keep_highlights = False,
                  ):
         ''' 
         Input
@@ -37,6 +38,10 @@ class MultiSlabPlot():
         N_main_bands: int
             show main emission bands in case an overpopulation tool is defined.
             N_main_bands is the number of bands to show. Default 5. 
+        
+        keep_highlights: boolean
+            if True, delete previous highlights when generating new case. Keeping
+            them can help remember the last band position. Default False.
         
         '''
         
@@ -64,6 +69,7 @@ class MultiSlabPlot():
         self.fitroom = None
         
         self.N_main_bands = N_main_bands 
+        self.keep_highlights = keep_highlights  
         
     
     def _init_plot(self, nfig=None):
@@ -86,7 +92,8 @@ class MultiSlabPlot():
         s, slabs, fconfig = calc_slabs(**slabsconfig)
         
         self.plot_all_slabs(s, slabs)
-    
+        
+        self.update_markers(fconfig)
         
     def plot_all_slabs(self, s, slabs):
         
@@ -142,19 +149,19 @@ class MultiSlabPlot():
             for i, (name, s) in enumerate(slabs.items()):
                 s.apply_slit(slit, **slit_options)
                 color = next(colors)
-                line3up[i].set_data(*s.get('radiance'))
+                line3up[i].set_data(*s.get('radiance', yunit=unit))
                 line3down[i].set_data(*s.get('transmittance'))
         except KeyError:  # first time: init lines
             colors = colorserie()
             for i, (name, si) in enumerate(slabs.items()):
                 si.apply_slit(slit, **slit_options)
                 color = next(colors)
-                line3up[i] = ax3[0].plot(*si.get('radiance'), color=color, lw=2, 
+                line3up[i] = ax3[0].plot(*si.get('radiance', yunit=unit), color=color, lw=2, 
                        label=name)[0]
                 line3down[i] = ax3[2].plot(*si.get('transmittance'), color=color, lw=2, 
                          label=name)[0]
-            if not normalize: 
-                ax3[2].set_ylim((-0.008, 0.179)) # Todo: remove that 
+#            if not normalize: 
+#                ax3[2].set_ylim((-0.008, 0.179)) # Todo: remove that 
             ax3[2].set_ylim((0,1))
             ax3[0].legend()
             ax3[2].legend()
@@ -220,7 +227,8 @@ class MultiSlabPlot():
         self._clean_datacursors()
         
 ##        # Clean previous highlights
-        self._clean_highlights()
+        if not self.keep_highlights:
+            self._clean_highlights()
                 
         # Add main bands manually
         ax0 = self.ax[0]
@@ -257,3 +265,15 @@ class MultiSlabPlot():
         else:
             pass
         
+        
+    def update_markers(self, fconfig):
+
+        if self.fitroom is None:
+            raise ValueError('Tool not connected to Fitroom')
+        if self.fitroom.selectTool is not None:
+            self.fitroom.selectTool.update_markers(fconfig)
+            self.fitroom.selectTool.fig.canvas.draw()
+            
+        else:
+            print('... No case selector defined')    
+        return

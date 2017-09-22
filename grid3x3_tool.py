@@ -52,12 +52,12 @@ class Grid3x3():
 
         self.fitroom = None
 
-    def update_markers(self, i, j, *markerpos):
+    def update_markers(self, fconfig, i, j):
 
         if self.fitroom is None:
             raise ValueError('Tool not connected to Fitroom')
         if self.fitroom.selectTool is not None:
-            self.fitroom.selectTool.update_markers(i, j, *markerpos)
+            self.fitroom.selectTool.update_markers(fconfig, i, j)
         else:
             print('... No case selector defined')
         return
@@ -124,11 +124,6 @@ class Grid3x3():
 
         w, I = s.get(plotquantity, xunit='nm', yunit=unit)
         
-        # Get final values
-        xmarker = fconfig[slbInteractx][xparam]
-        ymarker = fconfig[slbInteracty][yparam]
-        markerpos = (xmarker, ymarker)
-
         ydata = norm_on(w, I) if normalize else I
         
         try:
@@ -140,7 +135,7 @@ class Grid3x3():
             legends2[(i,j)] = axij.legend((line,), ('res: {0:.3g}'.format(res), ),
                     loc='upper left', prop={'size':10})
         
-        self.update_markers(i, j, *markerpos)
+        self.update_markers(fconfig, i, j)
         
         if i == 2: axij.set_xlabel('Wavelength')
         if j == 0:

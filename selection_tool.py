@@ -208,9 +208,23 @@ class CaseSelector():
             print(' RectangleSelector activated.')
             self.RS.set_active(True)
 
-    def update_markers(self, i, j, *markerpos):
+    def update_markers(self, fconfig, i=1, j=1):
+        ''' 
+        Input
+        ------
         
-        x, y= markerpos
+        i,j : int
+            marker position  (different from 1,1 in 3x3 grid )
+        '''
+        
+        slbInteractx = self.slbInteractx
+        slbInteracty = self.slbInteracty
+        xparam = self.xparam
+        yparam = self.yparam
+
+        x = fconfig[slbInteractx][xparam]
+        y = fconfig[slbInteracty][yparam]
+        
         try:
             self.linemarkers[(i,j)].set_visible(True)
             self.linemarkers[(i,j)].set_data(x, y)
