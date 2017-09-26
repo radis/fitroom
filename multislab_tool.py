@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import MultiCursor
 from mpldatacursor import HighlightingDataCursor
 from neq.phys.conv import cm2eV
+from neq.plot import plot_stack
 
 class MultiSlabPlot():
     
@@ -130,9 +131,10 @@ class MultiSlabPlot():
             
         ydata = norm_on(wexp, Iexpcalib) if normalize else Iexpcalib
         try:        
-            line3cent[0].set_data(wexp+wexp_shift, ydata)
+            line3cent[0]  # doesnt change  .set_data(wexp+wexp_shift, ydata)
         except KeyError:
-            line3cent[0] = ax3[1].plot(wexp+wexp_shift, ydata,'-k', lw=1, zorder=-1, 
+            plt.sca(ax3[1])
+            line3cent[0] = plot_stack(wexp+wexp_shift, ydata,'-k', lw=1, zorder=-1, 
                      label='Experiment')[0]
             ax3[1].legend()
             

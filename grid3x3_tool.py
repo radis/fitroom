@@ -10,6 +10,7 @@ Tool to plot on 9 graphes along 2 axes (2 conditions)
 import matplotlib.pyplot as plt
 import textwrap
 from matplotlib.widgets import MultiCursor
+from neq.plot import plot_stack
 
 class Grid3x3():
 
@@ -113,10 +114,11 @@ class Grid3x3():
 
         ydata = norm_on(wexp, Iexpcalib) if normalize else Iexpcalib
         try:
-            lineexp[(i,j)].set_data(wexp+wexp_shift, ydata)
+            lineexp[(i,j)]  # does not change anyway .set_data(wexp+wexp_shift, ydata)
         except KeyError:
-            line, = axij.plot(wexp+wexp_shift, ydata,'-k',lw=2)
-            lineexp[(i,j)] = line
+            plt.sca(axij)
+            lines, = plot_stack(wexp+wexp_shift, ydata,'-k',lw=2)
+            lineexp[(i,j)] = lines
 
         s, slabs, fconfig = calc_slabs(**slabsconfig)
         
