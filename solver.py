@@ -182,6 +182,9 @@ class SlabsConfigSolver():
                 raise ValueError('Unknown source mode: {0}'.format(self.source)+\
                                  ' Use calculate, calculate_non_eq, database or '+\
                                  'from_bands')
+                
+            # Overwrite name
+            si.name = slabname
 
             fcondsi = {}
             for k in cfg:
