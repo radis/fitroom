@@ -13,22 +13,27 @@ try:
     from neq.math.fitroom import MultiSlabPlot
     from neq.math.fitroom import SlabsConfigSolver
     from neq.math.fitroom import Overpopulator
+    from neq.math.fitroom import SlitTool
 except:
     from .selection_tool import CaseSelector
     from .grid3x3_tool import Grid3x3
     from .multislab_tool import MultiSlabPlot
     from .solver import SlabsConfigSolver
     from .noneq_tool import Overpopulator
+    from .slit_tool import SlitTool
 
 class FitRoom():
     
     def __init__(self, Slablist):
         self.tools = []
+        
+        # all possible tools:
         self.solver = None
         self.gridTool = None
         self.slabsTool = None
         self.selectTool = None
         self.overpTool = None
+        self.slitTool = None
         
         self.Slablist = Slablist
     
@@ -48,6 +53,11 @@ class FitRoom():
         elif isinstance(tool, Overpopulator):
             print('Adding Overpopulator')
             self.overpTool = tool
+        elif isinstance(tool, SlitTool):
+            print('Adding SlitTool')
+            self.slitTool = tool
+        else:
+            raise ValueError('Unknown tool: {0} ({1})'.format(tool, type(tool)))
         
         # Update links:
         self.tools.append(tool)
@@ -84,7 +94,6 @@ class FitRoom():
 #            else:
 #                print('Log: no slabstool')
                 
-            
     def update(self, xspace=None, yspace=None):
             
         if self.gridTool is not None:
@@ -95,8 +104,6 @@ class FitRoom():
             self.slabsTool.update()
         else:
             raise ValueError('Neither GridTool or SlabsTool defined')
-            
-            
             
     def get_config(self):
         ''' Get values for Target configuration '''

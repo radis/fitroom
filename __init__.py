@@ -11,3 +11,4 @@ from .multislab_tool import MultiSlabPlot
 from .solver import SlabsConfigSolver
 from .noneq_tool import Overpopulator
 from .room import FitRoom
+from .slit_tool import SlitTool
