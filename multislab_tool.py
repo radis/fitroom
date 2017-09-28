@@ -24,9 +24,6 @@ class MultiSlabPlot():
                  normalizer=None,
                  wexp=None, Iexpcalib=None, wexp_shift=0,
                  nfig=None,
-                 slit=None,  # add in a ExperimentConditions class?
-                 slit_options={'norm_by':'area', 'shape':'triangular',
-                               'slit_unit':'nm'},
                  N_main_bands = 5,
                  keep_highlights = False,
                  ):
@@ -63,9 +60,6 @@ class MultiSlabPlot():
         self.wexp = wexp
         self.Iexpcalib = Iexpcalib
         self.wexp_shift = wexp_shift
-        
-        self.slit = slit
-        self.slit_options = slit_options
         
         self.fitroom = None
         
@@ -114,9 +108,8 @@ class MultiSlabPlot():
         Iexpcalib = self.Iexpcalib
         wexp_shift = self.wexp_shift
         
-        slit = self.slit
-        slit_options = self.slit_options
-        
+        slit = self.fitroom.solver.slit
+        slit_options = self.fitroom.solver.slit_options
         
         # Central axe: model vs experiment
         w, I = s.get(plotquantity, yunit=unit)
