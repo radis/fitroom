@@ -74,6 +74,10 @@ class CaseSelector():
                                            interactive=True)
         plt.connect('key_press_event', self.toggle_selector)
 
+    def connect(self):
+        ''' Triggered on connection to FitRoom '''
+        pass
+
     def _plot_calc_range(self, xmin, xmax, ymin, ymax):
 
         # Get inputs

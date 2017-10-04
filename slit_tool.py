@@ -8,27 +8,45 @@ Created on Wed Sep 27 10:38:25 2017
 
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
-from neq.spec import plot_slit
+from neq.spec.slit import (get_slit_function, WAVELEN_UNITS, WAVENUM_UNITS,
+                           get_effective_FWHM, get_FWHM)
+from neq.phys.conv import nm2cm, cm2nm
 from neq.misc import is_float
+import numpy as np
 from six import string_types
+import warnings
+from warnings import warn
 
 
 class SlitTool():
     ''' Tool to manipulate slit function '''
     
-    
-    def __init__(self, slit_function):
+    def __init__(self, plot_unit='nm'):
 
-        self.slit_function = slit_function
-        
         self.fitroom = None
-    
-        fig, ax = plot_slit(slit_function)
+        self.plot_unit = plot_unit
         
+        plt.figure('SlitTool').clear()
+        fig, ax = plt.subplots(num='SlitTool')
         self.fig = fig
         self.ax = ax 
+        self.lines = {}
+        
+    def slit_function(self):
+        return self.fitroom.solver.slit
+    
+    def slit_options(self):
+        return self.fitroom.solver.slit_options
+    
+    def connect(self):
+        ''' Triggered on connection to FitRoom '''
+
+        slit_function = self.slit_function()
+#        slit_options = self.slit_options()
         
         if not isinstance(slit_function, string_types):
+            plt.subplots_adjust(left=0.15, bottom=0.25, top=0.93)
+            
             # Add sliders
             if is_float(slit_function):
                 base = slit_function
@@ -38,32 +56,203 @@ class SlitTool():
             else:
                 raise ValueError('Wrong slit function format: {0}'.format(slit_function))
                         
-            plt.axis([0, 1, -10, 10])
+#            plt.axis([0, 1, -10, 10])
             
             axcolor = 'lightgoldenrodyellow'
-            axtop = plt.axes([0.25, 0.1, 0.65, 0.03], facecolor=axcolor)
-            axbase = plt.axes([0.25, 0.15, 0.65, 0.03], facecolor=axcolor)
+            axtop = plt.axes([0.15, 0.1, 0.65, 0.03], facecolor=axcolor)
+            axbase = plt.axes([0.15, 0.05, 0.65, 0.03], facecolor=axcolor)
 
             sltop = Slider(axtop, 'Top', 0, 3*base, valinit=top)
             slbase = Slider(axbase, 'Base', 0, 3*base, valinit=base)
     
-            sltop.on_changed(self.update)
-            slbase.on_changed(self.update)
+            sltop.on_changed(self.update_slider)
+            slbase.on_changed(self.update_slider)
             
             self.sltop = sltop
             self.slbase = slbase
             
-    def update(self):
-        ''' update slit function '''
+        self.update_figure()
+        
+    def update_figure(self):
+        
+        if self.fitroom is None:
+            return
+        
+        slabsTool = self.fitroom.slabsTool
+        gridTool = self.fitroom.gridTool
+        plotquantity = self.fitroom.solver.plotquantity
+        slit_function = self.slit_function()
+        plot_unit = self.plot_unit
+        
+        slit_options = self.slit_options()
+        
+        # Get one spectrum  to get wavespace range
+        if slabsTool is not None:
+            if slabsTool.spectrum is not None:
+                s = slabsTool.spectrum
+            else:
+                return
+        elif gridTool is not None:
+            try:
+                s = gridTool.spectra[(0,0)]
+            except KeyError:
+                return 
+        else:  # do nothing
+            return  
+        
+        wavespace = s.wavespace()
+        w, I = s.get(plotquantity, wunit=wavespace)
+        center_wavespace = w[len(w)//2]
+        wstep = s.conditions['wstep']
+        norm_by = slit_options.get('norm_by', 'area')
+        shape = slit_options.get('shape', 'triangular')
+        slit_unit = slit_options.get('slit_unit', 'nm')
+
+        # Plot
+#        slit_options = self.slit_options 
+        
+        wslit, Islit = get_slit_function(slit_function, wavespace, center_wavespace,
+                                         norm_by, wstep, shape, slit_unit, plot=False)
+        self.plot_slit(wslit, Islit, wavespace=wavespace, plot_unit=plot_unit, 
+                       fig=self.fig, ax=self.ax)
+            
+    def plot_slit(self, w, I=None, wavespace='', plot_unit='same',
+                  fig=None, ax=None):
+        ''' Variant of the plot_slit functino defined in slit.py that can 
+        set_data when figure already exists
+        
+        Plot slit, calculate and display FWHM, and calculate effective FWHM.
+        FWHM is calculated from the limits of the range above the half width,
+        while FWHM is the equivalent width of a triangular slit with the same area
+    
+        Input
+        --------
+    
+        w, I: arrays    or   (str, None)
+            if str, open file directly
+    
+        wavespace: 'nm', 'cm-1' or ''
+    
+        plot_unit: 'nm, 'cm-1' or 'same'
+            change plot unit (and FWHM units)
+    
+        warnings: boolean
+            if True, test if slit is correctly centered and output a warning if it
+            is not. Default True
+    
+        '''
+        
+        from neq.plot.toolbar import add_tools
+        try:
+            add_tools()       # includes a Ruler to measure slit 
+        except:
+            pass
+        
+        # Check input
+        if isinstance(w, string_types) and I is None:
+            w, I = np.loadtxt(w).T
+        assert len(w)==len(I)
+        if np.isnan(I).sum()>0:
+            warn('Slit function has nans')
+            w = w[~np.isnan(I)]
+            I = I[~np.isnan(I)]
+        assert len(I)>0
+            
+        # Recalculate FWHM
+        FWHM, xmin, xmax = get_FWHM(w, I, return_index=True)
+        FWHM_eff = get_effective_FWHM(w, I)
+    
+        # Convert wavespace unit if needed
+        if plot_unit == 'same':
+            pass
+        elif plot_unit in WAVELEN_UNITS+WAVENUM_UNITS and wavespace not in WAVENUM_UNITS+WAVENUM_UNITS:
+            raise ValueError('Unknown wavespace unit: {0}'.format(wavespace))
+        elif wavespace in WAVENUM_UNITS and plot_unit in WAVELEN_UNITS: # wavelength > wavenumber
+            w = cm2nm(w)
+            wavespace = 'nm'
+        elif wavespace in WAVELEN_UNITS and plot_unit in WAVENUM_UNITS: # wavenumber > wavelength
+            w = nm2cm(w)
+            wavespace = 'cm-1'
+        else:
+            raise ValueError('Unknown plot unit: {0}'.format(plot_unit))
+    
+        xlabel = 'Wavespace'
+        if wavespace in WAVELEN_UNITS:
+            xlabel = 'Wavelength (nm)'
+            unit = ' nm'
+        elif wavespace in WAVENUM_UNITS:
+            xlabel = 'Wavenumber (cm-1)'
+            unit = ' cm-1'
+        elif wavespace == '':
+            unit = ''
+        else:
+            raise ValueError('Unkown wavespace: {0}'.format(wavespace))
+    
+        if ax is None or fig is None:
+            fig, ax = plt.subplots()
+            
+        w[len(w)//2]
+        
+        try:
+            self.lines[0].set_data(w,I)
+            self.lines[1].set_data(w,I)
+            self.ax.relim()
+            self.ax.autoscale_view()
+        except KeyError:
+            self.lines[0], = ax.plot(w, I, 'o', color='lightgrey')
+            self.lines[1], = ax.plot(w, I, '-k', label='FWHM: {0:.3f} {1}'.format(FWHM, unit)+\
+                                     '\nEff. FWHM: {0:.3f} {1}'.format(FWHM_eff, unit)+\
+                                     '\nArea: {0:.3f}'.format(abs(np.trapz(I, x=w))),
+                                     )
+        
+            # TODO: reactivate with set_data
+    #        # Vertical lines on center, and FWHM
+    #        plt.axvline(w[len(w)//2], ls='-', lw=2, color='lightgrey')  # center
+    #        plt.axvline(w[(xmin+xmax)//2], ls='--', color='k', lw=0.5)   # maximum (should be center)
+    #        plt.axvline(w[xmin], ls='--', color='k', lw=0.5)      # FWHM min
+    #        plt.axvline(w[xmax], ls='--', color='k', lw=0.5)      # FWHM max
+    #        plt.axhline(I.max()/2, ls='--', color='k', lw=0.5)      # half maximum
+            
+            ax.set_xlabel(xlabel)
+            ax.set_ylabel('Slit function')
+            plt.legend(loc='best', prop={'size':16})
+        
+        #   plt.tight_layout()
+        
+        return
+
+    def update_slider(self, val):
+        ''' update slit function in Solver and replot  '''
         
         top = self.sltop.val
         base = self.slbase.val
 #        l.set_ydata(amp*np.sin(2*np.pi*freq*t))
 #        fig.canvas.draw_idle()
+
+        slit_function = (top, base)
         
-        print('New slit assigned:', top, base)
-        
+        # Update default         
         if self.fitroom is None:
             raise ValueError('Fitroom not connected')
+        self.fitroom.solver.slit = slit_function
+        print('New slit assigned:', slit_function)
+        
+        
+        # replot
+        slabsTool = self.fitroom.slabsTool
+        gridTool = self.fitroom.gridTool
+
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', "Triangular slit given with a tuple")
             
-        self.fitroom.solver.slit = (top, base)
+            if slabsTool is not None:
+                slabsTool.update_slit()
+            if gridTool is not None:
+                gridTool.update_slit()
+                
+        self.update_figure()
+        
+
+#    def update_slit():
+#        
+        

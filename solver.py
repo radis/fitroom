@@ -56,6 +56,10 @@ class SlabsConfigSolver():
         self.source = source
 
         self.fitroom = None
+        
+    def connect(self):
+        ''' Triggered on connection to FitRoom '''
+        pass
 
     def get_residual(self, s, norm='not_implemented'):
         ''' Different between experimental and simulated spectra
@@ -80,7 +84,7 @@ class SlabsConfigSolver():
         b = np.argsort(wexp)
         wsort, Isort = wexp[b], Iexpcalib[b]
 
-        w, I = s.get(plotquantity, xunit='nm', yunit=unit)
+        w, I = s.get(plotquantity, wunit='nm', Iunit=unit)
 
         # crop to overlapping range
         b = (wsort>w.min()) & (wsort<w.max())

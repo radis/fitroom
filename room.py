@@ -62,6 +62,10 @@ class FitRoom():
         # Update links:
         self.tools.append(tool)
         tool.fitroom = self
+        
+        # Update tool if appropriate
+        tool.connect()
+
     
     
     def update_plots(self):
@@ -104,6 +108,8 @@ class FitRoom():
             self.slabsTool.update()
         else:
             raise ValueError('Neither GridTool or SlabsTool defined')
+        if self.slitTool is not None:
+            self.slitTool.update_figure()  # in case
             
     def get_config(self):
         ''' Get values for Target configuration '''

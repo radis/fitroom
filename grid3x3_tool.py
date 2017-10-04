@@ -52,7 +52,15 @@ class Grid3x3():
         self.wexp_shift = wexp_shift
 
         self.fitroom = None
-
+        
+        self.spectra = {}    # hold the calculated spectra 
+        self.slabsl = {}    # hold the calculated slabs lists
+        self.fconfigs = {}    # hold the calculated slab configs
+        
+    def connect(self):
+        ''' Triggered on connection to FitRoom '''
+        pass
+    
     def update_markers(self, fconfig, i, j):
 
         if self.fitroom is None:
@@ -68,6 +76,8 @@ class Grid3x3():
         if self.fitroom is None:
             raise ValueError('Tool not connected to Fitroom')
         if self.fitroom.slabsTool is not None:
+            self.fitroom.slabsTool.spectrum = s
+            self.fitroom.slabsTool.slabs = slabs
             self.fitroom.slabsTool.plot_all_slabs(s, slabs)
         else:
             print('log ... No MultiSlabPlot defined')
@@ -76,17 +86,44 @@ class Grid3x3():
     def format_coord(self, x, y):
         return 'x = {0:.2f} nm, y = {1:.4f} {2}  '.format(x, y, self.unit)
 
-    def plot_case(self, j, i, **slabsconfig):
+    def update_slit(self):
+        
+        slit_function = self.fitroom.solver.slit
+        slit_options = self.fitroom.solver.slit_options
+        spectra = self.spectra
+        fconfigs = self.fconfigs
+        
+        for (i,j) in spectra.keys():
+            spectra[(i,j)].apply_slit(slit_function, **slit_options)
+            self.plot_case(i,j, fconfigs[(i,j)])
+        
+    def calc_case(self, j, i, **slabsconfig):
         ''' notice j, i and not i, j 
         i is y, j is x? or the other way round. It's always complicated
         with indexes anyway... (y goes up but j goes down) you see what i mean
-        it works with this anyway '''
-
+        it works, anyway '''
+        
+        spectra = self.spectra
+        slabsl = self.slabsl
+        fconfigs = self.fconfigs
+        
         if self.fitroom is None:
             raise ValueError('Tool not connected to Fitroom')
         if self.fitroom.solver is None:
             raise ValueError('No SlabsConfigSolver defined')
-            
+        
+        calc_slabs = self.fitroom.solver.calc_slabs
+        s, slabs, fconfig = calc_slabs(**slabsconfig)
+        spectra[(i,j)] = s  # save
+        slabsl[(i,j)] = slabs  # save
+        fconfigs[(i,j)] = fconfig  # save
+        
+    def plot_case(self, j, i, **slabsconfig):
+        ''' notice j, i and not i, j 
+        i is y, j is x? or the other way round. It's always complicated
+        with indexes anyway... (y goes up but j goes down) you see what i mean
+        it works, anyway '''
+
         ax2 = self.ax
         lineexp = self.lineexp
         linesim = self.linesim
@@ -106,7 +143,6 @@ class Grid3x3():
         Iexpcalib = self.Iexpcalib
         wexp_shift = self.wexp_shift
 
-        calc_slabs = self.fitroom.solver.calc_slabs
         get_residual = self.fitroom.solver.get_residual
 
         axij = ax2[i][j]
@@ -116,15 +152,17 @@ class Grid3x3():
         try:
             lineexp[(i,j)]  # does not change anyway .set_data(wexp+wexp_shift, ydata)
         except KeyError:
-            plt.sca(axij)
-            lines, = plot_stack(wexp+wexp_shift, ydata,'-k',lw=2)
+            lines, = plot_stack(wexp+wexp_shift, ydata,'-k',lw=2, ax=axij)
             lineexp[(i,j)] = lines
 
-        s, slabs, fconfig = calc_slabs(**slabsconfig)
-        
-        res = get_residual(s)
+        # Get calculated spectra 
+        s = self.spectra[(i,j)]  # saved by calc_case
+        slabs = self.slabsl[(i,j)]  # saved by calc_case
+        fconfig = self.fconfigs[(i,j)]   # saved by calc_case
 
-        w, I = s.get(plotquantity, xunit='nm', yunit=unit)
+        # calculate residuals
+        res = get_residual(s)
+        w, I = s.get(plotquantity, wunit='nm', Iunit=unit)
         
         ydata = norm_on(w, I) if normalize else I
         
@@ -155,7 +193,6 @@ class Grid3x3():
         # If centered, also update the multislab tool
         if i == 1 and j == 1:
             self.plot_all_slabs(s, slabs)
-
 
     def _add_multicursor(self):
         ''' Add vertical bar (if not there already)'''
@@ -211,7 +248,8 @@ class Grid3x3():
                 if not (i==1 and j==1) and not updateSideAxes: continue
                 config0[slbInteractx][xparam] = xvari
                 config0[slbInteracty][yparam] = yvarj
-                self.plot_case(i, j, **config0)   # here we calculate and plot
+                self.calc_case(i, j, **config0)   # here we calculate 
+                self.plot_case(i, j, **config0)   # here we plot
 
         # Plot title with all slabs conditions
         del config0[slbInteractx][xparam]      # dont print variable parameter

@@ -66,6 +66,11 @@ class MultiSlabPlot():
         self.N_main_bands = N_main_bands 
         self.keep_highlights = keep_highlights  
         
+        self.spectrum = None  # hold the current calculated spectrum object
+        
+    def connect(self):
+        ''' Triggered on connection to FitRoom '''
+        pass
     
     def _init_plot(self, nfig=None):
                 
@@ -76,19 +81,33 @@ class MultiSlabPlot():
 
         return fig, ax
     
-    
     def update(self):
         ''' Get, calculate and plot the current config '''
         
         slabsconfig = self.fitroom.get_config()
-        
         calc_slabs = self.fitroom.solver.calc_slabs
 
         s, slabs, fconfig = calc_slabs(**slabsconfig)
         
+        self.spectrum = s
+        self.slabs = slabs
         self.plot_all_slabs(s, slabs)
         
         self.update_markers(fconfig)
+        
+    def update_slit(self):
+        
+        slit_function = self.fitroom.solver.slit
+        slit_options = self.fitroom.solver.slit_options
+        
+        s = self.spectrum
+        slabs = self.slabs
+        
+        s.apply_slit(slit_function, **slit_options)   
+        for sl in slabs.values():
+            sl.apply_slit(slit_function, **slit_options)   
+        
+        self.plot_all_slabs(s, slabs)
         
     def plot_all_slabs(self, s, slabs):
         
@@ -112,7 +131,7 @@ class MultiSlabPlot():
         slit_options = self.fitroom.solver.slit_options
         
         # Central axe: model vs experiment
-        w, I = s.get(plotquantity, yunit=unit)
+        w, I = s.get(plotquantity, Iunit=unit)
         ydata = norm_on(w, I) if normalize else I
         try:
             line3cent[1].set_data(w, ydata)
@@ -126,9 +145,8 @@ class MultiSlabPlot():
         try:        
             line3cent[0]  # doesnt change  .set_data(wexp+wexp_shift, ydata)
         except KeyError:
-            plt.sca(ax3[1])
-            line3cent[0] = plot_stack(wexp+wexp_shift, ydata,'-k', lw=1, zorder=-1, 
-                     label='Experiment')[0]
+            line3cent[0] = plot_stack(wexp+wexp_shift, ydata, '-k', 
+                     lw=1, zorder=-1, label='Experiment', ax=ax3[1])[0]
             ax3[1].legend()
             
         def colorserie():
@@ -144,14 +162,14 @@ class MultiSlabPlot():
             for i, (name, s) in enumerate(slabs.items()):
                 s.apply_slit(slit, **slit_options)
                 color = next(colors)
-                line3up[i].set_data(*s.get('radiance', yunit=unit))
+                line3up[i].set_data(*s.get('radiance', Iunit=unit))
                 line3down[i].set_data(*s.get('transmittance'))
         except KeyError:  # first time: init lines
             colors = colorserie()
             for i, (name, si) in enumerate(slabs.items()):
                 si.apply_slit(slit, **slit_options)
                 color = next(colors)
-                line3up[i] = ax3[0].plot(*si.get('radiance', yunit=unit), color=color, lw=2, 
+                line3up[i] = ax3[0].plot(*si.get('radiance', Iunit=unit), color=color, lw=2, 
                        label=name)[0]
                 line3down[i] = ax3[2].plot(*si.get('transmittance'), color=color, lw=2, 
                          label=name)[0]
@@ -231,7 +249,7 @@ class MultiSlabPlot():
         for br in overpTool.bandlist.sorted_bands[:self.N_main_bands]:
             sb = overpTool.bandlist.bands[br]
             sb.apply_slit(slit, energy_threshold=0.2)
-            w, I = sb.get('radiance', yunit=unit)
+            w, I = sb.get('radiance', Iunit=unit)
             if br in line3upbands.keys():
                 line3upbands[br].set_data(w, I)
                 lines.append(line3upbands[br])

@@ -132,6 +132,10 @@ class Overpopulator():
         
         return 
     
+    def connect(self):
+        ''' Triggered on connection to FitRoom '''
+        pass
+
     def action(self):
         self.update_overpopulation()
         self.fitroom.update()
