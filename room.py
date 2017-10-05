@@ -24,7 +24,15 @@ except:
 
 class FitRoom():
     
-    def __init__(self, Slablist):
+    def __init__(self, Slablist, perfmode=False):
+        ''' 
+        Input
+        -------
+        
+        perfmode: boolean
+            if True we try to optimize calculation times (ex: minimized windows
+            are not recalculated)
+        '''
         self.tools = []
         
         # all possible tools:
@@ -36,6 +44,7 @@ class FitRoom():
         self.slitTool = None
         
         self.Slablist = Slablist
+        self.perfmode = perfmode
     
     def add_tool(self, tool):
         if isinstance(tool, SlabsConfigSolver):
@@ -70,6 +79,7 @@ class FitRoom():
     
     def update_plots(self):
     
+        perfmode = self.perfmode
     
         # Update GridTool
         if self.gridTool is not None:
@@ -78,7 +88,7 @@ class FitRoom():
                 updatefig = not fig2.canvas.manager.window.isMinimized()
             except:
                 updatefig = True
-            if updatefig:
+            if updatefig or not perfmode:
                 plt.figure(2).show()
                 plt.pause(0.1)  # make sure the figure is replotted
 #            else:
@@ -91,7 +101,7 @@ class FitRoom():
                 updatefig = not fig3.canvas.manager.window.isMinimized()
             except:
                 updatefig = True
-            if updatefig:
+            if updatefig or not perfmode:
                 plt.figure(3).show()
                 plt.pause(0.1)  # make sure the figure is replotted
                 

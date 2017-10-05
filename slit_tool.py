@@ -3,6 +3,12 @@
 Created on Wed Sep 27 10:38:25 2017
 
 @author: erwan
+
+Todo
+-------
+
+Overlay with "template" slit (ex: imported )
+
 """
 
 
@@ -21,10 +27,22 @@ from warnings import warn
 class SlitTool():
     ''' Tool to manipulate slit function '''
     
-    def __init__(self, plot_unit='nm'):
+    def __init__(self, plot_unit='nm', overlay=None, overlay_options=None):
+        ''' 
+        Input
+        --------
+        
+        plot_unit: 'nm', 'cm-1'
+        
+        overlay: str, or int, or tuple
+            plot a slit in background (to compare generated slit with experimental 
+            slit for instance)
+        '''
 
         self.fitroom = None
         self.plot_unit = plot_unit
+        self.overlay = overlay
+        self.overlay_options = overlay_options
         
         plt.figure('SlitTool').clear()
         fig, ax = plt.subplots(num='SlitTool')
@@ -45,7 +63,7 @@ class SlitTool():
 #        slit_options = self.slit_options()
         
         if not isinstance(slit_function, string_types):
-            plt.subplots_adjust(left=0.15, bottom=0.25, top=0.93)
+            plt.subplots_adjust(left=0.15, bottom=0.25, top=0.9)
             
             # Add sliders
             if is_float(slit_function):
@@ -100,9 +118,12 @@ class SlitTool():
         else:  # do nothing
             return  
         
-        wavespace = s.wavespace()
-        w, I = s.get(plotquantity, wunit=wavespace)
-        center_wavespace = w[len(w)//2]
+        if 'center_wavespace' in slit_options:
+            center_wavespace = slit_options['center_wavespace']
+        else:
+            wavespace = s.wavespace()
+            w, I = s.get(plotquantity, wunit=wavespace)
+            center_wavespace = w[len(w)//2]
         wstep = s.conditions['wstep']
         norm_by = slit_options.get('norm_by', 'area')
         shape = slit_options.get('shape', 'triangular')
@@ -113,11 +134,31 @@ class SlitTool():
         
         wslit, Islit = get_slit_function(slit_function, wavespace, center_wavespace,
                                          norm_by, wstep, shape, slit_unit, plot=False)
+        
+        if self.overlay is not None:
+            overlay_options = self.overlay_options
+            if overlay_options is None:
+                overlay_options = {}
+            if 'center_wavespace' in overlay_options:
+                over_center_wavespace = overlay_options['center_wavespace']
+            else:
+                over_center_wavespace = w[len(w)//2]
+            over_wavespace = overlay_options.get('wavespace', 'nm')
+            over_wstep = s.conditions['wstep']
+            over_norm_by = overlay_options.get('norm_by', 'area')
+            over_shape = overlay_options.get('shape', 'triangular')
+            over_slit_unit = overlay_options.get('slit_unit', 'nm')
+
+            woverlay, Ioverlay = get_slit_function(self.overlay, over_wavespace, 
+                                                   over_center_wavespace,
+                                         over_norm_by, over_wstep, over_shape, 
+                                         over_slit_unit, plot=False)
+        
         self.plot_slit(wslit, Islit, wavespace=wavespace, plot_unit=plot_unit, 
-                       fig=self.fig, ax=self.ax)
+                       wover=woverlay, Iover=Ioverlay)
             
     def plot_slit(self, w, I=None, wavespace='', plot_unit='same',
-                  fig=None, ax=None):
+                  wover=None, Iover=None):
         ''' Variant of the plot_slit functino defined in slit.py that can 
         set_data when figure already exists
         
@@ -141,6 +182,9 @@ class SlitTool():
             is not. Default True
     
         '''
+        
+        fig= self.fig
+        ax= self.ax
         
         from neq.plot.toolbar import add_tools
         try:
@@ -188,16 +232,14 @@ class SlitTool():
         else:
             raise ValueError('Unkown wavespace: {0}'.format(wavespace))
     
-        if ax is None or fig is None:
-            fig, ax = plt.subplots()
-            
-        w[len(w)//2]
+#        w[len(w)//2]
+        ax.set_title('FWHM {0:.2f}nm, effective {1:.2f}nm'.format(FWHM, FWHM_eff))
         
         try:
             self.lines[0].set_data(w,I)
             self.lines[1].set_data(w,I)
-            self.ax.relim()
-            self.ax.autoscale_view()
+            ax.relim()
+            ax.autoscale_view()
         except KeyError:
             self.lines[0], = ax.plot(w, I, 'o', color='lightgrey')
             self.lines[1], = ax.plot(w, I, '-k', label='FWHM: {0:.3f} {1}'.format(FWHM, unit)+\
@@ -213,6 +255,10 @@ class SlitTool():
     #        plt.axvline(w[xmax], ls='--', color='k', lw=0.5)      # FWHM max
     #        plt.axhline(I.max()/2, ls='--', color='k', lw=0.5)      # half maximum
             
+            # Add overlay
+            if wover is not None and Iover is not None:
+                ax.plot(wover, Iover, '-', color='lightgrey')
+    
             ax.set_xlabel(xlabel)
             ax.set_ylabel('Slit function')
             plt.legend(loc='best', prop={'size':16})
@@ -249,6 +295,8 @@ class SlitTool():
                 slabsTool.update_slit()
             if gridTool is not None:
                 gridTool.update_slit()
+#                gridTool.fig.show() # or something smarter.  # TODO # HERE 
+                
                 
         self.update_figure()
         

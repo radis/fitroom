@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import textwrap
 from matplotlib.widgets import MultiCursor
 from neq.plot import plot_stack
+import warnings
 
 class Grid3x3():
 
@@ -57,6 +58,8 @@ class Grid3x3():
         self.slabsl = {}    # hold the calculated slabs lists
         self.fconfigs = {}    # hold the calculated slab configs
         
+        self.counter = 0 # debug
+        
     def connect(self):
         ''' Triggered on connection to FitRoom '''
         pass
@@ -93,11 +96,15 @@ class Grid3x3():
         spectra = self.spectra
         fconfigs = self.fconfigs
         
-        for (i,j) in spectra.keys():
-            spectra[(i,j)].apply_slit(slit_function, **slit_options)
-            self.plot_case(i,j, fconfigs[(i,j)])
-        
-    def calc_case(self, j, i, **slabsconfig):
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', "interpolating slit function over spectrum grid")
+            for (i,j) in spectra.keys():
+                spectra[(i,j)].apply_slit(slit_function, **slit_options)
+                print('debug... apply slit for {0} {1}'.format(i,j))
+                self.plot_case(i, j, **fconfigs[(i,j)])  # (j,i) not (i,j)
+        self.fig.canvas.draw()  
+            
+    def calc_case(self, i, j, **slabsconfig):
         ''' notice j, i and not i, j 
         i is y, j is x? or the other way round. It's always complicated
         with indexes anyway... (y goes up but j goes down) you see what i mean
@@ -113,12 +120,14 @@ class Grid3x3():
             raise ValueError('No SlabsConfigSolver defined')
         
         calc_slabs = self.fitroom.solver.calc_slabs
-        s, slabs, fconfig = calc_slabs(**slabsconfig)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', "interpolating slit function over spectrum grid")
+            s, slabs, fconfig = calc_slabs(**slabsconfig)
         spectra[(i,j)] = s  # save
         slabsl[(i,j)] = slabs  # save
         fconfigs[(i,j)] = fconfig  # save
         
-    def plot_case(self, j, i, **slabsconfig):
+    def plot_case(self, i, j, **slabsconfig):
         ''' notice j, i and not i, j 
         i is y, j is x? or the other way round. It's always complicated
         with indexes anyway... (y goes up but j goes down) you see what i mean
@@ -145,7 +154,7 @@ class Grid3x3():
 
         get_residual = self.fitroom.solver.get_residual
 
-        axij = ax2[i][j]
+        axij = ax2[j][i]   # note it's (j,i) not (i,j)
         axij.format_coord = self.format_coord
 
         ydata = norm_on(wexp, Iexpcalib) if normalize else Iexpcalib
@@ -156,8 +165,8 @@ class Grid3x3():
             lineexp[(i,j)] = lines
 
         # Get calculated spectra 
-        s = self.spectra[(i,j)]  # saved by calc_case
-        slabs = self.slabsl[(i,j)]  # saved by calc_case
+        s = self.spectra[(i,j)]          # saved by calc_case
+        slabs = self.slabsl[(i,j)]       # saved by calc_case
         fconfig = self.fconfigs[(i,j)]   # saved by calc_case
 
         # calculate residuals
@@ -166,9 +175,12 @@ class Grid3x3():
         
         ydata = norm_on(w, I) if normalize else I
         
+        self.counter += 1
+        
         try:
             linesim[(i,j)].set_data(w, ydata)
             legends2[(i,j)].texts[0].set_text('res: {0:.3g}'.format(res))
+#            legends2[(i,j)].texts[0].set_text('{0:.3g}'.format(self.counter))
         except KeyError:
             line, = axij.plot(w, ydata, 'r')
             linesim[(i,j)] = line
@@ -177,13 +189,15 @@ class Grid3x3():
         
         self.update_markers(fconfig, i, j)
         
-        if i == 2: axij.set_xlabel('Wavelength')
-        if j == 0:
+        # Remember than case (i,j) corresponds to ax2[j,i] which means: j = rows,
+        # i = columns
+        if j == 2: axij.set_xlabel('Wavelength')
+        if i == 0:
             if yparam == 'mole_fraction':
                 axij.set_ylabel('{0} {1:.2g}'.format(yparam, fconfig[slbInteracty][yparam]))
             else:
                 axij.set_ylabel('{0} {1:.1f}'.format(yparam, fconfig[slbInteracty][yparam]))
-        if i == 0:
+        if j == 0:
             if xparam == 'mole_fraction':
                 axij.set_title('{0} {1:.2g}'.format(xparam, fconfig[slbInteractx][xparam]), size=20)
             else:
@@ -237,9 +251,12 @@ class Grid3x3():
         config0 = self.fitroom.get_config()   # create a copy 
 
         # dont calculate these when the figure is not shown (for performance)
-        try:  # works in Qt
-            updateSideAxes = not fig2.canvas.manager.window.isMinimized()
-        except:
+        if self.fitroom.perfmode:
+            try:  # works in Qt
+                updateSideAxes = not fig2.canvas.manager.window.isMinimized()
+            except:
+                updateSideAxes = True
+        else:
             updateSideAxes = True
 
         # Do the calculations 

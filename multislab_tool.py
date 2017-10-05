@@ -16,6 +16,7 @@ from matplotlib.widgets import MultiCursor
 from mpldatacursor import HighlightingDataCursor
 from neq.phys.conv import cm2eV
 from neq.plot import plot_stack
+import warnings
 
 class MultiSlabPlot():
     
@@ -159,11 +160,13 @@ class MultiSlabPlot():
         # Upper axe: emission   &    lower axe: transmittance
         try:
             colors = colorserie()
-            for i, (name, s) in enumerate(slabs.items()):
-                s.apply_slit(slit, **slit_options)
-                color = next(colors)
-                line3up[i].set_data(*s.get('radiance', Iunit=unit))
-                line3down[i].set_data(*s.get('transmittance'))
+            with warnings.catch_warnings():
+                warnings.filterwarnings('ignore', "interpolating slit function over spectrum grid")
+                for i, (name, s) in enumerate(slabs.items()):
+                    s.apply_slit(slit, **slit_options)
+                    color = next(colors)
+                    line3up[i].set_data(*s.get('radiance', Iunit=unit))
+                    line3down[i].set_data(*s.get('transmittance'))
         except KeyError:  # first time: init lines
             colors = colorserie()
             for i, (name, si) in enumerate(slabs.items()):
