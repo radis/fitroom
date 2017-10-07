@@ -79,7 +79,7 @@ if __name__ == '__main__':
 #                         path_length=0.025, 
 #                         cutoff=1e-25,
 #                         isotope_identifier=[1,2],
-#                         use_cached=True,
+#                         db_use_cached=True,
 #                         medium='air')
 #    sf2.load_databank('CDSD')
 #    s_bands2 = sf2.non_eq_bands(Tvib=Tvib, Trot=1500) #, return_lines=False)
