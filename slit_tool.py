@@ -121,8 +121,8 @@ class SlitTool():
         if 'center_wavespace' in slit_options:
             center_wavespace = slit_options['center_wavespace']
         else:
-            wavespace = s.wavespace()
-            w, I = s.get(plotquantity, wunit=wavespace)
+            waveunit = s.get_waveunit()
+            w, I = s.get(plotquantity, wunit=waveunit)
             center_wavespace = w[len(w)//2]
         wstep = s.conditions['wstep']
         norm_by = slit_options.get('norm_by', 'area')
@@ -132,7 +132,7 @@ class SlitTool():
         # Plot
 #        slit_options = self.slit_options 
         
-        wslit, Islit = get_slit_function(slit_function, wavespace, center_wavespace,
+        wslit, Islit = get_slit_function(slit_function, waveunit, center_wavespace,
                                          norm_by, wstep, shape, slit_unit, plot=False)
         
         if self.overlay is not None:
@@ -154,10 +154,10 @@ class SlitTool():
                                          over_norm_by, over_wstep, over_shape, 
                                          over_slit_unit, plot=False)
         
-        self.plot_slit(wslit, Islit, wavespace=wavespace, plot_unit=plot_unit, 
+        self.plot_slit(wslit, Islit, waveunit=waveunit, plot_unit=plot_unit, 
                        wover=woverlay, Iover=Ioverlay)
             
-    def plot_slit(self, w, I=None, wavespace='', plot_unit='same',
+    def plot_slit(self, w, I=None, waveunit='', plot_unit='same',
                   wover=None, Iover=None):
         ''' Variant of the plot_slit functino defined in slit.py that can 
         set_data when figure already exists
@@ -209,9 +209,9 @@ class SlitTool():
         # Convert wavespace unit if needed
         if plot_unit == 'same':
             pass
-        elif plot_unit in WAVELEN_UNITS+WAVENUM_UNITS and wavespace not in WAVENUM_UNITS+WAVENUM_UNITS:
-            raise ValueError('Unknown wavespace unit: {0}'.format(wavespace))
-        elif wavespace in WAVENUM_UNITS and plot_unit in WAVELEN_UNITS: # wavelength > wavenumber
+        elif plot_unit in WAVELEN_UNITS+WAVENUM_UNITS and waveunit not in WAVENUM_UNITS+WAVENUM_UNITS:
+            raise ValueError('Unknown wavespace unit: {0}'.format(waveunit))
+        elif waveunit in WAVENUM_UNITS and plot_unit in WAVELEN_UNITS: # wavelength > wavenumber
             w = cm2nm(w)
             wavespace = 'nm'
         elif wavespace in WAVELEN_UNITS and plot_unit in WAVENUM_UNITS: # wavenumber > wavelength
