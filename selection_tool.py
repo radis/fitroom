@@ -33,7 +33,7 @@ class CaseSelector():
         # Init variables        
         self.linemarkers = {}
 
-        self.fitroom = None
+        self.fitroom = None               # type: FitRoom
 #        self.solver = solver
 #        self.gridTool = gridTool
 #        self.slabsTool = slabsTool

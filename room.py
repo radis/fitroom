@@ -36,12 +36,12 @@ class FitRoom():
         self.tools = []
         
         # all possible tools:
-        self.solver = None
-        self.gridTool = None
-        self.slabsTool = None
-        self.selectTool = None
-        self.overpTool = None
-        self.slitTool = None
+        self.solver = None      # type: Solver
+        self.gridTool = None    # type: Grid3x3
+        self.slabsTool = None   # type: MultiSlabPlot
+        self.selectTool = None  # type: CaseSelector
+        self.overpTool = None   # type: Overpopulator
+        self.slitTool = None    # type: SlitTool
         
         self.Slablist = Slablist
         self.perfmode = perfmode

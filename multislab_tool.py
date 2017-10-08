@@ -62,7 +62,7 @@ class MultiSlabPlot():
         self.Iexpcalib = Iexpcalib
         self.wexp_shift = wexp_shift
         
-        self.fitroom = None
+        self.fitroom = None               # type: FitRoom
         
         self.N_main_bands = N_main_bands 
         self.keep_highlights = keep_highlights  

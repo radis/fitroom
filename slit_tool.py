@@ -39,7 +39,7 @@ class SlitTool():
             slit for instance)
         '''
 
-        self.fitroom = None
+        self.fitroom = None               # type: FitRoom
         self.plot_unit = plot_unit
         self.overlay = overlay
         self.overlay_options = overlay_options

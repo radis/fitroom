@@ -52,7 +52,7 @@ class Grid3x3():
         self.Iexpcalib = Iexpcalib
         self.wexp_shift = wexp_shift
 
-        self.fitroom = None
+        self.fitroom = None          # type: FitRoom
         
         self.spectra = {}    # hold the calculated spectra 
         self.slabsl = {}    # hold the calculated slabs lists

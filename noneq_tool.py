@@ -26,7 +26,7 @@ class Overpopulator():
             
         '''
         
-        self.fitroom = None
+        self.fitroom = None               # type: FitRoom
         
         self.nfig = nfig
                 
