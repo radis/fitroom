@@ -16,6 +16,7 @@ from matplotlib.widgets import MultiCursor
 from mpldatacursor import HighlightingDataCursor
 from neq.phys.conv import cm2eV
 from neq.plot import plot_stack
+from neq.plot.toolbar import add_tools
 import warnings
 
 class MultiSlabPlot():
@@ -50,7 +51,11 @@ class MultiSlabPlot():
         self.line3down = {}
         self.line3upbands = {}  
         
-        self.fig, self.ax = self._init_plot(nfig=nfig)
+        self.fig, self.ax = self._init_plot(nfig=nfig)        
+        try:
+            add_tools()       # includes a Ruler
+        except:
+            pass
         self.multi3 = None 
         
         self.plotquantity = plotquantity

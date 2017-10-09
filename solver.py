@@ -12,6 +12,7 @@ get the correct slab input, then calls the appropriate functions in neq.spec eng
 import numpy as np
 from scipy.interpolate import splev, splrep
 from warnings import warn
+from neq.spec import SpecDatabase, SpectrumFactory, BandList  # imported for static debugger
 
 class SlabsConfigSolver():
     '''
@@ -126,7 +127,7 @@ class SlabsConfigSolver():
             cfg = slabcfg.copy()
 
             if 'source' in cfg:
-                source = cfg.pop('source')
+                source = cfg.pop('source')       # type: str
             else:
                 source = self.source
 
@@ -139,8 +140,8 @@ class SlabsConfigSolver():
                 if 'bandlist' in cfg:
                     warn('`database` source mode used but `bandlist` is given')
 
-                dbi = cfg.pop('db')
-
+                dbi = cfg.pop('db')    # type: SpecDatabase
+                
                 si = dbi.get_closest(scale_if_possible=True, verbose=verbose, **cfg)
 
             elif source == 'calculate':
@@ -152,7 +153,7 @@ class SlabsConfigSolver():
                 if 'bandlist' in cfg:
                     warn('`calculate` source mode used but `bandlist` is given')
 
-                sfi = cfg.pop('factory')
+                sfi = cfg.pop('factory')        # type: SpectrumFactory
                 si = sfi.eq_spectrum(**cfg)
 
             elif source == 'calculate_noneq':
@@ -164,7 +165,7 @@ class SlabsConfigSolver():
                 if 'bandlist' in cfg:
                     warn('`calculate_noneq` source mode used but `bandlist` is given')
 
-                sfi = cfg.pop('factory')
+                sfi = cfg.pop('factory')        # type: SpectrumFactory
                 si = sfi.non_eq_spectrum(**cfg)
 
             elif source == 'from_bands':
@@ -177,7 +178,7 @@ class SlabsConfigSolver():
                 if 'db' in cfg:
                     del cfg['db']
 
-                sfi = cfg.pop('bandlist')
+                sfi = cfg.pop('bandlist')        # type: BandList
                 cfg['save_rescaled_bands'] = self.save_rescaled_bands
                 si = sfi.non_eq_spectrum(**cfg)
                 del cfg['save_rescaled_bands']

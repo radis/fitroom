@@ -261,7 +261,7 @@ class SlitTool():
     
             ax.set_xlabel(xlabel)
             ax.set_ylabel('Slit function')
-            plt.legend(loc='best', prop={'size':16})
+#            plt.legend(loc='best', prop={'size':16})
         
         #   plt.tight_layout()
         

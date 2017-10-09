@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import textwrap
 from matplotlib.widgets import MultiCursor
 from neq.plot import plot_stack
+from neq.plot.toolbar import add_tools
 import warnings
 
 class Grid3x3():
@@ -28,6 +29,10 @@ class Grid3x3():
 
         self.fig = fig2
         self.ax = ax2
+        try:
+            add_tools()       # includes a Ruler
+        except:
+            pass
         self.multi2 = None  # used to save the multicursor afterwards
 
         self.lineexp = {}
