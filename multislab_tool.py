@@ -18,6 +18,7 @@ from neq.phys.conv import cm2eV
 from neq.plot import plot_stack
 from neq.plot.toolbar import add_tools
 import warnings
+from numpy import nan
 
 class MultiSlabPlot():
     
@@ -79,26 +80,26 @@ class MultiSlabPlot():
         pass
     
     def _init_plot(self, nfig=None):
-                
+
         # Generate Figure 3 layout
         plt.figure(3, figsize=(12,8)).clear()
         fig, ax = plt.subplots(3, 1, num=3, sharex=True)
         plt.tight_layout()
 
         return fig, ax
-    
+
     def update(self):
         ''' Get, calculate and plot the current config '''
-        
+
         slabsconfig = self.fitroom.get_config()
         calc_slabs = self.fitroom.solver.calc_slabs
 
         s, slabs, fconfig = calc_slabs(**slabsconfig)
-        
+
         self.spectrum = s
         self.slabs = slabs
         self.plot_all_slabs(s, slabs)
-        
+
         self.update_markers(fconfig)
         
     def update_slit(self):
@@ -115,7 +116,23 @@ class MultiSlabPlot():
         
         self.plot_all_slabs(s, slabs)
         
+    def _plot_failed(self, error_msg):
+        line3cent = self.line3cent
+        
+        try:
+            w, ydata = line3cent[1].get_data()
+            line3cent[1].set_data(w*nan, ydata*nan)
+            print(error_msg)
+        except KeyError:
+            pass   # spectrum not plotted yet. Do nothing
+        
+        return
+        
     def plot_all_slabs(self, s, slabs):
+        
+        if s is None:
+            self._plot_failed(error_msg='Slabs tool: spectrum could not be calculated')
+            return
         
         # Init variables
         fig3 = self.fig

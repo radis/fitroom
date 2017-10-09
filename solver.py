@@ -142,7 +142,10 @@ class SlabsConfigSolver():
 
                 dbi = cfg.pop('db')    # type: SpecDatabase
                 
-                si = dbi.get_closest(scale_if_possible=True, verbose=verbose, **cfg)
+                try:
+                    si = dbi.get_closest(scale_if_possible=True, verbose=verbose, **cfg)
+                except:
+                    si = None
 
             elif source == 'calculate':
 
@@ -187,15 +190,20 @@ class SlabsConfigSolver():
                 raise ValueError('Unknown source mode: {0}'.format(self.source)+\
                                  ' Use calculate, calculate_non_eq, database or '+\
                                  'from_bands')
+            
+            if si is None:  # ex: user asked for negative path length
+                warn('Spectrum couldnt be calculated')
+                return (None, None, None)
                 
-            # Overwrite name
-            si.name = slabname
-
-            fcondsi = {}
-            for k in cfg:
-                fcondsi[k] = si.conditions[k]
-            slabs[slabname] = si.copy()
-            fconds[slabname] = fcondsi
+            else:
+                # Overwrite name
+                si.name = slabname
+    
+                fcondsi = {}
+                for k in cfg:
+                    fcondsi[k] = si.conditions[k]
+                slabs[slabname] = si.copy()
+                fconds[slabname] = fcondsi
 
         s = config(**slabs)
         s.apply_slit(slit, **self.slit_options)

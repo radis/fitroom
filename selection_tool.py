@@ -200,8 +200,9 @@ class CaseSelector():
             plt.ion()
 
         except:
-            import sys
-            print(sys.exc_info())
+            print('An error occured during selectTool callback')
+            import traceback
+            traceback.print_exc()
             raise
 
     def toggle_selector(self, event):
@@ -220,6 +221,13 @@ class CaseSelector():
         i,j : int
             marker position  (different from 1,1 in 3x3 grid )
         '''
+        
+        if fconfig is None:
+            try:
+                self.linemarkers[(i,j)].set_visible(False)
+            except KeyError:
+                pass
+            return
         
         slbInteractx = self.slbInteractx
         slbInteracty = self.slbInteracty
@@ -282,9 +290,12 @@ class CaseSelector():
             #        fexp = r"12_StepAndGlue_30us_Cathode_0us_stacked.txt"
     
                 s, slabs, fconfig = calc_slabs(**config0)
-    
-                resij = get_residual(s)
-    
+                
+                if s is None:   # spectrum not calculated
+                    print('Spectrum not calculated. Couldnt calculate residuals')
+                    return 
+                
+                resij = resij = get_residual(s)
                 res.append(resij)
     
             res = array(res)

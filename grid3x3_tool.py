@@ -13,6 +13,8 @@ from matplotlib.widgets import MultiCursor
 from neq.plot import plot_stack
 from neq.plot.toolbar import add_tools
 import warnings
+from neq.spec import Spectrum   # for IDE hints
+from numpy import nan
 
 class Grid3x3():
 
@@ -62,8 +64,6 @@ class Grid3x3():
         self.spectra = {}    # hold the calculated spectra 
         self.slabsl = {}    # hold the calculated slabs lists
         self.fconfigs = {}    # hold the calculated slab configs
-        
-        self.counter = 0 # debug
         
     def connect(self):
         ''' Triggered on connection to FitRoom '''
@@ -131,6 +131,23 @@ class Grid3x3():
         spectra[(i,j)] = s  # save
         slabsl[(i,j)] = slabs  # save
         fconfigs[(i,j)] = fconfig  # save
+    
+    def _plot_failed(self, i, j, error_msg):
+        linesim = self.linesim
+        legends2 = self.legends2
+        try:
+            w, ydata = linesim[(i,j)].get_data()
+            linesim[(i,j)].set_data(w*nan, ydata*nan)
+            legends2[(i,j)].texts[0].set_text(error_msg)
+            print(error_msg)
+        except KeyError:
+            pass   # spectrum not plotted yet. Do nothing
+        self.update_markers(None, i, j)
+        # If centered, also update the multislab tool
+        if i == 1 and j == 1:
+            self.plot_all_slabs(None, None)
+            
+        return
         
     def plot_case(self, i, j, **slabsconfig):
         ''' notice j, i and not i, j 
@@ -170,22 +187,24 @@ class Grid3x3():
             lineexp[(i,j)] = lines
 
         # Get calculated spectra 
-        s = self.spectra[(i,j)]          # saved by calc_case
-        slabs = self.slabsl[(i,j)]       # saved by calc_case
-        fconfig = self.fconfigs[(i,j)]   # saved by calc_case
-
+        s = self.spectra[(i,j)]          # type: Spectrum # saved by calc_case. None if failed
+        slabs = self.slabsl[(i,j)]       # type: list     # saved by calc_case. None if failed
+        fconfig = self.fconfigs[(i,j)]   # type: dict     # saved by calc_case. None if failed
+        
+        if s is None:
+            # TODO : could use 'slabs' as a custom error message
+            self._plot_failed(i, j, error_msg='Spectrum could not be calculated')
+            return
+                
         # calculate residuals
         res = get_residual(s)
         w, I = s.get(plotquantity, wunit='nm', Iunit=unit)
         
         ydata = norm_on(w, I) if normalize else I
         
-        self.counter += 1
-        
         try:
             linesim[(i,j)].set_data(w, ydata)
             legends2[(i,j)].texts[0].set_text('res: {0:.3g}'.format(res))
-#            legends2[(i,j)].texts[0].set_text('{0:.3g}'.format(self.counter))
         except KeyError:
             line, = axij.plot(w, ydata, 'r')
             linesim[(i,j)] = line
