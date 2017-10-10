@@ -132,8 +132,10 @@ class SlitTool():
         # Plot
 #        slit_options = self.slit_options 
         
-        wslit, Islit = get_slit_function(slit_function, waveunit, center_wavespace,
-                                         norm_by, wstep, shape, slit_unit, plot=False)
+        wslit, Islit = get_slit_function(slit_function, unit=slit_unit, return_unit=plot_unit,
+                                         norm_by=norm_by, 
+                                         center_wavespace=center_wavespace, wstep=wstep, 
+                                         shape=shape, plot=False)
         
         if self.overlay is not None:
             overlay_options = self.overlay_options
@@ -143,23 +145,22 @@ class SlitTool():
                 over_center_wavespace = overlay_options['center_wavespace']
             else:
                 over_center_wavespace = w[len(w)//2]
-            over_wavespace = overlay_options.get('wavespace', 'nm')
-            over_wstep = s.conditions['wstep']
-            over_norm_by = overlay_options.get('norm_by', 'area')
-            over_shape = overlay_options.get('shape', 'triangular')
-            over_slit_unit = overlay_options.get('slit_unit', 'nm')
+            ov_wstep = s.conditions['wstep']
+            ov_norm_by = overlay_options.get('norm_by', 'area')
+            ov_shape = overlay_options.get('shape', 'triangular')
+            ov_slit_unit = overlay_options.get('slit_unit', 'nm')
 
-            woverlay, Ioverlay = get_slit_function(self.overlay, over_wavespace, 
-                                                   over_center_wavespace,
-                                         over_norm_by, over_wstep, over_shape, 
-                                         over_slit_unit, plot=False)
+            woverlay, Ioverlay = get_slit_function(self.overlay, unit=ov_slit_unit, return_unit=plot_unit, 
+                                                   center_wavespace=over_center_wavespace,
+                                                     norm_by=ov_norm_by, wstep=ov_wstep, shape=ov_shape, 
+                                                     plot=False)
         
         self.plot_slit(wslit, Islit, waveunit=waveunit, plot_unit=plot_unit, 
                        wover=woverlay, Iover=Ioverlay)
             
     def plot_slit(self, w, I=None, waveunit='', plot_unit='same',
                   wover=None, Iover=None):
-        ''' Variant of the plot_slit functino defined in slit.py that can 
+        ''' Variant of the plot_slit function defined in slit.py that can 
         set_data when figure already exists
         
         Plot slit, calculate and display FWHM, and calculate effective FWHM.
@@ -172,7 +173,7 @@ class SlitTool():
         w, I: arrays    or   (str, None)
             if str, open file directly
     
-        wavespace: 'nm', 'cm-1' or ''
+        waveunit: 'nm', 'cm-1' or ''
     
         plot_unit: 'nm, 'cm-1' or 'same'
             change plot unit (and FWHM units)
@@ -213,24 +214,24 @@ class SlitTool():
             raise ValueError('Unknown wavespace unit: {0}'.format(waveunit))
         elif waveunit in WAVENUM_UNITS and plot_unit in WAVELEN_UNITS: # wavelength > wavenumber
             w = cm2nm(w)
-            wavespace = 'nm'
-        elif wavespace in WAVELEN_UNITS and plot_unit in WAVENUM_UNITS: # wavenumber > wavelength
+            waveunit = 'nm'
+        elif waveunit in WAVELEN_UNITS and plot_unit in WAVENUM_UNITS: # wavenumber > wavelength
             w = nm2cm(w)
-            wavespace = 'cm-1'
+            waveunit = 'cm-1'
         else:
             raise ValueError('Unknown plot unit: {0}'.format(plot_unit))
     
         xlabel = 'Wavespace'
-        if wavespace in WAVELEN_UNITS:
+        if waveunit in WAVELEN_UNITS:
             xlabel = 'Wavelength (nm)'
             unit = ' nm'
-        elif wavespace in WAVENUM_UNITS:
+        elif waveunit in WAVENUM_UNITS:
             xlabel = 'Wavenumber (cm-1)'
             unit = ' cm-1'
-        elif wavespace == '':
+        elif waveunit == '':
             unit = ''
         else:
-            raise ValueError('Unkown wavespace: {0}'.format(wavespace))
+            raise ValueError('Unknown wavespace unit: {0}'.format(waveunit))
     
 #        w[len(w)//2]
         ax.set_title('FWHM {0:.2f}nm, effective {1:.2f}nm'.format(FWHM, FWHM_eff))
