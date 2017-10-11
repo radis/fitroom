@@ -215,6 +215,9 @@ class MultiSlabPlot():
             
         # Cursors
         self._add_multicursor()
+        
+        
+        self.fig.canvas.draw()  
 
 
     def _clean_datacursors(self):

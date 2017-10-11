@@ -50,6 +50,10 @@ class SlitTool():
         self.ax = ax 
         self.lines = {}
         
+        # for sliders:
+        self.sltop = None       # type: Slider
+        self.slbase = None      # type: Slider
+        
     def slit_function(self):
         return self.fitroom.solver.slit
     
@@ -98,11 +102,9 @@ class SlitTool():
         
         slabsTool = self.fitroom.slabsTool
         gridTool = self.fitroom.gridTool
-        plotquantity = self.fitroom.solver.plotquantity
         slit_function = self.slit_function()
         plot_unit = self.plot_unit
         
-        slit_options = self.slit_options()
         
         # Get one spectrum  to get wavespace range
         if slabsTool is not None:
@@ -118,17 +120,27 @@ class SlitTool():
         else:  # do nothing
             return  
         
+        slit_unit = s.conditions['slit_unit']
+        wstep = s.conditions['wstep']
+        norm_by =  s.conditions['norm_by']
+
+        slit_options = self.slit_options()
+        shape =  slit_options['shape']
+        
         if 'center_wavespace' in slit_options:
             center_wavespace = slit_options['center_wavespace']
-        else:
+        else:  
+            # center_wavespace is inferred by apply_slit() from the slit range: 
+            # we do the same here 
             waveunit = s.get_waveunit()
-            w, I = s.get(plotquantity, wunit=waveunit)
-            center_wavespace = w[len(w)//2]
-        wstep = s.conditions['wstep']
-        norm_by = slit_options.get('norm_by', 'area')
-        shape = slit_options.get('shape', 'triangular')
-        slit_unit = slit_options.get('slit_unit', 'nm')
-
+            w = s.q['wavespace']
+            # reminder: center_wavespace should be in ~ unit
+            center_wavespace = w[len(w)//2]   # w ~ waveunit    
+            if waveunit in WAVENUM_UNITS and slit_unit in WAVELEN_UNITS:
+                center_wavespace = cm2nm(center_wavespace)     # wavenum > wavelen
+            elif waveunit in WAVELEN_UNITS and slit_unit in WAVENUM_UNITS:
+                center_wavespace = nm2cm(center_wavespace)     # wavelen > wavenum
+                
         # Plot
 #        slit_options = self.slit_options 
         
@@ -137,25 +149,36 @@ class SlitTool():
                                          center_wavespace=center_wavespace, wstep=wstep, 
                                          shape=shape, plot=False)
         
+        woverlay, Ioverlay = None, None
+        
         if self.overlay is not None:
             overlay_options = self.overlay_options
+            
             if overlay_options is None:
                 overlay_options = {}
+            ov_slit_unit = overlay_options.get('unit', 'nm')
             if 'center_wavespace' in overlay_options:
-                over_center_wavespace = overlay_options['center_wavespace']
+                ov_center_wavespace = overlay_options['center_wavespace']
             else:
-                over_center_wavespace = w[len(w)//2]
+                waveunit = s.get_waveunit()
+                w = s.q['wavespace']
+                # reminder: center_wavespace should be in ~ unit
+                ov_center_wavespace = w[len(w)//2]  # w ~ waveunit
+                if waveunit in WAVENUM_UNITS and ov_slit_unit in WAVELEN_UNITS:
+                    ov_center_wavespace = cm2nm(center_wavespace)     # wavenum > wavelen
+                elif waveunit in WAVELEN_UNITS and ov_slit_unit in WAVENUM_UNITS:
+                    ov_center_wavespace = nm2cm(center_wavespace)     # wavelen > wavenum
+                
             ov_wstep = s.conditions['wstep']
             ov_norm_by = overlay_options.get('norm_by', 'area')
             ov_shape = overlay_options.get('shape', 'triangular')
-            ov_slit_unit = overlay_options.get('slit_unit', 'nm')
 
             woverlay, Ioverlay = get_slit_function(self.overlay, unit=ov_slit_unit, return_unit=plot_unit, 
-                                                   center_wavespace=over_center_wavespace,
+                                                   center_wavespace=ov_center_wavespace,
                                                      norm_by=ov_norm_by, wstep=ov_wstep, shape=ov_shape, 
                                                      plot=False)
         
-        self.plot_slit(wslit, Islit, waveunit=waveunit, plot_unit=plot_unit, 
+        self.plot_slit(wslit, Islit, waveunit=plot_unit, plot_unit=plot_unit, 
                        wover=woverlay, Iover=Ioverlay)
             
     def plot_slit(self, w, I=None, waveunit='', plot_unit='same',
@@ -202,24 +225,27 @@ class SlitTool():
             w = w[~np.isnan(I)]
             I = I[~np.isnan(I)]
         assert len(I)>0
+        if waveunit not in WAVELEN_UNITS+WAVENUM_UNITS:
+            raise ValueError('Unknown wavespace unit: {0}'.format(waveunit))
             
         # Recalculate FWHM
-        FWHM, xmin, xmax = get_FWHM(w, I, return_index=True)
+        FWHM, _, _ = get_FWHM(w, I, return_index=True)
         FWHM_eff = get_effective_FWHM(w, I)
     
         # Convert wavespace unit if needed
         if plot_unit == 'same':
             pass
-        elif plot_unit in WAVELEN_UNITS+WAVENUM_UNITS and waveunit not in WAVENUM_UNITS+WAVENUM_UNITS:
-            raise ValueError('Unknown wavespace unit: {0}'.format(waveunit))
+        elif plot_unit not in WAVELEN_UNITS+WAVENUM_UNITS:
+            raise ValueError('Unknown wavespace unit: {0}'.format(plot_unit))
         elif waveunit in WAVENUM_UNITS and plot_unit in WAVELEN_UNITS: # wavelength > wavenumber
             w = cm2nm(w)
             waveunit = 'nm'
         elif waveunit in WAVELEN_UNITS and plot_unit in WAVENUM_UNITS: # wavenumber > wavelength
             w = nm2cm(w)
             waveunit = 'cm-1'
-        else:
-            raise ValueError('Unknown plot unit: {0}'.format(plot_unit))
+        else:  # same 
+            pass
+#            raise ValueError('Unknown plot unit: {0}'.format(plot_unit))
     
         xlabel = 'Wavespace'
         if waveunit in WAVELEN_UNITS:
