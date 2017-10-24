@@ -194,10 +194,11 @@ class MultiSlabPlot():
             for i, (name, si) in enumerate(slabs.items()):
                 si.apply_slit(slit, **slit_options)
                 color = next(colors)
-                line3up[i] = ax3[0].plot(*si.get('radiance', Iunit=unit), color=color, lw=2, 
-                       label=name)[0]
-                line3down[i] = ax3[2].plot(*si.get('transmittance'), color=color, lw=2, 
-                         label=name)[0]
+                ls = '-' if i < 6 else '--'
+                line3up[i] = ax3[0].plot(*si.get('radiance', Iunit=unit), color=color, 
+                       lw=2, ls=ls, label=name)[0]
+                line3down[i] = ax3[2].plot(*si.get('transmittance'), color=color, 
+                         lw=2, ls=ls, label=name)[0]
 #            if not normalize: 
 #                ax3[2].set_ylim((-0.008, 0.179)) # Todo: remove that 
             ax3[2].set_ylim((0,1))

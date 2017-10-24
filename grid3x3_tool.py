@@ -12,8 +12,8 @@ import textwrap
 from matplotlib.widgets import MultiCursor
 from neq.plot import plot_stack
 from neq.plot.toolbar import add_tools
-import warnings
 from neq.spec import Spectrum   # for IDE hints
+import warnings
 from numpy import nan
 
 class Grid3x3():
@@ -299,7 +299,7 @@ class Grid3x3():
         for k, cfgi in config0.items():
             msg += k+' - '
             msg += ' '.join(
-                ['{0}:{1:.3g}'.format(k,v) for (k,v) in cfgi.items() 
+                ['{0}:{1:.3g}'.format(k,float(v)) for (k,v) in cfgi.items() 
                 if not k in ['db','factory', 'bandlist','source',
                              'overpopulation',  # readable but too many lines
                              ]])
