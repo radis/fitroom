@@ -38,7 +38,7 @@ try:
     from neq.math.fitroom import MultiSlabPlot
     from neq.math.fitroom import SlabsConfigSolver
     from neq.math.fitroom import Overpopulator
-    from neq.math.fitroom import FitRoom
+    from neq.math.fitroom import FitRoom, DynVar
     from neq.math.fitroom import SlitTool
 except:
     from .selection_tool import CaseSelector
@@ -46,7 +46,7 @@ except:
     from .multislab_tool import MultiSlabPlot
     from .solver import SlabsConfigSolver
     from .noneq_tool import Overpopulator
-    from .room import FitRoom
+    from .room import FitRoom, DynVar
     from .slit_tool import SlitTool
     
 from neq.spec import SpectrumFactory
@@ -86,6 +86,8 @@ if __name__ == '__main__':
     
     # %% `Plot fit
     
+    
+    
     slbPlasmaCO2 = {
              'db':db0,
 #             'bandlist':bandlistCO2,
@@ -102,7 +104,7 @@ if __name__ == '__main__':
     #         'Tvib':1100,
     #         'Trot':1200,
              'path_length':0.7,
-             'mole_fraction':1,
+             'mole_fraction':DynVar('sPlasmaCO2', 'mole_fraction'),
              }
     
     slbRoomCO2 = {

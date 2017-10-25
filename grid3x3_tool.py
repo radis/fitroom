@@ -59,20 +59,20 @@ class Grid3x3():
         self.Iexpcalib = Iexpcalib
         self.wexp_shift = wexp_shift
 
-        self.fitroom = None          # type: FitRoom
+#        self.fitroom = None          # type: FitRoom
         
         self.spectra = {}    # hold the calculated spectra 
         self.slabsl = {}    # hold the calculated slabs lists
         self.fconfigs = {}    # hold the calculated slab configs
         
-    def connect(self):
+    def connect(self, fitroom):
         ''' Triggered on connection to FitRoom '''
-        pass
+        self.fitroom = fitroom         # type: FitRoom
     
     def update_markers(self, fconfig, i, j):
 
-        if self.fitroom is None:
-            raise ValueError('Tool not connected to Fitroom')
+        if not hasattr(self, 'fitroom'):
+            raise AttributeError('Tool not connected to Fitroom')
         if self.fitroom.selectTool is not None:
             self.fitroom.selectTool.update_markers(fconfig, i, j)
         else:
@@ -81,8 +81,8 @@ class Grid3x3():
 
     def plot_all_slabs(self, s, slabs):
         
-        if self.fitroom is None:
-            raise ValueError('Tool not connected to Fitroom')
+        if not hasattr(self, 'fitroom'):
+            raise AttributeError('Tool not connected to Fitroom')
         if self.fitroom.slabsTool is not None:
             self.fitroom.slabsTool.spectrum = s
             self.fitroom.slabsTool.slabs = slabs
@@ -119,8 +119,8 @@ class Grid3x3():
         slabsl = self.slabsl
         fconfigs = self.fconfigs
         
-        if self.fitroom is None:
-            raise ValueError('Tool not connected to Fitroom')
+        if not hasattr(self, 'fitroom'):
+            raise AttributeError('Tool not connected to Fitroom')
         if self.fitroom.solver is None:
             raise ValueError('No SlabsConfigSolver defined')
         
@@ -217,12 +217,12 @@ class Grid3x3():
         # i = columns
         if j == 2: axij.set_xlabel('Wavelength')
         if i == 0:
-            if yparam == 'mole_fraction':
+            if yparam in  ['mole_fraction', 'path_length']: # special format
                 axij.set_ylabel('{0} {1:.2g}'.format(yparam, fconfig[slbInteracty][yparam]))
             else:
                 axij.set_ylabel('{0} {1:.1f}'.format(yparam, fconfig[slbInteracty][yparam]))
         if j == 0:
-            if xparam == 'mole_fraction':
+            if xparam in  ['mole_fraction', 'path_length']: # special format
                 axij.set_title('{0} {1:.2g}'.format(xparam, fconfig[slbInteractx][xparam]), size=20)
             else:
                 axij.set_title('{0} {1:.1f}'.format(xparam, fconfig[slbInteractx][xparam]), size=20)
@@ -272,7 +272,6 @@ class Grid3x3():
         self.fitroom.Slablist[slbInteracty][yparam] = yspace[1]
         
         fig2 = self.fig
-        config0 = self.fitroom.get_config()   # create a copy 
 
         # dont calculate these when the figure is not shown (for performance)
         if self.fitroom.perfmode:
@@ -287,14 +286,17 @@ class Grid3x3():
         for i, xvari in enumerate(xspace):
             for j, yvarj in enumerate(yspace[::-1]):
                 if not (i==1 and j==1) and not updateSideAxes: continue
+                config0 = self.fitroom.get_config()   # create a copy 
                 config0[slbInteractx][xparam] = xvari
                 config0[slbInteracty][yparam] = yvarj
+                self.fitroom.eval_dynvar(config0) # update dynamic parameters
                 self.calc_case(i, j, **config0)   # here we calculate 
                 self.plot_case(i, j, **config0)   # here we plot
 
         # Plot title with all slabs conditions
-        del config0[slbInteractx][xparam]      # dont print variable parameter
-        del config0[slbInteracty][yparam]
+        del config0[slbInteractx][xparam]      # use last one, dont print variable parameter
+        del config0[slbInteracty][yparam]      # note that DynPara are the last one only!
+                                               # TODO: use intersect dict function
         msg = ''
         for k, cfgi in config0.items():
             msg += k+' - '

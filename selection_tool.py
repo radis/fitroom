@@ -24,7 +24,14 @@ from numpy import array, meshgrid, empty_like, linspace
 from scipy.interpolate import griddata
 
 class CaseSelector():
-
+    '''
+    
+    Todo
+    ---------
+    
+    prevent using DynVar as xparam, yparam
+    
+    '''
     def __init__(self, dbInteractx=None, dbInteracty=None, xparam='', yparam='',
                  slbInteractx=None, slbInteracty=None, nfig=None,
                  xmin=0, xmax=0, ymin=0, ymax=0):
@@ -74,9 +81,9 @@ class CaseSelector():
                                            interactive=True)
         plt.connect('key_press_event', self.toggle_selector)
 
-    def connect(self):
+    def connect(self, fitroom):
         ''' Triggered on connection to FitRoom '''
-        pass
+        self.fitroom = fitroom         # type: FitRoom
 
     def _plot_calc_range(self, xmin, xmax, ymin, ymax):
 
@@ -118,6 +125,12 @@ class CaseSelector():
         
         # Plot 
         plt.figure(nfig).clear()
+                
+        # Check input
+        if len(dbInteractx.df) == 0:
+            raise ValueError('Database {0} is empty'.format('dbInteractx'))
+        if len(dbInteracty.df) == 0:
+            raise ValueError('Database {0} is empty'.format('dbInteracty'))
         
         x = dbInteractx.df[xparam]
         y = dbInteracty.df[yparam]
@@ -165,8 +178,8 @@ class CaseSelector():
     def line_select_callback(self, eclick, erelease):
         'eclick and erelease are the press and release events'
 
-        if self.fitroom is None:
-            raise ValueError('Tool not connected to Fitroom')
+        if not hasattr(self, 'fitroom'):
+            raise AttributeError('Tool not connected to Fitroom')
             
 #        if self.slabsTool is None:
 #            print('No slabsTool defined. Aborting')
@@ -249,8 +262,8 @@ class CaseSelector():
     def precompute_residual(self, Slablist):
         ''' Plot residual for all points in database '''
     
-        if self.fitroom is None:
-            raise ValueError('Tool not connected to Fitroom')
+        if not hasattr(self, 'fitroom'):
+            raise AttributeError('Tool not connected to Fitroom')
         if self.fitroom.solver is None:
             raise ValueError('No solver defined')
         

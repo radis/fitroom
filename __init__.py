@@ -10,5 +10,5 @@ from .grid3x3_tool import Grid3x3
 from .multislab_tool import MultiSlabPlot
 from .solver import SlabsConfigSolver
 from .noneq_tool import Overpopulator
-from .room import FitRoom
+from .room import FitRoom, DynVar
 from .slit_tool import SlitTool

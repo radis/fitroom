@@ -19,7 +19,7 @@ from neq.plot import plot_stack
 from neq.plot.toolbar import add_tools
 import warnings
 from numpy import nan
-
+        
 class MultiSlabPlot():
     
     def __init__(self, 
@@ -68,16 +68,14 @@ class MultiSlabPlot():
         self.Iexpcalib = Iexpcalib
         self.wexp_shift = wexp_shift
         
-        self.fitroom = None               # type: FitRoom
-        
         self.N_main_bands = N_main_bands 
         self.keep_highlights = keep_highlights  
         
         self.spectrum = None  # hold the current calculated spectrum object
         
-    def connect(self):
+    def connect(self, fitroom):
         ''' Triggered on connection to FitRoom '''
-        pass
+        self.fitroom = fitroom         # type: FitRoom
     
     def _init_plot(self, nfig=None):
 
@@ -92,6 +90,7 @@ class MultiSlabPlot():
         ''' Get, calculate and plot the current config '''
 
         slabsconfig = self.fitroom.get_config()
+        self.fitroom.eval_dynvar(slabsconfig) # update dynamic parameters
         calc_slabs = self.fitroom.solver.calc_slabs
 
         s, slabs, fconfig = calc_slabs(**slabsconfig)
@@ -307,11 +306,10 @@ class MultiSlabPlot():
         else:
             pass
         
-        
     def update_markers(self, fconfig):
 
-        if self.fitroom is None:
-            raise ValueError('Tool not connected to Fitroom')
+        if not hasattr(self, 'fitroom'):
+            raise AttributeError('Tool not connected to Fitroom')
         if self.fitroom.selectTool is not None:
             self.fitroom.selectTool.update_markers(fconfig)
             self.fitroom.selectTool.fig.canvas.draw()

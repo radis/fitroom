@@ -23,7 +23,6 @@ from six import string_types
 import warnings
 from warnings import warn
 
-
 class SlitTool():
     ''' Tool to manipulate slit function '''
     
@@ -60,8 +59,9 @@ class SlitTool():
     def slit_options(self):
         return self.fitroom.solver.slit_options
     
-    def connect(self):
+    def connect(self, fitroom):
         ''' Triggered on connection to FitRoom '''
+        self.fitroom = fitroom         # type: FitRoom
 
         slit_function = self.slit_function()
 #        slit_options = self.slit_options()
@@ -97,7 +97,7 @@ class SlitTool():
         
     def update_figure(self):
         
-        if self.fitroom is None:
+        if not hasattr(self, 'fitroom'):
             return
         
         slabsTool = self.fitroom.slabsTool
@@ -305,8 +305,8 @@ class SlitTool():
         slit_function = (top, base)
         
         # Update default         
-        if self.fitroom is None:
-            raise ValueError('Fitroom not connected')
+        if not hasattr(self, 'fitroom'):
+            raise AttributeError('Tool not connected to Fitroom')
         self.fitroom.solver.slit = slit_function
         print('New slit assigned:', slit_function)
         

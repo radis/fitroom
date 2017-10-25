@@ -26,8 +26,6 @@ class Overpopulator():
             
         '''
         
-        self.fitroom = None               # type: FitRoom
-        
         self.nfig = nfig
                 
         if nfig is None:
@@ -132,9 +130,9 @@ class Overpopulator():
         
         return 
     
-    def connect(self):
+    def connect(self, fitroom):
         ''' Triggered on connection to FitRoom '''
-        pass
+        self.fitroom = fitroom         # type: FitRoom
 
     def action(self):
         self.update_overpopulation()

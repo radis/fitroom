@@ -58,9 +58,9 @@ class SlabsConfigSolver():
 
         self.fitroom = None
         
-    def connect(self):
+    def connect(self, fitroom):
         ''' Triggered on connection to FitRoom '''
-        pass
+        self.fitroom = fitroom         # type: FitRoom
 
     def get_residual(self, s, norm='not_implemented'):
         ''' Different between experimental and simulated spectra
@@ -125,7 +125,7 @@ class SlabsConfigSolver():
 
         for slabname, slabcfg in slabsconfig.items():
             cfg = slabcfg.copy()
-
+            
             if 'source' in cfg:
                 source = cfg.pop('source')       # type: str
             else:
