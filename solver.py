@@ -14,6 +14,7 @@ import numpy as np
 from scipy.interpolate import splev, splrep
 from warnings import warn
 from neq.spec import SpecDatabase, SpectrumFactory, BandList  # imported for static debugger
+from neq.misc.debug import printdbg
 
 class SlabsConfigSolver():
     '''
@@ -91,6 +92,10 @@ class SlabsConfigSolver():
         # crop to overlapping range
         b = (wsort>w.min()) & (wsort<w.max())
         wsort, Isort = wsort[b], Isort[b]
+        if len(wsort) == 0:
+            # no overlap between calculated and exp spectra ?
+            if __debug__: printdbg('no overlap in get_residual() ? ')
+            return np.nan
         b = (w>wsort.min()) & (w<wsort.max())
         w, I= w[b], I[b]
 
