@@ -9,6 +9,7 @@ get the correct slab input, then calls the appropriate functions in neq.spec eng
 
 """
 
+from __future__ import absolute_import
 import numpy as np
 from scipy.interpolate import splev, splrep
 from warnings import warn

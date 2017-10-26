@@ -11,6 +11,8 @@ a window to decompose the center slab along the different slabs
 
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import matplotlib.pyplot as plt
 from matplotlib.widgets import MultiCursor
 from mpldatacursor import HighlightingDataCursor
@@ -278,7 +280,7 @@ class MultiSlabPlot():
             sb = overpTool.bandlist.bands[br]
             sb.apply_slit(slit, energy_threshold=0.2)
             w, I = sb.get('radiance', Iunit=unit)
-            if br in line3upbands.keys():
+            if br in list(line3upbands.keys()):
                 line3upbands[br].set_data(w, I)
                 lines.append(line3upbands[br])
             else:

@@ -7,6 +7,8 @@ Created on Thu Aug  3 16:22:30 2017
 Tool to plot on 9 graphes along 2 axes (2 conditions)
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import matplotlib.pyplot as plt
 import textwrap
 from matplotlib.widgets import MultiCursor

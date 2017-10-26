@@ -25,6 +25,7 @@ interface
 
 """
 
+from __future__ import absolute_import
 from neq.spec.database import SpecDatabase
 from neq.spec.slabs import MergeSlabs, SerialSlabs
 import numpy as np
@@ -156,7 +157,7 @@ if __name__ == '__main__':
     wexp, Iexp = np.loadtxt(fexp, skiprows=1).T
 
     
-    from tools import Normalizer
+    from .tools import Normalizer
     normalizer = None #Normalizer(4173, 4180, how='mean')
     
     # -----------------------------------------------------------------------------

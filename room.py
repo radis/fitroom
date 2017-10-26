@@ -5,6 +5,8 @@ Created on Mon Sep 18 01:58:04 2017
 @author: erwan
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import matplotlib.pyplot as plt
 from neq.misc.debug import printdbg
 

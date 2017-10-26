@@ -12,6 +12,8 @@ Overlay with "template" slit (ex: imported )
 """
 
 
+from __future__ import absolute_import
+from __future__ import print_function
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 from neq.spec.slit import (get_slit_function, WAVELEN_UNITS, WAVENUM_UNITS,
@@ -308,7 +310,7 @@ class SlitTool():
         if not hasattr(self, 'fitroom'):
             raise AttributeError('Tool not connected to Fitroom')
         self.fitroom.solver.slit = slit_function
-        print('New slit assigned:', slit_function)
+        print(('New slit assigned:', slit_function))
         
         
         # replot

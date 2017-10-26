@@ -18,10 +18,13 @@ interface
 
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import matplotlib.pyplot as plt
 from matplotlib.widgets import RectangleSelector
 from numpy import array, meshgrid, empty_like, linspace
 from scipy.interpolate import griddata
+from six.moves import zip
 
 class CaseSelector():
     '''
@@ -287,9 +290,9 @@ class CaseSelector():
     
     
             # only calculate database points
-            xspace, yspace = zip(*array(dbInteractx.view()[[xparam, yparam]]))
+            xspace, yspace = list(zip(*array(dbInteractx.view()[[xparam, yparam]])))
             # kill duplicates
-            xspace, yspace = zip(*set(list(zip(xspace, yspace))))
+            xspace, yspace = list(zip(*set(list(zip(xspace, yspace)))))
     
             xx, yy = meshgrid(xspace, yspace)
     

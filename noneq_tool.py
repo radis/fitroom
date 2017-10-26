@@ -8,6 +8,8 @@ Non-equilibrium tool to define overpopulations
 """
 
 
+from __future__ import absolute_import
+from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import patches
@@ -43,7 +45,7 @@ class Overpopulator():
         
         bandlist = slab['bandlist']
         self.bandlist = bandlist
-        bands = bandlist.bands_ref.keys()
+        bands = list(bandlist.bands_ref.keys())
         E_bands = bandlist.E_bands
         
         # initial overpopulation distribution
@@ -63,7 +65,7 @@ class Overpopulator():
                 ycoord = 1
             
         #    axband = plt.axes([xcoord, 0.25, 0.03, 0.5])
-            print(br, xcoord, 'eV')
+            print((br, xcoord, 'eV'))
         #    axes_bands[br] = axband
         #    slider_bands[br] = Slider(axband, br, 0, 5, valinit=overpopulation[br])
             
