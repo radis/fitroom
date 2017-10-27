@@ -63,17 +63,16 @@ if __name__ == '__main__':
     add_test_db_to_neqrc()
     
     sf2 = SpectrumFactory(
-                         wavelength_min=4500,
-                         wavelength_max=4800,
+                         wavelength_min=4165,
+                         wavelength_max=4200,
                          mole_fraction=1,
                          path_length=0.025, 
                          cutoff=1e-25,
                          isotope_identifier=[1,2],
-                         db_use_cached=False,
+                         db_use_cached=True,
                          medium='air')
-    sf2.load_databank('HITRAN-CO')
-    sf2.init_database(getTestFile('HITRAN_CO2_test_spec_database')#, autoretrieve='force'
-                        )
+    sf2.load_databank('HITRAN-CO2-TEST')
+    sf2.init_database(getTestFile('HITRAN_CO2_test_spec_database'), autoretrieve='force')
     
     for Tgas in [300, 350, 400, 1200, 1300, 1500, 1700, 2000]:
         sf2.eq_spectrum(Tgas)
@@ -122,8 +121,6 @@ if __name__ == '__main__':
     
     def config(**slabs):
         ''' args must correspond to slablist. Indexes and order is important '''
-        
-        globals().update(locals())
     
         return SerialSlabs(slabs['sPlasmaCO2'], slabs['sPostCO2'], slabs['sRoomCO2'])
     
@@ -197,8 +194,8 @@ if __name__ == '__main__':
                               slbInteractx=slbInteractx, slbInteracty=slbInteracty,  
                               nfig=1)
     
-    slitTool = SlitTool('/home/valentin/Documents/Stage Centrale/Experimental/slit_spectrum.txt')
-
+    slitTool = SlitTool()
+    
 #    overpTool = Overpopulator(overpSlab)
     
     fitroom.add_tool(solver)
