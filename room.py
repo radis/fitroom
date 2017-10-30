@@ -131,12 +131,16 @@ class FitRoom():
     
     def eval_dynvar(self, config):
         ''' Evaluate dynamic links for a given configuration. Changes updated
-        config (inplace) '''
+        config (inplace) 
+        Note that 'self' in DynVar can be used to refer to the current slab 
+        '''
         
         # Evaluate dynamic quantities
         for slabname, slab in config.items():
             for k, v in slab.items():
                 if isinstance(v, DynVar):
+                    if v.slab == 'self':
+                        v.slab = slabname   # update DynVar
                     val = v.eval(config)
                     config[slabname][k] = val
                     if __debug__: printdbg("{0}['{1}'] evaluated as {2}".format(
@@ -179,8 +183,13 @@ class DynVar():
         ------
         
         slab: str
-            slab config name in Slablist
-            
+            slab config name in Slablist. Note that 'self' in DynVar can be used 
+            to refer to the DynVar's own slab. Ex:
+            > slabPlasma={
+            >     'Trot':2000,
+            >     'Tvib':DynVar('self', 'Trot'),
+            > }
+        
         param: str
             param name in slab config dict
             
