@@ -191,12 +191,20 @@ class SlabsConfigSolver():
                 cfg['save_rescaled_bands'] = self.save_rescaled_bands
                 si = sfi.non_eq_spectrum(**cfg)
                 del cfg['save_rescaled_bands']
+                
+            elif source == 'constants':
+                # used for global variables. 
+                # Just update the config file 
+#                slabs[slabname] = None
+                fconds[slabname] = cfg
+                continue
 
             else:
                 raise ValueError('Unknown source mode: {0}'.format(self.source)+\
                                  ' Use calculate, calculate_non_eq, database or '+\
                                  'from_bands')
             
+            # Get spectrum calculation output 
             if si is None:  # ex: user asked for negative path length
                 warn('Spectrum couldnt be calculated')
                 return (None, None, None)
