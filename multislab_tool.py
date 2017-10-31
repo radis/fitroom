@@ -31,6 +31,7 @@ class MultiSlabPlot():
                  nfig=None,
                  N_main_bands = 5,
                  keep_highlights = False,
+                 slit_on_slabs = False,
                  ):
         ''' 
         Input
@@ -45,6 +46,9 @@ class MultiSlabPlot():
         keep_highlights: boolean
             if True, delete previous highlights when generating new case. Keeping
             them can help remember the last band position. Default False.
+        
+        slit_on_slabs: boolean
+            add slit function broadening on slabs values 
         
         '''
         
@@ -72,6 +76,8 @@ class MultiSlabPlot():
         
         self.N_main_bands = N_main_bands 
         self.keep_highlights = keep_highlights  
+        
+        self.slit_on_slabs = slit_on_slabs
         
         self.spectrum = None  # hold the current calculated spectrum object
         
@@ -111,9 +117,10 @@ class MultiSlabPlot():
         s = self.spectrum
         slabs = self.slabs
         
-        s.apply_slit(slit_function, **slit_options)   
-        for sl in slabs.values():
-            sl.apply_slit(slit_function, **slit_options)   
+        s.apply_slit(slit_function, **slit_options)  
+        if self.slit_on_slabs:
+            for sl in slabs.values():
+                sl.apply_slit(slit_function, **slit_options)   
         
         self.plot_all_slabs(s, slabs)
         
@@ -188,17 +195,21 @@ class MultiSlabPlot():
                 for i, (name, s) in enumerate(slabs.items()):
                     s.apply_slit(slit, **slit_options)
                     color = next(colors)
-                    line3up[i].set_data(*s.get('radiance', Iunit=unit))
-                    line3down[i].set_data(*s.get('transmittance'))
+                    get_rad = 'radiance' if self.slit_on_slabs else 'radiance_noslit'
+                    get_trans = 'transmittance' if self.slit_on_slabs else 'transmittance_noslit'
+                    line3up[i].set_data(*s.get(get_rad, Iunit=unit))
+                    line3down[i].set_data(*s.get(get_trans))
         except KeyError:  # first time: init lines
             colors = colorserie()
             for i, (name, si) in enumerate(slabs.items()):
                 si.apply_slit(slit, **slit_options)
                 color = next(colors)
                 ls = '-' if i < 6 else '--'
-                line3up[i] = ax3[0].plot(*si.get('radiance', Iunit=unit), color=color, 
+                get_rad = 'radiance' if self.slit_on_slabs else 'radiance_noslit'
+                get_trans = 'transmittance' if self.slit_on_slabs else 'transmittance_noslit'
+                line3up[i] = ax3[0].plot(*si.get(get_rad, Iunit=unit), color=color, 
                        lw=2, ls=ls, label=name)[0]
-                line3down[i] = ax3[2].plot(*si.get('transmittance'), color=color, 
+                line3down[i] = ax3[2].plot(*si.get(get_trans), color=color, 
                          lw=2, ls=ls, label=name)[0]
 #            if not normalize: 
 #                ax3[2].set_ylim((-0.008, 0.179)) # Todo: remove that 
@@ -279,7 +290,8 @@ class MultiSlabPlot():
         for br in overpTool.bandlist.sorted_bands[:self.N_main_bands]:
             sb = overpTool.bandlist.bands[br]
             sb.apply_slit(slit, energy_threshold=0.2)
-            w, I = sb.get('radiance', Iunit=unit)
+            get_rad = 'radiance' if self.slit_on_slabs else 'radiance_noslit'
+            w, I = sb.get(get_rad, Iunit=unit)
             if br in list(line3upbands.keys()):
                 line3upbands[br].set_data(w, I)
                 lines.append(line3upbands[br])
