@@ -21,6 +21,7 @@ from neq.plot import plot_stack
 from neq.plot.toolbar import add_tools
 import warnings
 from numpy import nan
+from publib import set_style, fix_style
         
 class MultiSlabPlot():
     
@@ -31,7 +32,7 @@ class MultiSlabPlot():
                  nfig=None,
                  N_main_bands = 5,
                  keep_highlights = False,
-                 slit_on_slabs = False,
+                 show_noslit_slabs = True,
                  ):
         ''' 
         Input
@@ -47,15 +48,18 @@ class MultiSlabPlot():
             if True, delete previous highlights when generating new case. Keeping
             them can help remember the last band position. Default False.
         
-        slit_on_slabs: boolean
-            add slit function broadening on slabs values 
+        show_noslit_slabs: boolean
+            if True, overlay slabs with non convoluted radiance / transmittance
         
         '''
         
         # Init variables
         self.line3up = {}
+        self.line3up_noslit = {}
         self.line3cent = {}
+        self.line3cent_noslit = {}
         self.line3down = {}
+        self.line3down_noslit = {}
         self.line3upbands = {}  
         
         self.fig, self.ax = self._init_plot(nfig=nfig)        
@@ -77,7 +81,7 @@ class MultiSlabPlot():
         self.N_main_bands = N_main_bands 
         self.keep_highlights = keep_highlights  
         
-        self.slit_on_slabs = slit_on_slabs
+        self.show_noslit_slabs = show_noslit_slabs
         
         self.spectrum = None  # hold the current calculated spectrum object
         
@@ -87,6 +91,8 @@ class MultiSlabPlot():
     
     def _init_plot(self, nfig=None):
 
+        set_style('origin')
+        
         # Generate Figure 3 layout
         plt.figure(3, figsize=(12,8)).clear()
         fig, ax = plt.subplots(3, 1, num=3, sharex=True)
@@ -146,8 +152,11 @@ class MultiSlabPlot():
         fig3 = self.fig
         ax3 = self.ax
         line3cent = self.line3cent
+        line3cent_noslit = self.line3cent_noslit
         line3up = self.line3up
+        line3up_noslit = self.line3up_noslit
         line3down = self.line3down
+        line3down_noslit = self.line3down_noslit
         
         plotquantity = self.plotquantity
         unit = self.unit 
@@ -167,9 +176,16 @@ class MultiSlabPlot():
         try:
             line3cent[1].set_data(w, ydata)
     #        line3cent[1].set_data(*s.get('radiance'))
+            if self.show_noslit_slabs and not normalize:
+                line3cent_noslit[1].set_data(*s.get(plotquantity+'_noslit', Iunit=unit))
         except KeyError:
             line3cent[1] = ax3[1].plot(w, ydata, color='r', lw=1, 
                      label='Model')[0]
+            if self.show_noslit_slabs and not normalize:
+                ymax = ax3[1].get_ylim()[1]
+                line3cent_noslit[1] = ax3[1].plot(*s.get(plotquantity+'_noslit', Iunit=unit), 
+                                color='r', lw=1, alpha=0.08, zorder=-1)[0]
+                ax3[1].set_ylim(ymax=ymax)  # keep no slit yscale
             ax3[1].set_ylabel(unit)
             
         ydata = norm_on(wexp, Iexpcalib) if normalize else Iexpcalib
@@ -195,22 +211,26 @@ class MultiSlabPlot():
                 for i, (name, s) in enumerate(slabs.items()):
                     s.apply_slit(slit, **slit_options)
                     color = next(colors)
-                    get_rad = 'radiance' if self.slit_on_slabs else 'radiance_noslit'
-                    get_trans = 'transmittance' if self.slit_on_slabs else 'transmittance_noslit'
-                    line3up[i].set_data(*s.get(get_rad, Iunit=unit))
-                    line3down[i].set_data(*s.get(get_trans))
+                    line3up[i].set_data(*s.get('radiance', Iunit=unit))
+                    line3down[i].set_data(*s.get('transmittance'))
+                    if self.show_noslit_slabs:
+                        line3up_noslit[i].set_data(*s.get('radiance_noslit', Iunit=unit))
+                        line3down_noslit[i].set_data(*s.get('transmittance_noslit', Iunit=unit))
         except KeyError:  # first time: init lines
             colors = colorserie()
             for i, (name, si) in enumerate(slabs.items()):
                 si.apply_slit(slit, **slit_options)
                 color = next(colors)
                 ls = '-' if i < 6 else '--'
-                get_rad = 'radiance' if self.slit_on_slabs else 'radiance_noslit'
-                get_trans = 'transmittance' if self.slit_on_slabs else 'transmittance_noslit'
-                line3up[i] = ax3[0].plot(*si.get(get_rad, Iunit=unit), color=color, 
+                line3up[i] = ax3[0].plot(*si.get('radiance', Iunit=unit), color=color, 
                        lw=2, ls=ls, label=name)[0]
-                line3down[i] = ax3[2].plot(*si.get(get_trans), color=color, 
+                line3down[i] = ax3[2].plot(*si.get('transmittance'), color=color, 
                          lw=2, ls=ls, label=name)[0]
+                if self.show_noslit_slabs:
+                    line3up_noslit[i] = ax3[0].plot(*si.get('radiance_noslit', Iunit=unit), color=color, 
+                           lw=2, ls=ls, alpha=0.08, zorder=-1)[0]
+                    line3down_noslit[i] = ax3[2].plot(*si.get('transmittance_noslit'), color=color, 
+                             lw=2, ls=ls, alpha=0.08, zorder=-1)[0]
 #            if not normalize: 
 #                ax3[2].set_ylim((-0.008, 0.179)) # Todo: remove that 
             ax3[2].set_ylim((0,1))
@@ -229,6 +249,7 @@ class MultiSlabPlot():
         # Cursors
         self._add_multicursor()
         
+        fix_style(tight_layout=False)
         
         self.fig.canvas.draw()  
 
@@ -290,8 +311,8 @@ class MultiSlabPlot():
         for br in overpTool.bandlist.sorted_bands[:self.N_main_bands]:
             sb = overpTool.bandlist.bands[br]
             sb.apply_slit(slit, energy_threshold=0.2)
-            get_rad = 'radiance' if self.slit_on_slabs else 'radiance_noslit'
-            w, I = sb.get(get_rad, Iunit=unit)
+#            get_rad = 'radiance' if self.slit_on_slabs else 'radiance_noslit'
+            w, I = sb.get('radiance', Iunit=unit)
             if br in list(line3upbands.keys()):
                 line3upbands[br].set_data(w, I)
                 lines.append(line3upbands[br])
