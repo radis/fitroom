@@ -141,6 +141,142 @@ class MultiSlabPlot():
             pass   # spectrum not plotted yet. Do nothing
         
         return
+    
+    def _format_label(self, label):
+        ''' Format with nice output '''
+        
+        label = label.replace('m2', 'm$^2$')
+        
+        return label
+    
+    def plot_for_export(self, style=['origin']):
+        ''' Not used in Fitroom, but can be used by user to export / save figures
+        '''
+        
+        ylabelsize = 24
+        
+        slab_colors = {'sPlasmaCO2':'b',
+                       'sPostCO2':'g',
+                       'sPostCO':'r',
+                       'sRoomCO2':'k'}
+        
+        set_style(style)
+        
+        s = self.spectrum
+        slabs = self.slabs
+        
+#        plt.figure(figsize=(15,10))
+        fig30, ax30 = plt.subplots(figsize=(20,4))
+        fig31, [ax31, ax32] = plt.subplots(2, 1, figsize=(20,5))
+#        fig3, ax32 = plt.subplots(figsize=(15,10))
+        ax3 = ax31, ax30, ax32
+        
+#        plt.figure(figsize=(12,8))
+#        fig3, ax3 = plt.subplots(3, 1, num=3, sharex=True)
+#        ax3 = ax3[0], ax3[2], ax3[1]
+        
+#        if s is None:
+#            self._plot_failed(error_msg='Slabs tool: spectrum could not be calculated')
+#            return
+        
+        # Init variables
+        
+        plotquantity = self.plotquantity
+        unit = self.unit 
+        normalize = self.normalize
+        norm_on = self.normalizer
+        
+        wexp = self.wexp
+        Iexpcalib = self.Iexpcalib
+        wexp_shift = self.wexp_shift
+        
+        slit = self.fitroom.solver.slit
+        slit_options = self.fitroom.solver.slit_options
+        
+        # Central axe: model vs experiment
+        w, I = s.get(plotquantity, Iunit=unit)
+        ydata = norm_on(w, I) if normalize else I
+
+        ax3[1].plot(w, ydata, color='r', lw=1, 
+                 label='Model')[0]
+#        if self.show_noslit_slabs and not normalize:
+#            ymax = ax3[1].get_ylim()[1]
+#            ax3[1].plot(*s.get(plotquantity+'_noslit', Iunit=unit), 
+#                            color='r', lw=0.5, alpha=0.1, zorder=-1)[0]
+#            ax3[1].set_ylim(ymax=ymax)  # keep no slit yscale
+        ax3[1].set_ylabel(self._format_label(unit), size=ylabelsize)
+            
+        ydata = norm_on(wexp, Iexpcalib) if normalize else Iexpcalib
+        
+        plot_stack(wexp+wexp_shift, ydata, '-k', 
+                     lw=1, zorder=-1, label='Experiment', ax=ax3[1])[0]
+        ax3[1].legend()
+            
+        def colorserie():
+            i = 0
+            colorlist = ['r', 'b', 'g', 'y', 'k', 'm']
+            while True:
+                yield colorlist[i%len(colorlist)]
+                i += 1
+                
+        # Upper axe: emission   &    lower axe: transmittance
+        colors = colorserie()
+        for i, (name, si) in enumerate(slabs.items()):
+            si.apply_slit(slit, **slit_options)
+            if name in slab_colors:
+                color = slab_colors[name]
+            else:
+                color = next(colors)
+            
+            ls = '-' if i < 6 else '--'
+            ax3[0].plot(*si.get('radiance', Iunit=unit), color=color, 
+                   lw=1, ls=ls, label=name)[0]
+            ax3[2].plot(*si.get('transmittance'), color=color, 
+                     lw=1, ls=ls, label=name)[0]
+        if self.show_noslit_slabs:
+            colors = colorserie()
+            ymax = ax3[0].get_ylim()[1]
+            for i, (name, si) in enumerate(slabs.items()):
+                if name in slab_colors:
+                    color = slab_colors[name]
+                else:
+                    color = next(colors)
+                ax3[0].plot(*si.get('radiance_noslit', Iunit=unit), color=color, 
+                       lw=0.5, ls=ls, alpha=0.1, zorder=-1)[0]
+#                    ax3[0].set_ylim(ymax=ymax)  # keep no slit yscale
+                ax3[2].plot(*si.get('transmittance_noslit'), color=color, 
+                         lw=0.5, ls=ls, alpha=0.1, zorder=-1)[0]
+            ax3[0].set_ylim(ymax=ymax)  # keep no slit yscale
+#            if not normalize: 
+#                ax3[2].set_ylim((-0.008, 0.179)) # Todo: remove that 
+        ax3[2].set_ylim((0,1))
+#            ax3[2].legend()
+        ax3[1].set_xlabel('Wavelength (nm)')
+        ax3[0].set_ylabel(self._format_label(unit), size=ylabelsize)
+        ax3[2].set_ylabel(self._format_label(si.units['transmittance']), size=ylabelsize)
+        
+        # Main bands
+        self._add_bands()
+            
+#        # Cursors
+#        self._add_multicursor()
+        
+        for ax in ax3:    
+            ax.set_xlim((4150, 4700))
+            fix_style(style=style, ax=ax, tight_layout=False)
+        
+        ax3[0].legend(loc='lower right', bbox_to_anchor=[1.0, 0.2], prop={'size':24}, ncol=2)
+        
+        ax3[0].xaxis.label.set_visible(False)
+        ax3[2].xaxis.label.set_visible(False)
+        ax3[2].tick_params(labelbottom='off')    
+        ax3[0].tick_params(labelbottom='off')    
+        
+        fig30.tight_layout()
+        fig31.tight_layout()
+        fig31.subplots_adjust(hspace=0)
+            
+        return fig30, fig31
         
     def plot_all_slabs(self, s, slabs):
         
@@ -179,21 +315,21 @@ class MultiSlabPlot():
             if self.show_noslit_slabs and not normalize:
                 line3cent_noslit[1].set_data(*s.get(plotquantity+'_noslit', Iunit=unit))
         except KeyError:
-            line3cent[1] = ax3[1].plot(w, ydata, color='r', lw=1, 
+            line3cent[1] = ax3[1].plot(w, ydata, color='r', lw=0.5, 
                      label='Model')[0]
-            if self.show_noslit_slabs and not normalize:
-                ymax = ax3[1].get_ylim()[1]
-                line3cent_noslit[1] = ax3[1].plot(*s.get(plotquantity+'_noslit', Iunit=unit), 
-                                color='r', lw=1, alpha=0.08, zorder=-1)[0]
-                ax3[1].set_ylim(ymax=ymax)  # keep no slit yscale
-            ax3[1].set_ylabel(unit)
+#            if self.show_noslit_slabs and not normalize:
+#                ymax = ax3[1].get_ylim()[1]
+#                line3cent_noslit[1] = ax3[1].plot(*s.get(plotquantity+'_noslit', Iunit=unit), 
+#                                color='r', lw=0.5, alpha=0.1, zorder=-1)[0]
+#                ax3[1].set_ylim(ymax=ymax)  # keep no slit yscale
+            ax3[1].set_ylabel(self._format_label(unit))
             
         ydata = norm_on(wexp, Iexpcalib) if normalize else Iexpcalib
         try:        
             line3cent[0]  # doesnt change  .set_data(wexp+wexp_shift, ydata)
         except KeyError:
             line3cent[0] = plot_stack(wexp+wexp_shift, ydata, '-k', 
-                     lw=1, zorder=-1, label='Experiment', ax=ax3[1])[0]
+                     lw=0.5, zorder=-1, label='Experiment', ax=ax3[1])[0]
             ax3[1].legend()
             
         def colorserie():
@@ -215,7 +351,7 @@ class MultiSlabPlot():
                     line3down[i].set_data(*s.get('transmittance'))
                     if self.show_noslit_slabs:
                         line3up_noslit[i].set_data(*s.get('radiance_noslit', Iunit=unit))
-                        line3down_noslit[i].set_data(*s.get('transmittance_noslit', Iunit=unit))
+                        line3down_noslit[i].set_data(*s.get('transmittance_noslit'))
         except KeyError:  # first time: init lines
             colors = colorserie()
             for i, (name, si) in enumerate(slabs.items()):
@@ -223,14 +359,20 @@ class MultiSlabPlot():
                 color = next(colors)
                 ls = '-' if i < 6 else '--'
                 line3up[i] = ax3[0].plot(*si.get('radiance', Iunit=unit), color=color, 
-                       lw=2, ls=ls, label=name)[0]
+                       lw=0.5, ls=ls, label=name)[0]
                 line3down[i] = ax3[2].plot(*si.get('transmittance'), color=color, 
-                         lw=2, ls=ls, label=name)[0]
-                if self.show_noslit_slabs:
+                         lw=0.5, ls=ls, label=name)[0]
+            if self.show_noslit_slabs:
+                colors = colorserie()
+                ymax = ax3[0].get_ylim()[1]
+                for i, (name, si) in enumerate(slabs.items()):
+                    color = next(colors)
                     line3up_noslit[i] = ax3[0].plot(*si.get('radiance_noslit', Iunit=unit), color=color, 
-                           lw=2, ls=ls, alpha=0.08, zorder=-1)[0]
+                           lw=0.5, ls=ls, alpha=0.1, zorder=-1)[0]
+#                    ax3[0].set_ylim(ymax=ymax)  # keep no slit yscale
                     line3down_noslit[i] = ax3[2].plot(*si.get('transmittance_noslit'), color=color, 
-                             lw=2, ls=ls, alpha=0.08, zorder=-1)[0]
+                             lw=0.5, ls=ls, alpha=0.1, zorder=-1)[0]
+                ax3[0].set_ylim(ymax=ymax)  # keep no slit yscale
 #            if not normalize: 
 #                ax3[2].set_ylim((-0.008, 0.179)) # Todo: remove that 
             ax3[2].set_ylim((0,1))
@@ -239,8 +381,8 @@ class MultiSlabPlot():
             ax3[0].xaxis.label.set_visible(False)
             ax3[1].xaxis.label.set_visible(False)
             ax3[2].set_xlabel('Wavelength (nm)')
-            ax3[0].set_ylabel(unit)
-            ax3[2].set_ylabel(si.units['transmittance'])
+            ax3[0].set_ylabel(self._format_label(unit))
+            ax3[2].set_ylabel(self._format_label(si.units['transmittance']))
             fig3.tight_layout()
             
         # Main bands
@@ -341,6 +483,10 @@ class MultiSlabPlot():
         else:
             pass
         
+    def format_coord(self, x, y):
+        # TODO: implement it, but i cant remember where... Lookup grid_tool
+        return 'x = {0:.2f} nm, y = {1:.4f} {2}  '.format(x, y, self.unit)
+
     def update_markers(self, fconfig):
 
         if not hasattr(self, 'fitroom'):

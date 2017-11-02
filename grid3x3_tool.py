@@ -17,6 +17,7 @@ from neq.plot.toolbar import add_tools
 from neq.spec import Spectrum   # for IDE hints
 import warnings
 from numpy import nan
+from publib import set_style, fix_style
 
 class Grid3x3():
 
@@ -150,7 +151,7 @@ class Grid3x3():
             self.plot_all_slabs(None, None)
             
         return
-        
+    
     def plot_case(self, i, j, **slabsconfig):
         ''' notice j, i and not i, j 
         i is y, j is x? or the other way round. It's always complicated
@@ -234,6 +235,87 @@ class Grid3x3():
         if i == 1 and j == 1:
             self.plot_all_slabs(s, slabs)
 
+    def plot_for_export(self, style=['origin']):
+        ''' Sum all center column in one case '''
+        
+        xlim = (4167, 4188)
+        ylim = (-0.097304148992770623, 1.46)
+        
+        set_style(style)
+        
+        fig2, ax2 = plt.subplots()
+#        ax2 = self.ax
+
+        slbInteractx = self.slbInteractx
+        slbInteracty = self.slbInteracty
+        xparam = self.xparam
+        yparam = self.yparam
+
+        plotquantity = self.plotquantity
+        unit = self.unit
+        normalize = self.normalize
+        norm_on = self.normalizer
+
+        wexp = self.wexp
+        Iexpcalib = self.Iexpcalib
+        wexp_shift = self.wexp_shift
+
+        axij = ax2
+        axij.format_coord = self.format_coord
+
+        ydata = norm_on(wexp, Iexpcalib) if normalize else Iexpcalib
+        plot_stack(wexp+wexp_shift, ydata,'-k',lw=2, ax=axij)
+
+        i = 1
+        for j in [0, 1, 2]:
+            
+            color = ['b', 'r', 'g'][j]
+            
+            # Get calculated spectra 
+            s = self.spectra[(i,j)]          # type: Spectrum # saved by calc_case. None if failed
+            fconfig = self.fconfigs[(i,j)]   # type: dict     # saved by calc_case. None if failed
+            
+            if s is None:
+                # TODO : could use 'slabs' as a custom error message
+                self._plot_failed(i, j, error_msg='Spectrum could not be calculated')
+                return
+                    
+            # calculate residuals
+            w, I = s.get(plotquantity, wunit='nm', Iunit=unit)
+            
+            ydata = norm_on(w, I) if normalize else I
+            
+            label = 'Trot {0:.0f} K'.format(fconfig[slbInteracty][yparam])
+            axij.plot(w, ydata, color, label=label)
+            
+            self.update_markers(fconfig, i, j)
+            
+            # Remember than case (i,j) corresponds to ax2[j,i] which means: j = rows,
+            # i = columns
+#            if j == 2: 
+#            if i == 0:
+#                if yparam in  ['mole_fraction', 'path_length']: # special format
+#                    axij.set_ylabel('{0} {1:.2g}'.format(yparam, fconfig[slbInteracty][yparam]))
+#                else:
+#                    axij.set_ylabel('{0} {1:.1f}'.format(yparam, fconfig[slbInteracty][yparam]))
+#            if j == 0:
+#                if xparam in  ['mole_fraction', 'path_length']: # special format
+#                    axij.set_title('{0} {1:.2g}'.format(xparam, fconfig[slbInteractx][xparam]), size=20)
+#                else:
+#                    axij.set_title('{0} {1:.1f}'.format(xparam, fconfig[slbInteractx][xparam]), size=20)
+            #TODO: add a set of all labels on line, instead (deals with different values per line)
+    
+        axij.set_xlabel('Wavelength (nm)')
+        axij.set_ylabel('I (norm)')
+    
+        fix_style(style, ax=axij)
+        
+        plt.xlim(xlim)
+        plt.ylim(ylim)
+    
+        plt.legend(loc='best')    
+        
+        
     def _add_multicursor(self):
         ''' Add vertical bar (if not there already)'''
 
