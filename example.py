@@ -68,7 +68,7 @@ if __name__ == '__main__':
                          mole_fraction=1,
                          path_length=0.025, 
                          cutoff=1e-25,
-                         isotope_identifier=[1,2],
+                         isotope=[1,2],
                          db_use_cached=True,
                          medium='air')
     sf2.load_databank('HITRAN-CO2-TEST')
