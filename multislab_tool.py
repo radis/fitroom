@@ -202,7 +202,7 @@ class MultiSlabPlot():
 #        if self.show_noslit_slabs and not normalize:
 #            ymax = ax3[1].get_ylim()[1]
 #            ax3[1].plot(*s.get(plotquantity+'_noslit', Iunit=unit), 
-#                            color='r', lw=0.5, alpha=0.1, zorder=-1)[0]
+#                            color='r', lw=0.5, alpha=0.15, zorder=-1)[0]
 #            ax3[1].set_ylim(ymax=ymax)  # keep no slit yscale
         ax3[1].set_ylabel(self._format_label(unit), size=ylabelsize)
             
@@ -242,10 +242,10 @@ class MultiSlabPlot():
                 else:
                     color = next(colors)
                 ax3[0].plot(*si.get('radiance_noslit', Iunit=unit), color=color, 
-                       lw=0.5, ls=ls, alpha=0.1, zorder=-1)[0]
+                       lw=0.5, ls=ls, alpha=0.15, zorder=-1)[0]
 #                    ax3[0].set_ylim(ymax=ymax)  # keep no slit yscale
                 ax3[2].plot(*si.get('transmittance_noslit'), color=color, 
-                         lw=0.5, ls=ls, alpha=0.1, zorder=-1)[0]
+                         lw=0.5, ls=ls, alpha=0.15, zorder=-1)[0]
             ax3[0].set_ylim(ymax=ymax)  # keep no slit yscale
 #            if not normalize: 
 #                ax3[2].set_ylim((-0.008, 0.179)) # Todo: remove that 
@@ -320,7 +320,7 @@ class MultiSlabPlot():
 #            if self.show_noslit_slabs and not normalize:
 #                ymax = ax3[1].get_ylim()[1]
 #                line3cent_noslit[1] = ax3[1].plot(*s.get(plotquantity+'_noslit', Iunit=unit), 
-#                                color='r', lw=0.5, alpha=0.1, zorder=-1)[0]
+#                                color='r', lw=0.5, alpha=0.15, zorder=-1)[0]
 #                ax3[1].set_ylim(ymax=ymax)  # keep no slit yscale
             ax3[1].set_ylabel(self._format_label(unit))
             
@@ -368,10 +368,10 @@ class MultiSlabPlot():
                 for i, (name, si) in enumerate(slabs.items()):
                     color = next(colors)
                     line3up_noslit[i] = ax3[0].plot(*si.get('radiance_noslit', Iunit=unit), color=color, 
-                           lw=0.5, ls=ls, alpha=0.1, zorder=-1)[0]
+                           lw=0.5, ls=ls, alpha=0.15, zorder=-1)[0]
 #                    ax3[0].set_ylim(ymax=ymax)  # keep no slit yscale
                     line3down_noslit[i] = ax3[2].plot(*si.get('transmittance_noslit'), color=color, 
-                             lw=0.5, ls=ls, alpha=0.1, zorder=-1)[0]
+                             lw=0.5, ls=ls, alpha=0.15, zorder=-1)[0]
                 ax3[0].set_ylim(ymax=ymax)  # keep no slit yscale
 #            if not normalize: 
 #                ax3[2].set_ylim((-0.008, 0.179)) # Todo: remove that 

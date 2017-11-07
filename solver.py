@@ -15,6 +15,7 @@ from scipy.interpolate import splev, splrep
 from warnings import warn
 from neq.spec import SpecDatabase, SpectrumFactory, BandList  # imported for static debugger
 from neq.misc.debug import printdbg
+from neq.misc.basics import is_float
 
 class SlabsConfigSolver():
     '''
@@ -136,6 +137,11 @@ class SlabsConfigSolver():
                 source = cfg.pop('source')       # type: str
             else:
                 source = self.source
+            if 'Tvib1' in cfg and 'Tvib2' in cfg and 'Tvib3' in cfg and 'Tvib' not in cfg:
+                Tvib1 = cfg.pop('Tvib1')
+                Tvib2 = cfg.pop('Tvib2')
+                Tvib3 = cfg.pop('Tvib3')
+                cfg['Tvib'] = (Tvib1, Tvib2, Tvib3)
 
             if source == 'database':
 
@@ -216,6 +222,14 @@ class SlabsConfigSolver():
                 fcondsi = {}
                 for k in cfg:
                     fcondsi[k] = si.conditions[k]
+                # Placeholder
+                if 'Tvib' in fcondsi:
+                    Tvib = fcondsi['Tvib']
+                    if not is_float(Tvib):
+                        fcondsi['Tvib1'] = Tvib[0]
+                        fcondsi['Tvib2'] = Tvib[1]
+                        fcondsi['Tvib3'] = Tvib[2]
+                
                 slabs[slabname] = si.copy()
                 fconds[slabname] = fcondsi
 
