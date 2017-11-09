@@ -17,7 +17,7 @@ from neq.phys.conv import cm2eV
 
 class Overpopulator():
     
-    def __init__(self, slab, nfig=None):
+    def __init__(self, slab, levels='all', nfig=None):
         ''' 
         Input
         ------
@@ -42,80 +42,38 @@ class Overpopulator():
         self.fig = fig
         self.ax = ax
         self.slab = slab
+        lvlist = slab['bandlist']
         
-        bandlist = slab['bandlist']
-        self.bandlist = bandlist
-        bands = list(bandlist.bands_ref.keys())
-        E_bands = bandlist.E_bands
+        # Get levels to adjust. If 'all' get all levels in lvlist
+        if levels == 'all':
+            levels = list(lvlist.vib_levels.index)
+        
+        self.levels = levels
+        self.lvlist = lvlist
+        E_lvls = lvlist.vib_levels.loc[levels, 'E']
+        self.E_lvls = E_lvls
         
         # initial overpopulation distribution
         if 'overpopulation' in slab:
             overpopulation= slab['overpopulation']
         else:
-            overpopulation = None
+            overpopulation = {}
         
-        #axes_bands = {}
-        #slider_bands = {}
         circles = {}
-        for i, br in enumerate(bands):
-            xcoord = cm2eV(E_bands[br])
+        for i, lvl in enumerate(levels):
+            xcoord = float(E_lvls.loc[lvl])
+#            xcoord = cm2eV(E_lvls.loc[lvl])
+            
             try:
-                ycoord = overpopulation[br]
-            except:
+                ycoord = overpopulation[lvl]
+            except KeyError:
                 ycoord = 1
             
-        #    axband = plt.axes([xcoord, 0.25, 0.03, 0.5])
-            print((br, xcoord, 'eV'))
-        #    axes_bands[br] = axband
-        #    slider_bands[br] = Slider(axband, br, 0, 5, valinit=overpopulation[br])
-            
-        #    circles[br] = patches.Circle((xcoord, 1), 0.01, fc='k', alpha=0.7)
-            circles[br] = patches.Ellipse((xcoord, ycoord), 0.03, 4.5*0.03, fc='k', alpha=0.7)
-        #    circles[br],  = plt.plot(xcoord, 1, 'ok')
+            print((lvl, xcoord, 'cm-1'))
+#            circles[lvl] = patches.Ellipse((xcoord, ycoord), 0.03, 4.5*0.03, fc='k', alpha=0.7)
+            circles[lvl] = patches.Ellipse((xcoord, ycoord), 100, 4.5*0.03, fc='k', alpha=0.7)
         
         self.circles = circles
-            
-        #
-        #drs = []
-        #circles = [patches.Circle((0.1, 0.1), 0.01, fc='k', alpha=0.7),
-        #               patches.Circle((0.1,0.1), 0.01, fc='k', alpha=0.7)]
-        
-        #
-        #def update(val):
-        ##    amp = samp.val
-        ##    freq = sfreq.val
-        ##    l.set_ydata(amp*np.sin(2*np.pi*freq*t))
-        ##    fig.canvas.draw_idle()
-        #    for br in circles:
-        ##        slider = slider_bands[br]
-        #        circ = circles[br]
-        #        overpopulation[br] = circ.center[1]
-        #    print('new overpopulation')
-        #    print(overpopulation)
-        #    plot_spectrum(overpopulation=overpopulation)
-        #    
-        
-        
-#        class Action():
-#            
-#            def __init__(self, circles):
-#                self.circles = circles
-#                 
-#            def update(self):
-#            #    amp = samp.val
-#            #    freq = sfreq.val
-#            #    l.set_ydata(amp*np.sin(2*np.pi*freq*t))
-#            #    fig.canvas.draw_idle()
-#                for br in self.circles:
-#            #        slider = slider_bands[br]
-#                    circ = self.circles[br]
-#                    overpopulation[br] = circ.center[1]
-#                print('new overpopulation')
-#                print(overpopulation)
-#                plot_spectrum(overpopulation=overpopulation)
-        
-        # Create circles 
-#        action = Action(circles)
             
         drs = []
         for br, circ in circles.items():
@@ -126,7 +84,8 @@ class Overpopulator():
         self.drs = drs
         
         plt.show()
-        plt.xlabel('Energy')
+        plt.xlim((0, E_lvls.max()))
+        plt.xlabel('Energy (cm-1)')
         plt.ylabel('Overpopulation')
         plt.tight_layout()
         

@@ -156,14 +156,27 @@ class MultiSlabPlot():
         ylabelsize = 24
         
         slab_colors = {'sPlasmaCO2':'b',
+#                       'sPlasmaCO2b':'cornflowerblue',
                        'sPostCO2':'g',
-                       'sPostCO':'r',
-                       'sRoomCO2':'k'}
+                       'sPostCO':'orange',
+                       'sRoomCO2':'k',
+                       'sPlasmaCO':'r',}
         
         set_style(style)
         
         s = self.spectrum
-        slabs = self.slabs
+        slabs = self.slabs.copy()
+        
+        # Merge some.. TEMP 
+        from neq.spec import SerialSlabs
+        if 'sPlasmaCO2b' in slabs:
+            sPlasmaCO2 = slabs.pop('sPlasmaCO2')
+            sPlasmaCO2b = slabs.pop('sPlasmaCO2b')
+            slabs['sPlasmaCO2'] = SerialSlabs(sPlasmaCO2, sPlasmaCO2b)
+        if 'sPlasmaCOb' in slabs:
+            sPlasmaCO = slabs.pop('sPlasmaCO')
+            sPlasmaCOb = slabs.pop('sPlasmaCOb')
+            slabs['sPlasmaCO'] = SerialSlabs(sPlasmaCO, sPlasmaCOb)
         
 #        plt.figure(figsize=(15,10))
         fig30, ax30 = plt.subplots(figsize=(20,4))
@@ -230,9 +243,9 @@ class MultiSlabPlot():
             
             ls = '-' if i < 6 else '--'
             ax3[0].plot(*si.get('radiance', Iunit=unit), color=color, 
-                   lw=1, ls=ls, label=name)[0]
+                   lw=1, ls=ls, label=name.replace('sP', 'P').replace('sR', 'R'))[0]
             ax3[2].plot(*si.get('transmittance'), color=color, 
-                     lw=1, ls=ls, label=name)[0]
+                     lw=1, ls=ls, label=name.replace('sP', 'P').replace('sR', 'R'))[0]
         if self.show_noslit_slabs:
             colors = colorserie()
             ymax = ax3[0].get_ylim()[1]
@@ -262,7 +275,7 @@ class MultiSlabPlot():
 #        self._add_multicursor()
         
         for ax in ax3:    
-            ax.set_xlim((4150, 4700))
+            ax.set_xlim((4150, 4850))
             fix_style(style=style, ax=ax, tight_layout=False)
         
         ax3[0].legend(loc='lower right', bbox_to_anchor=[1.0, 0.2], prop={'size':24}, ncol=2)
@@ -447,23 +460,25 @@ class MultiSlabPlot():
         if not self.keep_highlights:
             self._clean_highlights()
                 
-        # Add main bands manually
-        ax0 = self.ax[0]
-        lines = []
-        for br in overpTool.bandlist.sorted_bands[:self.N_main_bands]:
-            sb = overpTool.bandlist.bands[br]
-            sb.apply_slit(slit, energy_threshold=0.2)
-#            get_rad = 'radiance' if self.slit_on_slabs else 'radiance_noslit'
-            w, I = sb.get('radiance', Iunit=unit)
-            if br in list(line3upbands.keys()):
-                line3upbands[br].set_data(w, I)
-                lines.append(line3upbands[br])
-            else:
-                l, = ax0.plot(w, I, color='grey', label='{0} ({1:.2f}eV)'.format(br, 
-                              cm2eV(overpTool.bandlist.E_bands[br])))
-                line3upbands[br] = l
-                lines.append(l)
-        self.highlights = HighlightingDataCursor(lines)
+        # Deactivated feature for the moment
+        
+#        # Add main bands manually
+#        ax0 = self.ax[0]
+#        lines = []
+#        for lvl, E in overpTool.E_lvls.items(): #lvlist.sorted_bands[:self.N_main_bands]:
+#            sb = overpTool.bandlist.bands[br]
+#            sb.apply_slit(slit, energy_threshold=0.2)
+##            get_rad = 'radiance' if self.slit_on_slabs else 'radiance_noslit'
+#            w, I = sb.get('radiance', Iunit=unit)
+#            if br in list(line3upbands.keys()):
+#                line3upbands[br].set_data(w, I)
+#                lines.append(line3upbands[br])
+#            else:
+#                l, = ax0.plot(w, I, color='grey', label='{0} ({1:.2f}eV)'.format(br, 
+#                              cm2eV(overpTool.bandlist.E_bands[br])))
+#                line3upbands[br] = l
+#                lines.append(l)
+#        self.highlights = HighlightingDataCursor(lines)
         
         # store lines (so they dont disappear)
         self.line3upbands = line3upbands
