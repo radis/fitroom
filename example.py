@@ -31,7 +31,7 @@ from neq.spec.slabs import MergeSlabs, SerialSlabs
 import numpy as np
 from numpy import linspace
 from publib import set_style
-from neq.test.utils import getTestFile, add_test_db_to_neqrc
+from neq.misc.testutils import getTestFile, add_test_db_to_neqrc
 
 try:
     from neq.math.fitroom import CaseSelector
