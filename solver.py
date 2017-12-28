@@ -13,7 +13,7 @@ from __future__ import absolute_import
 import numpy as np
 from scipy.interpolate import splev, splrep
 from warnings import warn
-from neq.spec import SpecDatabase, SpectrumFactory, BandList  # imported for static debugger
+from neq.spec import SpecDatabase, SpectrumFactory  # imported for static debugger
 from neq.misc.debug import printdbg
 from neq.misc.basics import is_float
 
