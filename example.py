@@ -31,7 +31,7 @@ from neq.spec.slabs import MergeSlabs, SerialSlabs
 import numpy as np
 from numpy import linspace
 from publib import set_style
-from neq.misc.testutils import getTestFile, add_test_db_to_neqrc
+from neq.misc.testutils import getTestFile, build_test_databases
 
 try:
     from neq.math.fitroom import CaseSelector
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     # ------------------------
     
     # Add HITRAN-TEST-CO2 to neq.rc (create file if doesnt exist)
-    add_test_db_to_neqrc()
+    build_test_databases()
     
     sf2 = SpectrumFactory(
                          wavelength_min=4165,
