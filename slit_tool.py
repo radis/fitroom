@@ -16,7 +16,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
-from neq.spec.slit import (get_slit_function, WAVELEN_UNITS, WAVENUM_UNITS,
+from radis.tools.slit import (get_slit_function, WAVELEN_UNITS, WAVENUM_UNITS,
                            get_effective_FWHM, get_FWHM)
 from neq.phys.conv import nm2cm, cm2nm
 from neq.misc import is_float
