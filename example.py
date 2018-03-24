@@ -26,8 +26,8 @@ interface
 """
 
 from __future__ import absolute_import
-from neq.spec.database import SpecDatabase
-from neq.spec.slabs import MergeSlabs, SerialSlabs
+from radis.tools.database import SpecDatabase
+from radis.los.slabs import MergeSlabs, SerialSlabs
 import numpy as np
 from numpy import linspace
 from publib import set_style
