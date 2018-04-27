@@ -41,6 +41,7 @@ try:
     from neq.math.fitroom import Overpopulator
     from neq.math.fitroom import FitRoom, DynVar
     from neq.math.fitroom import SlitTool
+    from neq.math.fitroom.tools import Normalizer
 except:
     from .selection_tool import CaseSelector
     from .grid3x3_tool import Grid3x3
@@ -49,6 +50,7 @@ except:
     from .noneq_tool import Overpopulator
     from .room import FitRoom, DynVar
     from .slit_tool import SlitTool
+    from .tools import Normalizer
     
 from neq.spec import SpectrumFactory
     
@@ -72,7 +74,7 @@ if __name__ == '__main__':
                          db_use_cached=True,
                          medium='air')
     sf2.load_databank('HITRAN-CO2-TEST')
-    sf2.init_database(getTestFile('HITRAN_CO2_test_spec_database'), autoretrieve='force')
+    sf2.init_database(getTestFile('HITRAN_CO2_test_spec_database'), autoretrieve=True) #'force')
     
     for Tgas in [300, 350, 400, 1200, 1300, 1500, 1700, 2000]:
         sf2.eq_spectrum(Tgas)
@@ -157,7 +159,6 @@ if __name__ == '__main__':
     wexp, Iexp = np.loadtxt(fexp, skiprows=1).T
 
     
-    from .tools import Normalizer
     normalizer = None #Normalizer(4173, 4180, how='mean')
     
     # -----------------------------------------------------------------------------
