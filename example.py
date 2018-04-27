@@ -195,7 +195,7 @@ if __name__ == '__main__':
                               slbInteractx=slbInteractx, slbInteracty=slbInteracty,  
                               nfig=1)
     
-    slitTool = SlitTool('/home/valentin/Documents/Stage Centrale/Experimental/slit_spectrum.txt')
+    slitTool = SlitTool(getTestFile('slitfunction.txt'))
     
 #    overpTool = Overpopulator(overpSlab)
     

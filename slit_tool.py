@@ -135,7 +135,7 @@ class SlitTool():
             # center_wavespace is inferred by apply_slit() from the slit range: 
             # we do the same here 
             waveunit = s.get_waveunit()
-            w = s.q['wavespace']
+            w = s._q['wavespace']
             # reminder: center_wavespace should be in ~ unit
             center_wavespace = w[len(w)//2]   # w ~ waveunit    
             if waveunit in WAVENUM_UNITS and slit_unit in WAVELEN_UNITS:
@@ -163,7 +163,7 @@ class SlitTool():
                 ov_center_wavespace = overlay_options['center_wavespace']
             else:
                 waveunit = s.get_waveunit()
-                w = s.q['wavespace']
+                w = s._q['wavespace']
                 # reminder: center_wavespace should be in ~ unit
                 ov_center_wavespace = w[len(w)//2]  # w ~ waveunit
                 if waveunit in WAVENUM_UNITS and ov_slit_unit in WAVELEN_UNITS:
