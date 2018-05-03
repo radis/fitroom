@@ -33,6 +33,7 @@ class MultiSlabPlot():
                  N_main_bands = 5,
                  keep_highlights = False,
                  show_noslit_slabs = True,
+                 show_slabs_with_slit = True,
                  ):
         ''' 
         Input
@@ -50,6 +51,10 @@ class MultiSlabPlot():
         
         show_noslit_slabs: boolean
             if True, overlay slabs with non convoluted radiance / transmittance
+        
+        show_slabs_with_slit: boolean
+            if True, slit is applied to all slabs before display (this does not 
+            change the way the radiative transfer equation is solved)
         
         '''
         
@@ -82,6 +87,7 @@ class MultiSlabPlot():
         self.keep_highlights = keep_highlights  
         
         self.show_noslit_slabs = show_noslit_slabs
+        self.show_slabs_with_slit = show_slabs_with_slit
         
         self.spectrum = None  # hold the current calculated spectrum object
         
@@ -124,7 +130,7 @@ class MultiSlabPlot():
         slabs = self.slabs
         
         s.apply_slit(slit_function, **slit_options)  
-        if self.slit_on_slabs:
+        if self.show_slabs_with_slit:
             for sl in slabs.values():
                 sl.apply_slit(slit_function, **slit_options)   
         

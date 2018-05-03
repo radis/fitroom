@@ -54,9 +54,7 @@ except:
     
 from neq.spec import SpectrumFactory
     
-if __name__ == '__main__':
-    
-    set_style('origin')
+def _generate_test_database():
     
     # %% Generate test spectra database (just for the example)
     # ------------------------
@@ -80,6 +78,22 @@ if __name__ == '__main__':
         sf2.eq_spectrum(Tgas)
         # Note that autoretrieve is set to True by default, so already generated
         # spectra wont be calculated again
+    
+    
+if __name__ == '__main__':
+    
+    # %% Generate test spectra database (just for the example)
+    # ------------------------
+    
+    _generate_test_database()
+    
+    
+    # %% Start Fitroom process
+    
+    
+    
+    
+    set_style('origin')
     
     
     # %% Load Database
@@ -138,7 +152,7 @@ if __name__ == '__main__':
     xstep = 0.2
     ystep = 0.2
     
-    slit = (1.63, 2.33) 
+    slit = getTestFile('slit_function_7th_order.txt')  #(1.63, 2.33) 
 
     verbose=False
     normalize = False
@@ -195,7 +209,9 @@ if __name__ == '__main__':
                               slbInteractx=slbInteractx, slbInteracty=slbInteracty,  
                               nfig=1)
     
-    slitTool = SlitTool(getTestFile('slitfunction.txt'))
+    #w_slit, I_slit = np.loadtxt(getTestFile('slitfunction.txt')).T
+    #w_slit_7order, I_slit_7order = w_slit*7, I_slit
+    slitTool = SlitTool('nm', overlay=getTestFile('slit_function_7th_order.txt')) #, overlay=(w_slit_7order, I_slit_7order))
     
 #    overpTool = Overpopulator(overpSlab)
     
