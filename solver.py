@@ -14,6 +14,7 @@ import numpy as np
 from scipy.interpolate import splev, splrep
 from warnings import warn
 from radis import SpecDatabase  # imported for static debugger
+from radis.spectrum.compare import get_residual
 from neq.spec import SpectrumFactory
 from neq.misc.debug import printdbg
 from neq.misc.basics import is_float
@@ -26,19 +27,27 @@ class SlabsConfigSolver():
     '''
 
     def __init__(self, config, source=None,
-                 wexp=None, Iexpcalib=None, wexp_shift=0,
+                 s_exp=None, 
+                 wexp_shift=0,
                  plotquantity='radiance', unit='mW/cm2/sr/nm',
                  slit=None, slit_options={'norm_by':'area', 'shape':'triangular',
                                           'unit':'nm'},
                  verbose=True):
         '''
-        Input
-        ------
+        Parameters
+        ----------
 
         source: 'database', 'calculate', 'from_bands'
             Whether to calculate spectra from scratch, retrieve them from a database,
             or combine vibrational bands
             Mode can be overriden by a 'source' parameter in every slab
+
+        s_exp: :class:`~radis.spectrum.spectrum.Spectrum` 
+            experimental spectrum
+            
+        plotquantity: 'radiance', 'transmittance_noslit', etc.
+        
+        
 
         '''
 
@@ -47,6 +56,9 @@ class SlabsConfigSolver():
 
         self.config = config
 
+        self.s_exp = s_exp
+        if s_exp is not None:
+            wexp, Iexpcalib = s_exp.get(plotquantity, Iunit=unit)
         self.wexp = wexp
         self.Iexpcalib = Iexpcalib
         self.wexp_shift = wexp_shift
@@ -68,50 +80,74 @@ class SlabsConfigSolver():
         self.fitroom = fitroom         # type: FitRoom
 
     def get_residual(self, s, norm='not_implemented'):
-        ''' Different between experimental and simulated spectra
+        ''' Returns difference between experimental and simulated spectra
+        By default, uses :func:`~radis.spectrum.compare.get_residual` function
+        You can change the residual by overriding this function. 
+        
+        Examples
+        --------
+        
+        Replace get_residual with new_residual::
+        
+            solver.get_residual = lambda s: new_residual(solver.s_exp, s, 'radiance')
+
+        Note that default solver would be written::
+            
+            from radis import get_residual
+            solver.get_residual = lambda s: get_residual(solver.s_exp, s,
+                                                         solver.plotquantity,
+                                                         ignore_nan=True)
+
+        Parameters
+        ----------
 
         norm not implemented yet
         # TODO
 
-        Implementation
-        -------
+        Notes
+        -----
+        
+        Implementation:
 
         interpolate experimental is harder (because of noise, and overlapping)
         we interpolate each new spectrum on the experiment
 
         '''
-
-        wexp = self.wexp
-        Iexpcalib = self.Iexpcalib
+        
         plotquantity = self.plotquantity
-        unit = self.unit
+        return get_residual(self.s_exp, s, plotquantity, ignore_nan=True)
 
-
-        b = np.argsort(wexp)
-        wsort, Isort = wexp[b], Iexpcalib[b]
-
-        w, I = s.get(plotquantity, wunit='nm', Iunit=unit)
-
-        # crop to overlapping range
-        b = (wsort>w.min()) & (wsort<w.max())
-        wsort, Isort = wsort[b], Isort[b]
-        if len(wsort) == 0:
-            # no overlap between calculated and exp spectra ?
-            if __debug__: printdbg('no overlap in get_residual() ? ')
-            return np.nan
-        b = (w>wsort.min()) & (w<wsort.max())
-        w, I= w[b], I[b]
-
-        if w[0]>w[-1]:
-            w, I = w[::-1], I[::-1]
-
-        tck = splrep(w, I)
-        Iint = splev(wsort, tck)
-
-    #    error = np.sqrt(np.trapz(np.abs((Iint-Isort)/(Iint+Isort)), x=wsort).sum())
-        error = np.sqrt(np.trapz(np.abs(Iint-Isort), x=wsort).sum())
-
-        return error
+#        wexp = self.wexp
+#        Iexpcalib = self.Iexpcalib
+#        plotquantity = self.plotquantity
+#        unit = self.unit
+#
+#
+#        b = np.argsort(wexp)
+#        wsort, Isort = wexp[b], Iexpcalib[b]
+#
+#        w, I = s.get(plotquantity, wunit='nm', Iunit=unit)
+#
+#        # crop to overlapping range
+#        b = (wsort>w.min()) & (wsort<w.max())
+#        wsort, Isort = wsort[b], Isort[b]
+#        if len(wsort) == 0:
+#            # no overlap between calculated and exp spectra ?
+#            if __debug__: printdbg('no overlap in get_residual() ? ')
+#            return np.nan
+#        b = (w>wsort.min()) & (w<wsort.max())
+#        w, I= w[b], I[b]
+#
+#        if w[0]>w[-1]:
+#            w, I = w[::-1], I[::-1]
+#
+#        tck = splrep(w, I)
+#        Iint = splev(wsort, tck)
+#
+#    #    error = np.sqrt(np.trapz(np.abs((Iint-Isort)/(Iint+Isort)), x=wsort).sum())
+#        error = np.sqrt(np.trapz(np.abs(Iint-Isort), x=wsort).sum())
+#
+#        return error
 
 
     def calc_slabs(self, **slabsconfig):

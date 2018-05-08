@@ -25,7 +25,7 @@ class Grid3x3():
                  xparam='', yparam='',
                  plotquantity='radiance', unit= 'mW/cm2/sr/nm',
                  normalizer=None,
-                 wexp=None, Iexpcalib=None, wexp_shift=0
+                 s_exp=None, wexp_shift=0
                  ):
 
         plt.figure(2, figsize=(16, 12)).clear()
@@ -58,6 +58,9 @@ class Grid3x3():
         self.normalize = normalizer is not None
         self.normalizer = normalizer
 
+        self.s_exp = s_exp
+        if s_exp is not None:
+            wexp, Iexpcalib = s_exp.get(plotquantity, Iunit=unit)
         self.wexp = wexp
         self.Iexpcalib = Iexpcalib
         self.wexp_shift = wexp_shift
