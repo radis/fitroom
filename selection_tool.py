@@ -351,7 +351,7 @@ class CaseSelector():
     
             xx, yy = meshgrid(xspace, yspace, indexing='ij')
     
-            res = empty_like(yy)
+            res = empty_like(yy, dtype=np.float64)
     
             for i, xvari in enumerate(xspace):
                 for j, yvarj in enumerate(yspace):
