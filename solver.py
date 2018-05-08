@@ -69,6 +69,12 @@ class SlabsConfigSolver():
     def get_residual(self, s, norm='not_implemented'):
         ''' Different between experimental and simulated spectra
 
+        Parameters
+        ----------
+        
+        s: Spectrum object
+            simulated spectrum to compare with (stored) experimental spectrum
+
         norm not implemented yet
         # TODO
 
@@ -155,10 +161,11 @@ class SlabsConfigSolver():
 
                 dbi = cfg.pop('db')    # type: SpecDatabase
                 
-                try:
-                    si = dbi.get_closest(scale_if_possible=True, verbose=verbose, **cfg)
-                except:
-                    si = None
+#                try:
+#                    si = dbi.get_closest(scale_if_possible=True, verbose=verbose, **cfg)
+#                except:
+#                    si = None
+                si = dbi.get_closest(scale_if_possible=True, verbose=verbose, **cfg)
 
             elif source == 'calculate':
 
