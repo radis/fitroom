@@ -101,6 +101,12 @@ class SlabsConfigSolver():
         Parameters
         ----------
 
+        Parameters
+        ----------
+        
+        s: Spectrum object
+            simulated spectrum to compare with (stored) experimental spectrum
+
         norm not implemented yet
         # TODO
 
