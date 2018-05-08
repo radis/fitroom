@@ -17,6 +17,7 @@ from radis import SpecDatabase  # imported for static debugger
 from neq.spec import SpectrumFactory
 from neq.misc.debug import printdbg
 from neq.misc.basics import is_float
+import sys
 
 class SlabsConfigSolver():
     '''
@@ -121,8 +122,8 @@ class SlabsConfigSolver():
 
     def calc_slabs(self, **slabsconfig):
         '''
-        Input
-        ------
+        Parameters
+        ----------
 
         slabsconfig:
             list of dictionaries. Each dictionary as a database key `db` and
@@ -161,11 +162,12 @@ class SlabsConfigSolver():
 
                 dbi = cfg.pop('db')    # type: SpecDatabase
                 
-#                try:
-#                    si = dbi.get_closest(scale_if_possible=True, verbose=verbose, **cfg)
-#                except:
-#                    si = None
-                si = dbi.get_closest(scale_if_possible=True, verbose=verbose, **cfg)
+                try:
+                    si = dbi.get_closest(scale_if_possible=True, verbose=verbose, **cfg)
+                except:
+                    print('An error occured while retrieving Spectrum from database: \n{0}'.format(
+                            sys.exc_info()))
+                    si = None
 
             elif source == 'calculate':
 
