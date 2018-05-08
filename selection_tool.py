@@ -22,9 +22,11 @@ from __future__ import absolute_import
 from __future__ import print_function
 import matplotlib.pyplot as plt
 from matplotlib.widgets import RectangleSelector
+import numpy as np
 from numpy import array, meshgrid, empty_like, linspace
 from scipy.interpolate import griddata
 from six.moves import zip
+import sys
 
 class CaseSelector():
     '''
@@ -262,8 +264,23 @@ class CaseSelector():
         return
             
     
-    def precompute_residual(self, Slablist):
-        ''' Plot residual for all points in database '''
+    def precompute_residual(self, Slablist, xspace='database', yspace='database'):
+        ''' Plot residual for all points in database.
+        
+        Parameters
+        ----------
+        
+        Slablist: configuration 
+        
+        xspace: array, or 'database'
+            values of points to precompute. If 'database', residual is calculated
+            for all points in database. Default 'database'.
+        
+        yspace: array, or 'database'
+            values of points to precompute. If 'database', residual is calculated
+            for all points in database. Default 'database'.
+        
+        '''
     
         if not hasattr(self, 'fitroom'):
             raise AttributeError('Tool not connected to Fitroom')
@@ -288,11 +305,17 @@ class CaseSelector():
             I think it doesnt like the sorting
             '''
     
-    
-            # only calculate database points
-            xspace, yspace = list(zip(*array(dbInteractx.view()[[xparam, yparam]])))
-            # kill duplicates
-            xspace, yspace = list(zip(*set(list(zip(xspace, yspace)))))
+            if xspace == 'database' and yspace == 'database':
+                # only calculate database points
+                xspace, yspace = list(zip(*array(dbInteractx.view()[[xparam, yparam]])))
+                # kill duplicates
+                xspace, yspace = list(zip(*set(list(zip(xspace, yspace)))))
+            elif xspace == 'database':   # not tested
+                xspace = array(sorted(set(dbInteractx.view()[xparam])))
+            elif yspace == 'database':  # not tested
+                yspace = array(sorted(set(dbInteracty.view()[yparam])))
+            else:
+                pass   # use xspace, yspace values
     
             xx, yy = meshgrid(xspace, yspace)
     
@@ -320,8 +343,11 @@ class CaseSelector():
     
         else:
             # do a mapping of all possible cases
-            xspace = array(sorted(set(dbInteractx.view()[xparam])))
-            yspace = array(sorted(set(dbInteracty.view()[yparam])))
+            if xspace == 'database':
+                xspace = array(sorted(set(dbInteractx.view()[xparam])))
+            if yspace == 'database':
+                yspace = array(sorted(set(dbInteracty.view()[yparam])))
+            # else: use xspace, yspace values
     
             xx, yy = meshgrid(xspace, yspace, indexing='ij')
     
@@ -341,9 +367,27 @@ class CaseSelector():
     
                     res[i][j] = resij
     
-        cf = ax1.contourf(xx, yy, res, 40, cmap=plt.get_cmap('viridis_r'))
+        try:
+            cf = ax1.contourf(xx, yy, res, 40, cmap=plt.get_cmap('viridis_r'))
+        except TypeError:
+            print(sys.exc_info())
+            raise TypeError('An error occured (see details above). This may be due '+\
+                            'to an incorrect range of interpolation points. You can set '+\
+                            'up the range manually with xspace= and yspace=)')
+            
         cbar = fig1.colorbar(cf)
         cbar.ax.set_ylabel('residual')
+        
+        # Add z value in infobar:
+        Xflat, Yflat, Zflat =xx.flatten(), yy.flatten(), res.flatten()
+        def fmt(x, y):
+            # get closest point with known data
+            dist = np.linalg.norm(np.vstack([Xflat - x, Yflat - y]), axis=0)
+            idx = np.argmin(dist)
+            z = Zflat[idx]
+            return 'x={x:.5f}  y={y:.5f}  z={z:.5f}'.format(x=x, y=y, z=z)
+        ax1.format_coord = fmt
+        
         plt.tight_layout()
     
     
