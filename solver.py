@@ -28,7 +28,6 @@ class SlabsConfigSolver():
 
     def __init__(self, config, source=None,
                  s_exp=None, 
-                 wexp_shift=0,
                  plotquantity='radiance', unit='mW/cm2/sr/nm',
                  slit=None, slit_options={'norm_by':'area', 'shape':'triangular',
                                           'unit':'nm'},
@@ -61,7 +60,6 @@ class SlabsConfigSolver():
             wexp, Iexpcalib = s_exp.get(plotquantity, Iunit=unit)
         self.wexp = wexp
         self.Iexpcalib = Iexpcalib
-        self.wexp_shift = wexp_shift
         self.plotquantity = plotquantity
         self.unit = unit
         self.slit = slit

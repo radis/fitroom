@@ -28,7 +28,7 @@ class MultiSlabPlot():
     def __init__(self, 
                  plotquantity='radiance', unit= 'mW/cm2/sr/nm', 
                  normalizer=None,
-                 s_exp=None, wexp_shift=0,
+                 s_exp=None, 
                  nfig=None,
                  N_main_bands = 5,
                  keep_highlights = False,
@@ -84,7 +84,6 @@ class MultiSlabPlot():
             wexp, Iexpcalib = s_exp.get(plotquantity, Iunit=unit)
         self.wexp = wexp
         self.Iexpcalib = Iexpcalib
-        self.wexp_shift = wexp_shift
         
         self.N_main_bands = N_main_bands 
         self.keep_highlights = keep_highlights  
@@ -210,7 +209,6 @@ class MultiSlabPlot():
         
         wexp = self.wexp
         Iexpcalib = self.Iexpcalib
-        wexp_shift = self.wexp_shift
         
         slit = self.fitroom.solver.slit
         slit_options = self.fitroom.solver.slit_options
@@ -230,7 +228,7 @@ class MultiSlabPlot():
             
         ydata = norm_on(wexp, Iexpcalib) if normalize else Iexpcalib
         
-        plot_stack(wexp+wexp_shift, ydata, '-k', 
+        plot_stack(wexp, ydata, '-k', 
                      lw=1, zorder=-1, label='Experiment', ax=ax3[1])[0]
         ax3[1].legend()
             
@@ -323,7 +321,6 @@ class MultiSlabPlot():
         
         wexp = self.wexp
         Iexpcalib = self.Iexpcalib
-        wexp_shift = self.wexp_shift
         
         slit = self.fitroom.solver.slit
         slit_options = self.fitroom.solver.slit_options
@@ -348,9 +345,9 @@ class MultiSlabPlot():
             
         ydata = norm_on(wexp, Iexpcalib) if normalize else Iexpcalib
         try:        
-            line3cent[0]  # doesnt change  .set_data(wexp+wexp_shift, ydata)
+            line3cent[0]  # doesnt change  .set_data(wexp, ydata)
         except KeyError:
-            line3cent[0] = plot_stack(wexp+wexp_shift, ydata, '-k', 
+            line3cent[0] = plot_stack(wexp, ydata, '-k', 
                      lw=0.5, zorder=-1, label='Experiment', ax=ax3[1])[0]
             ax3[1].legend()
             

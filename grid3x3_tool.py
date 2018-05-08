@@ -25,7 +25,7 @@ class Grid3x3():
                  xparam='', yparam='',
                  plotquantity='radiance', unit= 'mW/cm2/sr/nm',
                  normalizer=None,
-                 s_exp=None, wexp_shift=0
+                 s_exp=None
                  ):
 
         plt.figure(2, figsize=(16, 12)).clear()
@@ -63,7 +63,6 @@ class Grid3x3():
             wexp, Iexpcalib = s_exp.get(plotquantity, Iunit=unit)
         self.wexp = wexp
         self.Iexpcalib = Iexpcalib
-        self.wexp_shift = wexp_shift
 
 #        self.fitroom = None          # type: FitRoom
         
@@ -178,7 +177,6 @@ class Grid3x3():
 
         wexp = self.wexp
         Iexpcalib = self.Iexpcalib
-        wexp_shift = self.wexp_shift
 
         get_residual = self.fitroom.solver.get_residual
 
@@ -187,9 +185,9 @@ class Grid3x3():
 
         ydata = norm_on(wexp, Iexpcalib) if normalize else Iexpcalib
         try:
-            lineexp[(i,j)]  # does not change anyway .set_data(wexp+wexp_shift, ydata)
+            lineexp[(i,j)]  # does not change anyway .set_data(wexp, ydata)
         except KeyError:
-            lines, = plot_stack(wexp+wexp_shift, ydata,'-k',lw=2, ax=axij)
+            lines, = plot_stack(wexp, ydata,'-k',lw=2, ax=axij)
             lineexp[(i,j)] = lines
 
         # Get calculated spectra 
@@ -261,13 +259,12 @@ class Grid3x3():
 
         wexp = self.wexp
         Iexpcalib = self.Iexpcalib
-        wexp_shift = self.wexp_shift
-
+        
         axij = ax2
         axij.format_coord = self.format_coord
 
         ydata = norm_on(wexp, Iexpcalib) if normalize else Iexpcalib
-        plot_stack(wexp+wexp_shift, ydata,'-k',lw=2, ax=axij)
+        plot_stack(wexp, ydata,'-k',lw=2, ax=axij)
 
         i = 1
         for j in [0, 1, 2]:
