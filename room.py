@@ -33,7 +33,7 @@ class FitRoom():
         -------
         
         perfmode: boolean
-            if True we try to optimize calculation times (ex: minimized windows
+            if ``True`` we try to optimize calculation times (ex: minimized windows
             are not recalculated)
         '''
         self.tools = []
