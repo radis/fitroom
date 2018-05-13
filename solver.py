@@ -13,7 +13,7 @@ from __future__ import absolute_import
 import numpy as np
 from scipy.interpolate import splev, splrep
 from warnings import warn
-from radis import SpecDatabase  # imported for static debugger
+from radis import SpecDatabase, Spectrum  # imported for static debugger
 from radis.spectrum.compare import get_residual
 from neq.spec import SpectrumFactory
 from neq.misc.debug import printdbg
@@ -29,12 +29,14 @@ class SlabsConfigSolver():
     def __init__(self, config, source=None,
                  s_exp=None, 
                  plotquantity='radiance', unit='mW/cm2/sr/nm',
-                 slit=None, slit_options={'norm_by':'area', 'shape':'triangular',
-                                          'unit':'nm'},
+                 slit=None, slit_options='default',
                  verbose=True):
         '''
         Parameters
         ----------
+
+        config: dict
+            list of Slabs that represent the Spatial model (to solve RTE)
 
         source: 'database', 'calculate', 'from_bands'
             Whether to calculate spectra from scratch, retrieve them from a database,
@@ -47,6 +49,17 @@ class SlabsConfigSolver():
         plotquantity: 'radiance', 'transmittance_noslit', etc.
         
         
+        Other Parameters
+        ----------------
+        
+        slit_options:
+            if ``'default'``, use::
+        
+                {'norm_by':'area', 'shape':'triangular',
+                                                  'unit':'nm'}
+                
+            and adapt ``'shape'`` to ``'trapezoidal'`` if a tuple was given for slit
+
 
         '''
 
@@ -62,7 +75,14 @@ class SlabsConfigSolver():
         self.Iexpcalib = Iexpcalib
         self.plotquantity = plotquantity
         self.unit = unit
+        
+        # Get slit defaults
         self.slit = slit
+        if slit_options == 'default':
+            if isinstance(slit, tuple):
+                slit_options = {'norm_by':'area', 'shape':'trapezoidal', 'unit':'nm'}
+            else:
+                slit_options = {'norm_by':'area', 'shape':'triangular', 'unit':'nm'}
         self.slit_options = slit_options
 
         self.verbose = verbose
@@ -278,6 +298,8 @@ class SlabsConfigSolver():
                 fconds[slabname] = fcondsi
 
         s = config(**slabs)
+        assert isinstance(s, Spectrum)     # (for developers: helps IDE find autocompletion)
+        
         s.apply_slit(slit, **self.slit_options)
 
         return s, slabs, fconds

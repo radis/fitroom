@@ -46,14 +46,14 @@ class MultiSlabPlot():
             N_main_bands is the number of bands to show. Default 5. 
         
         keep_highlights: boolean
-            if True, delete previous highlights when generating new case. Keeping
-            them can help remember the last band position. Default False.
+            if ``True``, delete previous highlights when generating new case. Keeping
+            them can help remember the last band position. Default ``False``.
         
         show_noslit_slabs: boolean
-            if True, overlay slabs with non convoluted radiance / transmittance
+            if ``True``, overlay slabs with non convoluted radiance / transmittance
         
         show_slabs_with_slit: boolean
-            if True, slit is applied to all slabs before display (this does not 
+            if ``True``, slit is applied to all slabs before display (this does not 
             change the way the radiative transfer equation is solved)
         
         '''

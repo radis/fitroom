@@ -204,8 +204,8 @@ class SlitTool():
             change plot unit (and FWHM units)
     
         warnings: boolean
-            if True, test if slit is correctly centered and output a warning if it
-            is not. Default True
+            if ``True``, test if slit is correctly centered and output a warning if it
+            is not. Default ``True``
     
         '''
         
