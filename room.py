@@ -24,20 +24,21 @@ except:
     from .solver import SlabsConfigSolver
     from .noneq_tool import Overpopulator
     from .slit_tool import SlitTool
-    
+
+
 class FitRoom():
-    
+
     def __init__(self, Slablist, perfmode=False):
         ''' 
         Input
         -------
-        
+
         perfmode: boolean
             if ``True`` we try to optimize calculation times (ex: minimized windows
             are not recalculated)
         '''
         self.tools = []
-        
+
         # all possible tools:
         self.solver = None      # type: Solver
         self.gridTool = None    # type: Grid3x3
@@ -45,10 +46,10 @@ class FitRoom():
         self.selectTool = None  # type: CaseSelector
         self.overpTool = None   # type: Overpopulator
         self.slitTool = None    # type: SlitTool
-        
+
         self.Slablist = Slablist
         self.perfmode = perfmode
-    
+
     def add_tool(self, tool):
         if isinstance(tool, SlabsConfigSolver):
             print('Adding SlabsConfigSolver')
@@ -69,17 +70,17 @@ class FitRoom():
             print('Adding SlitTool')
             self.slitTool = tool
         else:
-            raise ValueError('Unknown tool: {0} ({1})'.format(tool, type(tool)))
-        
+            raise ValueError(
+                'Unknown tool: {0} ({1})'.format(tool, type(tool)))
+
         # Update links:
         self.tools.append(tool)
         tool.connect(self)
-    
-    
+
     def update_plots(self):
-    
+
         perfmode = self.perfmode
-    
+
         # Update GridTool
         if self.gridTool is not None:
             fig2 = self.gridTool.fig
@@ -92,7 +93,7 @@ class FitRoom():
                 plt.pause(0.1)  # make sure the figure is replotted
 #            else:
 #                print('Log: no gridtool')
-            
+
         # Update SlabsTool
         if self.slabsTool is not None:
             fig3 = self.slabsTool.fig
@@ -103,14 +104,14 @@ class FitRoom():
             if updatefig or not perfmode:
                 plt.figure(3).show()
                 plt.pause(0.1)  # make sure the figure is replotted
-                
+
 #            else:
 #                print('Log: no slabstool')
-                
+
     def update(self, xspace=None, yspace=None):
-            
+
         if self.gridTool is not None:
-            # Update gridTool (updating slabsTool is done in the middle of the 
+            # Update gridTool (updating slabsTool is done in the middle of the
             # loop too)
             self.gridTool.plot_3times3(xspace, yspace)
         elif self.slabsTool is not None:
@@ -119,22 +120,21 @@ class FitRoom():
             raise ValueError('Neither GridTool or SlabsTool defined')
         if self.slitTool is not None:
             self.slitTool.update_figure()  # in case
-            
+
     def get_config(self):
         ''' Get values for Target configuration '''
-        
+
         Slablist = self.Slablist
-        config0 = {k:c.copy() for k, c in Slablist.items()}
+        config0 = {k: c.copy() for k, c in Slablist.items()}
 
         return config0
-    
-    
+
     def eval_dynvar(self, config):
         ''' Evaluate dynamic links for a given configuration. Changes updated
         config (inplace) 
         Note that 'self' in DynVar can be used to refer to the current slab 
         '''
-        
+
         # Evaluate dynamic quantities
         for slabname, slab in config.items():
             for k, v in slab.items():
@@ -143,16 +143,16 @@ class FitRoom():
                         v.slab = slabname   # update DynVar
                     val = v.eval(config)
                     config[slabname][k] = val
-                    if __debug__: printdbg("{0}['{1}'] evaluated as {2}".format(
+                    if __debug__:
+                        printdbg("{0}['{1}'] evaluated as {2}".format(
                             slabname, k, val))
-                    
-        
+
 
 class DynVar():
     ''' To allow dynamic (runtime) filling of conditions in SlabList
-    
+
     Ex:
-            
+
     > slbPostCO2 = {
     >          'db':db0,
     >          'Tgas':500,
@@ -174,14 +174,14 @@ class DynVar():
     >             'sPostCO2': slbPostCO2,
     >             'sPostCO': slbPostCO,
     >             }
-    
+
     '''
-    
-    def __init__(self, slab, param, func=lambda x:x):
+
+    def __init__(self, slab, param, func=lambda x: x):
         ''' 
         Input 
         ------
-        
+
         slab: str
             slab config name in Slablist. Note that 'self' in DynVar can be used 
             to refer to the DynVar's own slab. Ex:
@@ -189,27 +189,27 @@ class DynVar():
             >     'Trot':2000,
             >     'Tvib':DynVar('self', 'Trot'),
             > }
-        
+
         param: str
             param name in slab config dict
-            
+
         func: function
             function to apply. Default identity
         '''
-        
+
         self.slab = slab
         self.param = param
         self.func = func
-        
+
         return
-    
+
     def eval(self, slabsconfig):
         ''' Evaluate value at runtime based on other static values '''
-        
+
         if isinstance(slabsconfig[self.slab][self.param], DynVar):
             raise AssertionError("A DynVar cannot refer to another DynVar {0}['{1}']".format(
-                    self.slab, self.param))
-        
+                self.slab, self.param))
+
         return self.func(slabsconfig[self.slab][self.param])
-    
+
 #    ('sPlasmaCO2', 'mole_fraction')
