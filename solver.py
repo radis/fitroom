@@ -10,6 +10,7 @@ get the correct slab input, then calls the appropriate functions in neq.spec eng
 """
 
 from __future__ import absolute_import
+from __future__ import print_function
 import numpy as np
 from scipy.interpolate import splev, splrep
 from warnings import warn
@@ -223,8 +224,8 @@ class SlabsConfigSolver():
                     si = dbi.get_closest(
                         scale_if_possible=True, verbose=verbose, **cfg)
                 except:
-                    print('An error occured while retrieving Spectrum from database: \n{0}'.format(
-                        sys.exc_info()))
+                    print(('An error occured while retrieving Spectrum from database: \n{0}'.format(
+                        sys.exc_info())))
                     si = None
 
             elif source == 'calculate':
