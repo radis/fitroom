@@ -20,6 +20,7 @@ from neq.misc.debug import printdbg
 from neq.misc.basics import is_float
 import sys
 
+
 class SlabsConfigSolver():
     '''
     Machinery related to solving a specific Slabs configuration: parse the database,
@@ -27,7 +28,7 @@ class SlabsConfigSolver():
     '''
 
     def __init__(self, config, source=None,
-                 s_exp=None, 
+                 s_exp=None,
                  plotquantity='radiance', unit='mW/cm2/sr/nm',
                  slit=None, slit_options='default',
                  verbose=True):
@@ -45,19 +46,19 @@ class SlabsConfigSolver():
 
         s_exp: :class:`~radis.spectrum.spectrum.Spectrum` 
             experimental spectrum
-            
+
         plotquantity: 'radiance', 'transmittance_noslit', etc.
-        
-        
+
+
         Other Parameters
         ----------------
-        
+
         slit_options:
             if ``'default'``, use::
-        
+
                 {'norm_by':'area', 'shape':'triangular',
                                                   'unit':'nm'}
-                
+
             and adapt ``'shape'`` to ``'trapezoidal'`` if a tuple was given for slit
 
 
@@ -75,24 +76,27 @@ class SlabsConfigSolver():
         self.Iexpcalib = Iexpcalib
         self.plotquantity = plotquantity
         self.unit = unit
-        
+
         # Get slit defaults
         self.slit = slit
         if slit_options == 'default':
             if isinstance(slit, tuple):
-                slit_options = {'norm_by':'area', 'shape':'trapezoidal', 'unit':'nm'}
+                slit_options = {'norm_by': 'area',
+                                'shape': 'trapezoidal', 'unit': 'nm'}
             else:
-                slit_options = {'norm_by':'area', 'shape':'triangular', 'unit':'nm'}
+                slit_options = {'norm_by': 'area',
+                                'shape': 'triangular', 'unit': 'nm'}
         self.slit_options = slit_options
 
         self.verbose = verbose
 
-        self.save_rescaled_bands = False  # not a public option, but can be changed manually
+        # not a public option, but can be changed manually
+        self.save_rescaled_bands = False
 
         self.source = source
 
         self.fitroom = None
-        
+
     def connect(self, fitroom):
         ''' Triggered on connection to FitRoom '''
         self.fitroom = fitroom         # type: FitRoom
@@ -101,16 +105,16 @@ class SlabsConfigSolver():
         ''' Returns difference between experimental and simulated spectra
         By default, uses :func:`~radis.spectrum.compare.get_residual` function
         You can change the residual by overriding this function. 
-        
+
         Examples
         --------
-        
+
         Replace get_residual with new_residual::
-        
+
             solver.get_residual = lambda s: new_residual(solver.s_exp, s, 'radiance')
 
         Note that default solver would be written::
-            
+
             from radis import get_residual
             solver.get_residual = lambda s: get_residual(solver.s_exp, s,
                                                          solver.plotquantity,
@@ -121,7 +125,7 @@ class SlabsConfigSolver():
 
         Parameters
         ----------
-        
+
         s: Spectrum object
             simulated spectrum to compare with (stored) experimental spectrum
 
@@ -130,14 +134,14 @@ class SlabsConfigSolver():
 
         Notes
         -----
-        
+
         Implementation:
 
         interpolate experimental is harder (because of noise, and overlapping)
         we interpolate each new spectrum on the experiment
 
         '''
-        
+
         plotquantity = self.plotquantity
         return get_residual(self.s_exp, s, plotquantity, ignore_nan=True)
 
@@ -173,7 +177,6 @@ class SlabsConfigSolver():
 #
 #        return error
 
-
     def calc_slabs(self, **slabsconfig):
         '''
         Parameters
@@ -194,7 +197,7 @@ class SlabsConfigSolver():
 
         for slabname, slabcfg in slabsconfig.items():
             cfg = slabcfg.copy()
-            
+
             if 'source' in cfg:
                 source = cfg.pop('source')       # type: str
             else:
@@ -215,12 +218,13 @@ class SlabsConfigSolver():
                     warn('`database` source mode used but `bandlist` is given')
 
                 dbi = cfg.pop('db')    # type: SpecDatabase
-                
+
                 try:
-                    si = dbi.get_closest(scale_if_possible=True, verbose=verbose, **cfg)
+                    si = dbi.get_closest(
+                        scale_if_possible=True, verbose=verbose, **cfg)
                 except:
                     print('An error occured while retrieving Spectrum from database: \n{0}'.format(
-                            sys.exc_info()))
+                        sys.exc_info()))
                     si = None
 
             elif source == 'calculate':
@@ -261,28 +265,28 @@ class SlabsConfigSolver():
                 cfg['save_rescaled_bands'] = self.save_rescaled_bands
                 si = sfi.non_eq_spectrum(**cfg)
                 del cfg['save_rescaled_bands']
-                
+
             elif source == 'constants':
-                # used for global variables. 
-                # Just update the config file 
-#                slabs[slabname] = None
+                # used for global variables.
+                # Just update the config file
+                #                slabs[slabname] = None
                 fconds[slabname] = cfg
                 continue
 
             else:
-                raise ValueError('Unknown source mode: {0}'.format(self.source)+\
-                                 ' Use calculate, calculate_non_eq, database or '+\
+                raise ValueError('Unknown source mode: {0}'.format(self.source) +
+                                 ' Use calculate, calculate_non_eq, database or ' +
                                  'from_bands')
-            
-            # Get spectrum calculation output 
+
+            # Get spectrum calculation output
             if si is None:  # ex: user asked for negative path length
                 warn('Spectrum couldnt be calculated')
                 return (None, None, None)
-                
+
             else:
                 # Overwrite name
                 si.name = slabname
-    
+
                 fcondsi = {}
                 for k in cfg:
                     fcondsi[k] = si.conditions[k]
@@ -293,15 +297,14 @@ class SlabsConfigSolver():
                         fcondsi['Tvib1'] = Tvib[0]
                         fcondsi['Tvib2'] = Tvib[1]
                         fcondsi['Tvib3'] = Tvib[2]
-                
+
                 slabs[slabname] = si.copy()
                 fconds[slabname] = fcondsi
 
         s = config(**slabs)
-        assert isinstance(s, Spectrum)     # (for developers: helps IDE find autocompletion)
-        
+        # (for developers: helps IDE find autocompletion)
+        assert isinstance(s, Spectrum)
+
         s.apply_slit(slit, **self.slit_options)
 
         return s, slabs, fconds
-
-

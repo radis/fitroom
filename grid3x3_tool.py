@@ -19,18 +19,19 @@ import warnings
 from numpy import nan
 from publib import set_style, fix_style
 
+
 class Grid3x3():
 
     def __init__(self, slbInteractx=None, slbInteracty=None,
                  xparam='', yparam='',
-                 plotquantity='radiance', unit= 'mW/cm2/sr/nm',
+                 plotquantity='radiance', unit='mW/cm2/sr/nm',
                  normalizer=None,
                  s_exp=None
                  ):
 
         plt.figure(2, figsize=(16, 12)).clear()
         fig2, ax2 = plt.subplots(3, 3, sharex=True, sharey=True,
-                               num=2)
+                                 num=2)
 
         self.fig = fig2
         self.ax = ax2
@@ -49,7 +50,7 @@ class Grid3x3():
         self.slbInteracty = slbInteracty
         self.xparam = xparam
         self.yparam = yparam
-        
+
         self.xspace = None
         self.yspace = None
 
@@ -65,15 +66,15 @@ class Grid3x3():
         self.Iexpcalib = Iexpcalib
 
 #        self.fitroom = None          # type: FitRoom
-        
-        self.spectra = {}    # hold the calculated spectra 
+
+        self.spectra = {}    # hold the calculated spectra
         self.slabsl = {}    # hold the calculated slabs lists
         self.fconfigs = {}    # hold the calculated slab configs
-        
+
     def connect(self, fitroom):
         ''' Triggered on connection to FitRoom '''
         self.fitroom = fitroom         # type: FitRoom
-    
+
     def update_markers(self, fconfig, i, j):
 
         if not hasattr(self, 'fitroom'):
@@ -85,7 +86,7 @@ class Grid3x3():
         return
 
     def plot_all_slabs(self, s, slabs):
-        
+
         if not hasattr(self, 'fitroom'):
             raise AttributeError('Tool not connected to Fitroom')
         if self.fitroom.slabsTool is not None:
@@ -100,50 +101,52 @@ class Grid3x3():
         return 'x = {0:.2f} nm, y = {1:.4f} {2}  '.format(x, y, self.unit)
 
     def update_slit(self):
-        
+
         slit_function = self.fitroom.solver.slit
         slit_options = self.fitroom.solver.slit_options
         spectra = self.spectra
         fconfigs = self.fconfigs
-        
+
         with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', "interpolating slit function over spectrum grid")
-            for (i,j) in spectra.keys():
-                spectra[(i,j)].apply_slit(slit_function, **slit_options)
+            warnings.filterwarnings(
+                'ignore', "interpolating slit function over spectrum grid")
+            for (i, j) in spectra.keys():
+                spectra[(i, j)].apply_slit(slit_function, **slit_options)
                 #print('debug... apply slit for {0} {1}'.format(i,j))
-                self.plot_case(i, j, **fconfigs[(i,j)])  # (j,i) not (i,j)
-        self.fig.canvas.draw()  
-            
+                self.plot_case(i, j, **fconfigs[(i, j)])  # (j,i) not (i,j)
+        self.fig.canvas.draw()
+
     def calc_case(self, i, j, **slabsconfig):
         ''' notice j, i and not i, j 
         i is y, j is x? or the other way round. It's always complicated
         with indexes anyway... (y goes up but j goes down) you see what i mean
         it works, anyway '''
-        
+
         spectra = self.spectra
         slabsl = self.slabsl
         fconfigs = self.fconfigs
-        
+
         if not hasattr(self, 'fitroom'):
             raise AttributeError('Tool not connected to Fitroom')
         if self.fitroom.solver is None:
             raise ValueError('No SlabsConfigSolver defined')
-        
+
         calc_slabs = self.fitroom.solver.calc_slabs
         with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', "interpolating slit function over spectrum grid")
+            warnings.filterwarnings(
+                'ignore', "interpolating slit function over spectrum grid")
             s, slabs, fconfig = calc_slabs(**slabsconfig)
-        spectra[(i,j)] = s  # save
-        slabsl[(i,j)] = slabs  # save
-        fconfigs[(i,j)] = fconfig  # save
-    
+        spectra[(i, j)] = s  # save
+        slabsl[(i, j)] = slabs  # save
+        fconfigs[(i, j)] = fconfig  # save
+
     def _plot_failed(self, i, j, error_msg):
         linesim = self.linesim
         legends2 = self.legends2
         try:
-            w, ydata = linesim[(i,j)].get_data()
-            linesim[(i,j)].set_data(w*nan, ydata*nan)
-            legends2[(i,j)].texts[0].set_text(error_msg)
+            w, ydata = linesim[(i, j)].get_data()
+            linesim[(i, j)].set_data(w*nan, ydata*nan)
+            legends2[(i, j)].texts[0].set_text(error_msg)
             print(error_msg)
         except KeyError:
             pass   # spectrum not plotted yet. Do nothing
@@ -151,9 +154,9 @@ class Grid3x3():
         # If centered, also update the multislab tool
         if i == 1 and j == 1:
             self.plot_all_slabs(None, None)
-            
+
         return
-    
+
     def plot_case(self, i, j, **slabsconfig):
         ''' notice j, i and not i, j 
         i is y, j is x? or the other way round. It's always complicated
@@ -185,52 +188,61 @@ class Grid3x3():
 
         ydata = norm_on(wexp, Iexpcalib) if normalize else Iexpcalib
         try:
-            lineexp[(i,j)]  # does not change anyway .set_data(wexp, ydata)
+            lineexp[(i, j)]  # does not change anyway .set_data(wexp, ydata)
         except KeyError:
-            lines, = plot_stack(wexp, ydata,'-k',lw=2, ax=axij)
-            lineexp[(i,j)] = lines
+            lines, = plot_stack(wexp, ydata, '-k', lw=2, ax=axij)
+            lineexp[(i, j)] = lines
 
-        # Get calculated spectra 
-        s = self.spectra[(i,j)]          # type: Spectrum # saved by calc_case. None if failed
-        slabs = self.slabsl[(i,j)]       # type: list     # saved by calc_case. None if failed
-        fconfig = self.fconfigs[(i,j)]   # type: dict     # saved by calc_case. None if failed
-        
+        # Get calculated spectra
+        # type: Spectrum # saved by calc_case. None if failed
+        s = self.spectra[(i, j)]
+        # type: list     # saved by calc_case. None if failed
+        slabs = self.slabsl[(i, j)]
+        # type: dict     # saved by calc_case. None if failed
+        fconfig = self.fconfigs[(i, j)]
+
         if s is None:
             # TODO : could use 'slabs' as a custom error message
-            self._plot_failed(i, j, error_msg='Spectrum could not be calculated')
+            self._plot_failed(
+                i, j, error_msg='Spectrum could not be calculated')
             return
-                
+
         # calculate residuals
         res = get_residual(s)
         w, I = s.get(plotquantity, wunit='nm', Iunit=unit)
-        
+
         ydata = norm_on(w, I) if normalize else I
-        
+
         try:
-            linesim[(i,j)].set_data(w, ydata)
-            legends2[(i,j)].texts[0].set_text('res: {0:.3g}'.format(res))
+            linesim[(i, j)].set_data(w, ydata)
+            legends2[(i, j)].texts[0].set_text('res: {0:.3g}'.format(res))
         except KeyError:
             line, = axij.plot(w, ydata, 'r')
-            linesim[(i,j)] = line
-            legends2[(i,j)] = axij.legend((line,), ('res: {0:.3g}'.format(res), ),
-                    loc='upper left', prop={'size':10})
-        
+            linesim[(i, j)] = line
+            legends2[(i, j)] = axij.legend((line,), ('res: {0:.3g}'.format(res), ),
+                                           loc='upper left', prop={'size': 10})
+
         self.update_markers(fconfig, i, j)
-        
+
         # Remember than case (i,j) corresponds to ax2[j,i] which means: j = rows,
         # i = columns
-        if j == 2: axij.set_xlabel('Wavelength')
+        if j == 2:
+            axij.set_xlabel('Wavelength')
         if i == 0:
-            if yparam in  ['mole_fraction', 'path_length']: # special format
-                axij.set_ylabel('{0} {1:.2g}'.format(yparam, fconfig[slbInteracty][yparam]))
+            if yparam in ['mole_fraction', 'path_length']:  # special format
+                axij.set_ylabel('{0} {1:.2g}'.format(
+                    yparam, fconfig[slbInteracty][yparam]))
             else:
-                axij.set_ylabel('{0} {1:.1f}'.format(yparam, fconfig[slbInteracty][yparam]))
+                axij.set_ylabel('{0} {1:.1f}'.format(
+                    yparam, fconfig[slbInteracty][yparam]))
         if j == 0:
-            if xparam in  ['mole_fraction', 'path_length']: # special format
-                axij.set_title('{0} {1:.2g}'.format(xparam, fconfig[slbInteractx][xparam]), size=20)
+            if xparam in ['mole_fraction', 'path_length']:  # special format
+                axij.set_title('{0} {1:.2g}'.format(
+                    xparam, fconfig[slbInteractx][xparam]), size=20)
             else:
-                axij.set_title('{0} {1:.1f}'.format(xparam, fconfig[slbInteractx][xparam]), size=20)
-        #TODO: add a set of all labels on line, instead (deals with different values per line)
+                axij.set_title('{0} {1:.1f}'.format(
+                    xparam, fconfig[slbInteractx][xparam]), size=20)
+        # TODO: add a set of all labels on line, instead (deals with different values per line)
 
         # If centered, also update the multislab tool
         if i == 1 and j == 1:
@@ -238,12 +250,12 @@ class Grid3x3():
 
     def plot_for_export(self, style=['origin']):
         ''' Sum all center column in one case '''
-        
+
         xlim = (4167, 4188)
         ylim = (-0.097304148992770623, 1.46)
-        
+
         set_style(style)
-        
+
         fig2, ax2 = plt.subplots()
 #        ax2 = self.ax
 
@@ -259,40 +271,43 @@ class Grid3x3():
 
         wexp = self.wexp
         Iexpcalib = self.Iexpcalib
-        
+
         axij = ax2
         axij.format_coord = self.format_coord
 
         ydata = norm_on(wexp, Iexpcalib) if normalize else Iexpcalib
-        plot_stack(wexp, ydata,'-k',lw=2, ax=axij)
+        plot_stack(wexp, ydata, '-k', lw=2, ax=axij)
 
         i = 1
         for j in [0, 1, 2]:
-            
+
             color = ['b', 'r', 'g'][j]
-            
-            # Get calculated spectra 
-            s = self.spectra[(i,j)]          # type: Spectrum # saved by calc_case. None if failed
-            fconfig = self.fconfigs[(i,j)]   # type: dict     # saved by calc_case. None if failed
-            
+
+            # Get calculated spectra
+            # type: Spectrum # saved by calc_case. None if failed
+            s = self.spectra[(i, j)]
+            # type: dict     # saved by calc_case. None if failed
+            fconfig = self.fconfigs[(i, j)]
+
             if s is None:
                 # TODO : could use 'slabs' as a custom error message
-                self._plot_failed(i, j, error_msg='Spectrum could not be calculated')
+                self._plot_failed(
+                    i, j, error_msg='Spectrum could not be calculated')
                 return
-                    
+
             # calculate residuals
             w, I = s.get(plotquantity, wunit='nm', Iunit=unit)
-            
+
             ydata = norm_on(w, I) if normalize else I
-            
+
             label = 'Trot {0:.0f} K'.format(fconfig[slbInteracty][yparam])
             axij.plot(w, ydata, color, label=label)
-            
+
             self.update_markers(fconfig, i, j)
-            
+
             # Remember than case (i,j) corresponds to ax2[j,i] which means: j = rows,
             # i = columns
-#            if j == 2: 
+#            if j == 2:
 #            if i == 0:
 #                if yparam in  ['mole_fraction', 'path_length']: # special format
 #                    axij.set_ylabel('{0} {1:.2g}'.format(yparam, fconfig[slbInteracty][yparam]))
@@ -303,19 +318,18 @@ class Grid3x3():
 #                    axij.set_title('{0} {1:.2g}'.format(xparam, fconfig[slbInteractx][xparam]), size=20)
 #                else:
 #                    axij.set_title('{0} {1:.1f}'.format(xparam, fconfig[slbInteractx][xparam]), size=20)
-            #TODO: add a set of all labels on line, instead (deals with different values per line)
-    
+            # TODO: add a set of all labels on line, instead (deals with different values per line)
+
         axij.set_xlabel('Wavelength (nm)')
         axij.set_ylabel('I (norm)')
-    
+
         fix_style(style, ax=axij)
-        
+
         plt.xlim(xlim)
         plt.ylim(ylim)
-    
-        plt.legend(loc='best')    
-        
-        
+
+        plt.legend(loc='best')
+
     def _add_multicursor(self):
         ''' Add vertical bar (if not there already)'''
 
@@ -329,19 +343,18 @@ class Grid3x3():
                                                    ax[1][0], ax[1][1], ax[1][2],
                                                    ax[2][0], ax[2][1], ax[2][2]),
                                  color='r', lw=1,
-                                alpha=0.2, horizOn=False, vertOn=True)
+                                 alpha=0.2, horizOn=False, vertOn=True)
             self.multi2 = multi2
         else:
             pass
 
-
     def plot_3times3(self, xspace=None, yspace=None):
-        
+
         if xspace is None:
-            xspace = self.xspace # use last ones
+            xspace = self.xspace  # use last ones
         if yspace is None:
-            yspace = self.yspace # use last ones
-        
+            yspace = self.yspace  # use last ones
+
         slbInteractx = self.slbInteractx
         slbInteracty = self.slbInteracty
         xparam = self.xparam
@@ -350,11 +363,11 @@ class Grid3x3():
         # update defaults
         self.xspace = xspace
         self.yspace = yspace
-        
+
         # update center
         self.fitroom.Slablist[slbInteractx][xparam] = xspace[1]
         self.fitroom.Slablist[slbInteracty][yparam] = yspace[1]
-        
+
         fig2 = self.fig
 
         # dont calculate these when the figure is not shown (for performance)
@@ -366,29 +379,32 @@ class Grid3x3():
         else:
             updateSideAxes = True
 
-        # Do the calculations 
+        # Do the calculations
         for i, xvari in enumerate(xspace):
             for j, yvarj in enumerate(yspace[::-1]):
-                if not (i==1 and j==1) and not updateSideAxes: continue
-                config0 = self.fitroom.get_config()   # create a copy 
+                if not (i == 1 and j == 1) and not updateSideAxes:
+                    continue
+                config0 = self.fitroom.get_config()   # create a copy
                 config0[slbInteractx][xparam] = xvari
                 config0[slbInteracty][yparam] = yvarj
-                self.fitroom.eval_dynvar(config0) # update dynamic parameters
-                self.calc_case(i, j, **config0)   # here we calculate 
+                self.fitroom.eval_dynvar(config0)  # update dynamic parameters
+                self.calc_case(i, j, **config0)   # here we calculate
                 self.plot_case(i, j, **config0)   # here we plot
 
         # Plot title with all slabs conditions
-        del config0[slbInteractx][xparam]      # use last one, dont print variable parameter
-        del config0[slbInteracty][yparam]      # note that DynPara are the last one only!
-                                               # TODO: use intersect dict function
+        # use last one, dont print variable parameter
+        del config0[slbInteractx][xparam]
+        # note that DynPara are the last one only!
+        del config0[slbInteracty][yparam]
+        # TODO: use intersect dict function
         msg = ''
         for k, cfgi in config0.items():
             msg += k+' - '
             msg += ' '.join(
-                ['{0}:{1:.3g}'.format(k,float(v)) for (k,v) in cfgi.items() 
-                if not k in ['db','factory', 'bandlist','source',
-                             'overpopulation',  # readable but too many lines
-                             ]])
+                ['{0}:{1:.3g}'.format(k, float(v)) for (k, v) in cfgi.items()
+                 if not k in ['db', 'factory', 'bandlist', 'source',
+                              'overpopulation',  # readable but too many lines
+                              ]])
             msg += ' || '
         msg = msg[:-4]
         msg = textwrap.wrap(msg, width=200)
