@@ -4,16 +4,16 @@ Created on Fri Apr 14 22:41:43 2017
 
 @author: erwan
 
-Description
------
+Summary
+-------
 
 A window to select conditions along two axis (to calculate, or retrieve
 from a database)
 
-Todo
+Notes
 -----
 
-interface
+# TODO: interface
  - used keyboards keys to move rectangle selector
 
 """
@@ -232,8 +232,8 @@ class CaseSelector():
 
     def update_markers(self, fconfig, i=1, j=1):
         ''' 
-        Input
-        ------
+        Parameters
+        ----------
 
         i,j : int
             marker position  (different from 1,1 in 3x3 grid )

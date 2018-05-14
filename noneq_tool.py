@@ -20,8 +20,8 @@ class Overpopulator():
 
     def __init__(self, slab, levels='all', nfig=None):
         ''' 
-        Input
-        ------
+        Parameters
+        ----------
 
         slab:
             slab to connect to. Must be a slab calculated with from_band source 

@@ -31,8 +31,8 @@ class SlitTool():
 
     def __init__(self, plot_unit='nm', overlay=None, overlay_options=None):
         ''' 
-        Input
-        --------
+        Parameters
+        ----------
 
         plot_unit: 'nm', 'cm-1'
 
@@ -197,8 +197,8 @@ class SlitTool():
         FWHM is calculated from the limits of the range above the half width,
         while FWHM is the equivalent width of a triangular slit with the same area
 
-        Input
-        --------
+        Parameters
+        ----------
 
         w, I: arrays    or   (str, None)
             if str, open file directly

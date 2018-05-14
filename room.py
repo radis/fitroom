@@ -30,8 +30,8 @@ class FitRoom():
 
     def __init__(self, Slablist, perfmode=False):
         ''' 
-        Input
-        -------
+        Parameters
+        ----------
 
         perfmode: boolean
             if ``True`` we try to optimize calculation times (ex: minimized windows
@@ -179,8 +179,8 @@ class DynVar():
 
     def __init__(self, slab, param, func=lambda x: x):
         ''' 
-        Input 
-        ------
+        Parameters
+        ----------
 
         slab: str
             slab config name in Slablist. Note that 'self' in DynVar can be used 

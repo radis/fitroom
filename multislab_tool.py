@@ -4,8 +4,8 @@ Created on Fri Apr 14 22:41:43 2017
 
 @author: erwan
 
-Description
------
+Summary
+-------
 
 a window to decompose the center slab along the different slabs
 
@@ -37,8 +37,8 @@ class MultiSlabPlot():
                  show_slabs_with_slit=True,
                  ):
         ''' 
-        Input
-        -----
+        Parameters
+        ----------
 
         ...
 

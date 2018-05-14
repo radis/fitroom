@@ -4,8 +4,8 @@ Created on Fri Apr 14 22:41:43 2017
 
 @author: erwan
 
-Description
------
+Summary
+-------
 
 Functions to build a 2D, multislabs fitting room with a pure Python (Matplotlib)
 interface that displays:
