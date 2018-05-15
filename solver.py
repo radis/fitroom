@@ -7,6 +7,8 @@ Created on Thu Aug  3 19:32:23 2017
 Machinery related to solving a specific Slabs configuration: parse the database,
 get the correct slab input, then calls the appropriate functions in neq.spec engine
 
+-------------------------------------------------------------------------------
+
 """
 
 from __future__ import absolute_import
@@ -63,6 +65,12 @@ class SlabsConfigSolver():
             and adapt ``'shape'`` to ``'trapezoidal'`` if a tuple was given for slit
 
 
+        Examples
+        --------
+        
+        See the working case in :mod:`~neq.test.math.test_fitroom`. In particular, run
+        :func:`~neq.test.math.test_fitroom.test_start_fitroom`
+            
         '''
 
 #        self.dbInteractx = dbInteractx

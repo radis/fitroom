@@ -9,6 +9,9 @@ Summary
 
 a window to decompose the center slab along the different slabs
 
+-------------------------------------------------------------------------------
+
+
 """
 
 from __future__ import absolute_import
@@ -36,7 +39,9 @@ class MultiSlabPlot():
                  show_noslit_slabs=True,
                  show_slabs_with_slit=True,
                  ):
-        ''' 
+        ''' Plot the center case in :class:`~neq.math.fitroom.selection_tool.CaseSelector` 
+        by also showing emission and absorption separately, and all slabs 
+        
         Parameters
         ----------
 
@@ -57,6 +62,23 @@ class MultiSlabPlot():
             if ``True``, slit is applied to all slabs before display (this does not 
             change the way the radiative transfer equation is solved)
 
+
+        Examples
+        --------
+        
+        See the working case in :mod:`~neq.test.math.test_fitroom`. In particular, run
+        :func:`~neq.test.math.test_fitroom.test_start_fitroom`
+            
+        See Also
+        --------
+        
+        :class:`~neq.math.fitroom.selection_tool.CaseSelector`,
+        :class:`~neq.math.fitroom.grid3x3_tool.Grid3x3`,
+        :class:`~neq.math.fitroom.solver.SlabsConfigSolver`,
+        :class:`~neq.math.fitroom.noneq_tool.Overpopulator`,
+        :class:`~neq.math.fitroom.room.FitRoom`,
+        :class:`~neq.math.fitroom.slit_tool.SlitTool` 
+        
         '''
 
         # Init variables

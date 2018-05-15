@@ -5,6 +5,9 @@ Created on Thu Aug  3 16:22:30 2017
 @author: erwan
 
 Tool to plot on 9 graphes along 2 axes (2 conditions)
+
+-------------------------------------------------------------------------------
+
 """
 
 from __future__ import absolute_import
@@ -28,6 +31,26 @@ class Grid3x3():
                  normalizer=None,
                  s_exp=None
                  ):
+        ''' Where the output of a :class:`~neq.math.fitroom.selection_tool.CaseSelector` 
+        is shown. 
+        
+        Examples
+        --------
+        
+        See the working case in :mod:`~neq.test.math.test_fitroom`. In particular, run
+        :func:`~neq.test.math.test_fitroom.test_start_fitroom`
+            
+        See Also
+        --------
+        
+        :class:`~neq.math.fitroom.selection_tool.CaseSelector`,
+        :class:`~neq.math.fitroom.multislab_tool.MultiSlabPlot`,
+        :class:`~neq.math.fitroom.solver.SlabsConfigSolver`,
+        :class:`~neq.math.fitroom.noneq_tool.Overpopulator`,
+        :class:`~neq.math.fitroom.room.FitRoom`,
+        :class:`~neq.math.fitroom.slit_tool.SlitTool` 
+           
+        '''
 
         plt.figure(2, figsize=(16, 12)).clear()
         fig2, ax2 = plt.subplots(3, 3, sharex=True, sharey=True,
