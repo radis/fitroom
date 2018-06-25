@@ -309,7 +309,16 @@ class SlabsConfigSolver():
 
                 slabs[slabname] = si.copy()
                 fconds[slabname] = fcondsi
-
+                
+        # Add the value we want, recalculate if needed
+        required_quantities = set(['transmittance_noslit', 'radiance_noslit']) 
+        # TODO: deal with case where self.plotquantity is not any of the above, 
+        # or a convoluted value of them
+        for required_quantity in required_quantities:
+            for _, si in slabs.items():
+                si.update(required_quantity)
+            
+        # Calculate the Line of Sight model
         s = config(**slabs)
         # (for developers: helps IDE find autocompletion)
         assert isinstance(s, Spectrum)
