@@ -316,7 +316,7 @@ class SlabsConfigSolver():
         # or a convoluted value of them
         for required_quantity in required_quantities:
             for _, si in slabs.items():
-                si.update(required_quantity)
+                si.update(required_quantity, verbose=False)
             
         # Calculate the Line of Sight model
         s = config(**slabs)
