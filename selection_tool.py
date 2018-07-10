@@ -352,7 +352,8 @@ class CaseSelector():
                 s, slabs, fconfig = calc_slabs(**config0)
 
                 if s is None:   # spectrum not calculated
-                    print('Spectrum not calculated. Couldnt calculate residuals')
+                    print('Spectrum not calculated. Couldnt calculate residuals: {0}'.format(
+                            fconfig))
                     return
 
                 resij = resij = get_residual(s)
@@ -383,6 +384,11 @@ class CaseSelector():
                 #        fexp = r"12_StepAndGlue_30us_Cathode_0us_stacked.txt"
 
                     s, slabs, fconfig = calc_slabs(**config0)
+    
+                    if s is None:   # spectrum not calculated
+                        print('Spectrum not calculated. Couldnt calculate residuals'.format(
+                            fconfig))
+                        return
 
                     resij = get_residual(s)
 
@@ -411,3 +417,9 @@ class CaseSelector():
         ax1.format_coord = fmt
 
         plt.tight_layout()
+
+
+if __name__ == '__main__':
+    
+    from neq.test.math.test_fitroom import test_start_fitroom
+    test_start_fitroom()
