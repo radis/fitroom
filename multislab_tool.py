@@ -154,10 +154,10 @@ class MultiSlabPlot():
         s = self.spectrum
         slabs = self.slabs
 
-        s.apply_slit(slit_function, **slit_options)
+        s.apply_slit(slit_function, verbose=False, **slit_options)
         if self.show_slabs_with_slit:
             for sl in slabs.values():
-                sl.apply_slit(slit_function, **slit_options)
+                sl.apply_slit(slit_function, verbose=False, **slit_options)
 
         self.plot_all_slabs(s, slabs)
 
@@ -265,7 +265,7 @@ class MultiSlabPlot():
         # Upper axe: emission   &    lower axe: transmittance
         colors = colorserie()
         for i, (name, si) in enumerate(slabs.items()):
-            si.apply_slit(slit, **slit_options)
+            si.apply_slit(slit, verbose=False, **slit_options)
             if name in slab_colors:
                 color = slab_colors[name]
             else:
@@ -392,7 +392,7 @@ class MultiSlabPlot():
                 warnings.filterwarnings(
                     'ignore', "interpolating slit function over spectrum grid")
                 for i, (name, s) in enumerate(slabs.items()):
-                    s.apply_slit(slit, **slit_options)
+                    s.apply_slit(slit, verbose=False, **slit_options)
                     color = next(colors)
                     line3up[i].set_data(*s.get('radiance', Iunit=unit))
                     line3down[i].set_data(*s.get('transmittance'))
@@ -404,7 +404,7 @@ class MultiSlabPlot():
         except KeyError:  # first time: init lines
             colors = colorserie()
             for i, (name, si) in enumerate(slabs.items()):
-                si.apply_slit(slit, **slit_options)
+                si.apply_slit(slit, verbose=False, **slit_options)
                 color = next(colors)
                 ls = '-' if i < 6 else '--'
                 line3up[i] = ax3[0].plot(*si.get('radiance', Iunit=unit), color=color,

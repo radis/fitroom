@@ -323,6 +323,6 @@ class SlabsConfigSolver():
         # (for developers: helps IDE find autocompletion)
         assert isinstance(s, Spectrum)
 
-        s.apply_slit(slit, **self.slit_options)
+        s.apply_slit(slit, verbose=False, **self.slit_options)
 
         return s, slabs, fconds

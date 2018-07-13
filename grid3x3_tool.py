@@ -134,7 +134,7 @@ class Grid3x3():
             warnings.filterwarnings(
                 'ignore', "interpolating slit function over spectrum grid")
             for (i, j) in spectra.keys():
-                spectra[(i, j)].apply_slit(slit_function, **slit_options)
+                spectra[(i, j)].apply_slit(slit_function, verbose=False, **slit_options)
                 #print('debug... apply slit for {0} {1}'.format(i,j))
                 self.plot_case(i, j, **fconfigs[(i, j)])  # (j,i) not (i,j)
         self.fig.canvas.draw()
