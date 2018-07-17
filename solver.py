@@ -321,7 +321,7 @@ class SlabsConfigSolver():
         # Calculate the Line of Sight model
         s = config(**slabs)
         # (for developers: helps IDE find autocompletion)
-        assert isinstance(s, Spectrum)
+#        assert isinstance(s, Spectrum)
 
         s.apply_slit(slit, verbose=False, **self.slit_options)
 
