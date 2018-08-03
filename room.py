@@ -172,51 +172,54 @@ class FitRoom():
 class DynVar():
     ''' To allow dynamic (runtime) filling of conditions in SlabList
 
-    Ex:
+    Parameters
+    ----------
 
-    > slbPostCO2 = {
-    >          'db':db0,
-    >          'Tgas':500,
-    >          'db':dbp,
-    >          'Tgas':1100,
-    >          'path_length':0.7,
-    >          'mole_fraction':0.35,
-    >          }
-    > 
-    > slbPostCO = {
-    >          'db':dbco,
-    >          'Tgas':slbPostCO2['Tgas'],
-    >          'path_length':DynVar('sPostCO2', 'path_length', lambda x:x),  
-    >                        # evaluated at runtime using names in Slablist
-    >          'mole_fraction':0.01,
-    >          }
-    > 
-    > Slablist = {
-    >             'sPostCO2': slbPostCO2,
-    >             'sPostCO': slbPostCO,
-    >             }
+    slab: str
+        slab config name in Slablist. Note that ``'self'`` in DynVar can be used 
+        to refer to the DynVar's own slab. Ex::
+            
+            slabPlasma={
+                    'Trot':2000,
+                    'Tvib':DynVar('self', 'Trot'),
+                    }
+
+    param: str
+        param name in slab config dict
+
+    func: function
+        function to apply. Default identity
+
+    Examples
+    --------
+    
+    ::
+
+        slbPostCO2 = {
+                'db':db0,
+                'Tgas':500,
+                'db':dbp,
+                'Tgas':1100,
+                'path_length':0.7,
+                'mole_fraction':0.35,
+                 }
+    
+        slbPostCO = {
+              'db':dbco,
+              'Tgas':slbPostCO2['Tgas'],
+              'path_length':DynVar('sPostCO2', 'path_length', lambda x:x),  
+                            # evaluated at runtime using names in Slablist
+              'mole_fraction':0.01,
+               }
+     
+       Slablist = {
+                 'sPostCO2': slbPostCO2,
+                 'sPostCO': slbPostCO,
+                 }
 
     '''
 
     def __init__(self, slab, param, func=lambda x: x):
-        ''' 
-        Parameters
-        ----------
-
-        slab: str
-            slab config name in Slablist. Note that 'self' in DynVar can be used 
-            to refer to the DynVar's own slab. Ex:
-            > slabPlasma={
-            >     'Trot':2000,
-            >     'Tvib':DynVar('self', 'Trot'),
-            > }
-
-        param: str
-            param name in slab config dict
-
-        func: function
-            function to apply. Default identity
-        '''
 
         self.slab = slab
         self.param = param
