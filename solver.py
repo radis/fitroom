@@ -246,19 +246,25 @@ class SlabsConfigSolver():
                     warn('`calculate` source mode used but `bandlist` is given')
 
                 sfi = cfg.pop('factory')        # type: SpectrumFactory
-                si = sfi.eq_spectrum(**cfg)
+                if 'Tvib' in cfg and 'Trot' in cfg:
+                    si = sfi.non_eq_spectrum(**cfg)
+                elif 'Tgas' in cfg:
+                    si = sfi.eq_spectrum(**cfg)
+                else:
+                    raise ValueError('Please give temperatures. Got: {0}'.format(cfg))
 
             elif source == 'calculate_noneq':
-
-                if 'overpopulation' in cfg:
-                    warn('`overpopulation` not used if not in from_bands source mode')
-                if 'database' in cfg:
-                    warn('`database` key dismissed in `calculate_noneq` source mode')
-                if 'bandlist' in cfg:
-                    warn('`calculate_noneq` source mode used but `bandlist` is given')
-
-                sfi = cfg.pop('factory')        # type: SpectrumFactory
-                si = sfi.non_eq_spectrum(**cfg)
+                raise DeprecationWarning("Use source='calculate' now")
+#
+#                if 'overpopulation' in cfg:
+#                    warn('`overpopulation` not used if not in from_bands source mode')
+#                if 'database' in cfg:
+#                    warn('`database` key dismissed in `calculate_noneq` source mode')
+#                if 'bandlist' in cfg:
+#                    warn('`calculate_noneq` source mode used but `bandlist` is given')
+#
+#                sfi = cfg.pop('factory')        # type: SpectrumFactory
+#                si = sfi.non_eq_spectrum(**cfg)
 
             elif source == 'from_bands':
 

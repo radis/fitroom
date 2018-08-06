@@ -346,6 +346,7 @@ class CaseSelector():
                 config0 = {k: c.copy() for k, c in Slablist.items()}
                 config0[slbInteractx][xparam] = xvari
                 config0[slbInteracty][yparam] = yvarj
+                self.fitroom.eval_dynvar(config0)  # update dynamic parameters
 
             #        fexp = r"12_StepAndGlue_30us_Cathode_0us_stacked.txt"
 
@@ -380,6 +381,7 @@ class CaseSelector():
                     config0 = {k: c.copy() for k, c in Slablist.items()}
                     config0[slbInteractx][xparam] = xvari
                     config0[slbInteracty][yparam] = yvarj
+                    self.fitroom.eval_dynvar(config0)  # update dynamic parameters
 
                 #        fexp = r"12_StepAndGlue_30us_Cathode_0us_stacked.txt"
 

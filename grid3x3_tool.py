@@ -49,6 +49,10 @@ class Grid3x3():
         :class:`~neq.math.fitroom.noneq_tool.Overpopulator`,
         :class:`~neq.math.fitroom.room.FitRoom`,
         :class:`~neq.math.fitroom.slit_tool.SlitTool` 
+        
+        When you're happy with a fit, use:
+            
+        :meth:`~neq.math.fitroom.grid3x3_tool.plot_for_export`
            
         '''
 
@@ -121,7 +125,10 @@ class Grid3x3():
         return
 
     def format_coord(self, x, y):
-        return 'x = {0:.2f} nm, y = {1:.4f} {2}  '.format(x, y, self.unit)
+        if self.normalize:
+            return 'x = {0:.2f} nm, y = {1:.4f} {2}  '.format(x, y, '(norm)')
+        else:
+            return 'x = {0:.2f} nm, y = {1:.4f} {2}  '.format(x, y, self.unit)
 
     def update_slit(self):
 
@@ -271,11 +278,19 @@ class Grid3x3():
         if i == 1 and j == 1:
             self.plot_all_slabs(s, slabs)
 
-    def plot_for_export(self, style=['origin']):
-        ''' Sum all center column in one case '''
-
-        xlim = (4167, 4188)
-        ylim = (-0.097304148992770623, 1.46)
+    def plot_for_export(self, style=['origin'], cases=[(1,1), (0,1), (2,1)],
+                        xlim=None, ylim=None):
+        ''' Sum all center column in one case 
+        
+        Parameters
+        ----------
+        
+        cases: list
+            list of [(row, column)] to plot 
+            the first one is plot in solid line, the others in alternate with
+            '-.', ':', '-.'
+            
+        '''
 
         set_style(style)
 
@@ -299,12 +314,10 @@ class Grid3x3():
         axij.format_coord = self.format_coord
 
         ydata = norm_on(wexp, Iexpcalib) if normalize else Iexpcalib
-        plot_stack(wexp, ydata, '-k', lw=2, ax=axij)
-
-        i = 1
-        for j in [0, 1, 2]:
-
-            color = ['b', 'r', 'g'][j]
+        plot_stack(wexp, ydata, '-', lw=2, ax=axij, label='Experiment')
+        
+        for index, (j, i) in enumerate(cases):   # reversed? seems more logical this way.
+#            color = ['b', 'r', 'g'][(i+j)]
 
             # Get calculated spectra
             # type: Spectrum # saved by calc_case. None if failed
@@ -322,9 +335,29 @@ class Grid3x3():
             w, I = s.get(plotquantity, wunit='nm', Iunit=unit)
 
             ydata = norm_on(w, I) if normalize else I
+            
+            xvalue = fconfig[slbInteractx][xparam]
+            yvalue = fconfig[slbInteracty][yparam]
+            
+            def make_up(s):
+                s.replace('Tvib', 'T$_{vib}$')
+                s.replace('Trot', 'T$_{rot}$')
+                return s
 
-            label = 'Trot {0:.0f} K'.format(fconfig[slbInteracty][yparam])
-            axij.plot(w, ydata, color, label=label)
+            label = make_up('{0} {1:.0f}K {2} {3:.0f}K'.format(xparam,
+                                                       xvalue,
+                                                       yparam,
+                                                       yvalue))
+            if index == 0:  # first one
+                ls = '-'
+            elif index % 3 == 0:
+                ls = '-.'
+            elif index % 3 == 1:
+                ls = ':'
+            else:
+                ls = '--'
+            
+            axij.plot(w, ydata, label=label, ls=ls)
 
             self.update_markers(fconfig, i, j)
 
@@ -343,15 +376,21 @@ class Grid3x3():
 #                    axij.set_title('{0} {1:.1f}'.format(xparam, fconfig[slbInteractx][xparam]), size=20)
             # TODO: add a set of all labels on line, instead (deals with different values per line)
 
-        axij.set_xlabel('Wavelength (nm)')
-        axij.set_ylabel('I (norm)')
+        axij.set_xlabel('Wavelength (nm)')   # hardcoded. May need to change that
+        if self.normalize:
+            axij.set_ylabel('I (norm)')
+        else:
+            axij.set_ylabel('I ({0})'.format(self.unit))
 
         fix_style(style, ax=axij)
 
-        plt.xlim(xlim)
-        plt.ylim(ylim)
+        if xlim is not None:
+            plt.xlim(xlim)
+        if ylim is not None:
+            plt.ylim(ylim)
 
-        plt.legend(loc='best')
+        plt.legend(loc='best', fontsize=18)        
+        return fig2, ax2
 
     def _add_multicursor(self):
         ''' Add vertical bar (if not there already)'''
