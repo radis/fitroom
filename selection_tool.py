@@ -137,8 +137,18 @@ class CaseSelector():
 
         return fig, ax
 
-    def _plot_db_params(self):
-        ''' Plot database '''
+    def _plot_db_params(self, **kwargs):
+        ''' Plot database 
+        
+        Parameters
+        ----------
+        
+        kwargs: dict
+            forwarded to plot
+        '''
+        
+        # default:
+        kwargs.update({'color':'white'})
 
         # Get inputs
         dbInteractx = self.dbInteractx
@@ -164,11 +174,11 @@ class CaseSelector():
         # Plot
         fig, ax = plt.subplots(num=nfig)
         if dbInteractx == dbInteracty:
-            ax.plot(x, y, 'ok')
+            ax.plot(x, y, 'o', ms=3, **kwargs)
 
         else:
             xx, yy = meshgrid(list(set(x)), list(set(y)))
-            ax.plot(xx, yy, 'ok')
+            ax.plot(xx, yy, 'o', ms=3, **kwargs)
         # TODO: add units from spectrum here. (but maybe units arent the same for all database????)
         # load it up first and check?
         ax.set_xlabel('{0} {1}'.format(slbInteractx, xparam))
@@ -284,7 +294,8 @@ class CaseSelector():
             self.linemarkers[(i, j)] = line
         return
 
-    def precompute_residual(self, Slablist, xspace='database', yspace='database'):
+    def precompute_residual(self, Slablist, xspace='database', yspace='database',
+                            contour='contourf'):
         ''' Plot residual for all points in database.
 
         Parameters
@@ -397,7 +408,17 @@ class CaseSelector():
                     res[i][j] = resij
 
         try:
-            cf = ax1.contourf(xx, yy, res, 40, cmap=plt.get_cmap('viridis_r'))
+            if contour=='contourf':
+                cf = ax1.contourf(xx, yy, res, 40, cmap=plt.get_cmap('viridis_r'))
+            elif contour=='contour':
+                cf = ax1.contour(xx, yy, res, 40, cmap=plt.get_cmap('viridis_r'))
+            elif isinstance(contour, float):
+                # Add your own label
+                cf = ax1.contourf(xx, yy, res, 40, cmap=plt.get_cmap('viridis_r'))
+                cs2 = ax1.contour(xx, yy, res, 40, levels=[contour])
+#                self.cs2 = cs2
+#                self.clabel = ax1.clabel(cs2, cs2.levels, inline=True)                
+            
         except TypeError:
             print(sys.exc_info())
             raise TypeError('An error occured (see details above). This may be due ' +
@@ -406,6 +427,8 @@ class CaseSelector():
 
         cbar = fig1.colorbar(cf)
         cbar.ax.set_ylabel('residual')
+        if isinstance(contour, float):
+            cbar.ax.plot([0, 1], [contour]*2, 'k') 
 
         # Add z value in infobar:
         Xflat, Yflat, Zflat = xx.flatten(), yy.flatten(), res.flatten()
