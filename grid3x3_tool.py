@@ -340,14 +340,14 @@ class Grid3x3():
             yvalue = fconfig[slbInteracty][yparam]
             
             def make_up(s):
-                s.replace('Tvib', 'T$_{vib}$')
-                s.replace('Trot', 'T$_{rot}$')
+                s = s.replace('Tvib', 'T$_\mathrm{vib}$')
+                s = s.replace('Trot', 'T$_\mathrm{rot}$')
                 return s
 
             label = make_up('{0} {1:.0f}K {2} {3:.0f}K'.format(xparam,
-                                                       xvalue,
-                                                       yparam,
-                                                       yvalue))
+                                                               xvalue,
+                                                               yparam,
+                                                               yvalue))
             if index == 0:  # first one
                 ls = '-'
             elif index % 3 == 0:
