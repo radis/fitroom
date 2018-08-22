@@ -101,6 +101,8 @@ class MultiSlabPlot():
         self.unit = unit
         self.normalize = normalizer is not None
         self.normalizer = normalizer
+        
+        self.plot_legend = True   # normally always true
 
         self.s_exp = s_exp
         if s_exp is not None:
@@ -253,7 +255,8 @@ class MultiSlabPlot():
 
         plot_stack(wexp, ydata, '-k',
                    lw=1, zorder=-1, label='Experiment', ax=ax3[1])[0]
-        ax3[1].legend()
+        if self.plot_legend:
+            ax3[1].legend()
 
         def colorserie():
             i = 0
@@ -309,8 +312,9 @@ class MultiSlabPlot():
             ax.set_xlim((4150, 4850))
             fix_style(style=style, ax=ax, tight_layout=False)
 
-        ax3[0].legend(loc='lower right', bbox_to_anchor=[
-                      1.0, 0.2], prop={'size': 24}, ncol=2)
+        if self.plot_legend:
+            ax3[0].legend(loc='lower right', bbox_to_anchor=[
+                          1.0, 0.2], prop={'size': 24}, ncol=2)
 
         ax3[0].xaxis.label.set_visible(False)
         ax3[2].xaxis.label.set_visible(False)
@@ -376,7 +380,8 @@ class MultiSlabPlot():
         except KeyError:
             line3cent[0] = plot_stack(wexp, ydata, '-k',
                                       lw=0.5, zorder=-1, label='Experiment', ax=ax3[1])[0]
-            ax3[1].legend()
+            if self.plot_legend:
+                ax3[1].legend()
 
         def colorserie():
             i = 0
@@ -425,8 +430,9 @@ class MultiSlabPlot():
 #            if not normalize:
 #                ax3[2].set_ylim((-0.008, 0.179)) # Todo: remove that
             ax3[2].set_ylim((0, 1))
-            ax3[0].legend()
-            ax3[2].legend()
+            if self.plot_legend:
+                ax3[0].legend()
+                ax3[2].legend()
             ax3[0].xaxis.label.set_visible(False)
             ax3[1].xaxis.label.set_visible(False)
             ax3[2].set_xlabel('Wavelength (nm)')

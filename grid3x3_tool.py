@@ -340,6 +340,9 @@ class Grid3x3():
             yvalue = fconfig[slbInteracty][yparam]
             
             def make_up(s):
+                s = s.replace('Tvib1', 'T$_\mathrm{vib_\mathrm{1}}$')
+                s = s.replace('Tvib2', 'T$_\mathrm{vib_\mathrm{2}}$')
+                s = s.replace('Tvib3', 'T$_\mathrm{vib_\mathrm{3}}$')
                 s = s.replace('Tvib', 'T$_\mathrm{vib}$')
                 s = s.replace('Trot', 'T$_\mathrm{rot}$')
                 return s

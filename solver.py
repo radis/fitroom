@@ -22,6 +22,7 @@ from neq.spec import SpectrumFactory
 from neq.misc.debug import printdbg
 from neq.misc.basics import is_float
 import sys
+import pandas as pd
 
 
 class SlabsConfigSolver():
@@ -34,7 +35,7 @@ class SlabsConfigSolver():
                  s_exp=None,
                  plotquantity='radiance', unit='mW/cm2/sr/nm',
                  slit=None, slit_options='default',
-                 verbose=True):
+                 verbose=True, retrieve_error='ignore'):
         '''
         Parameters
         ----------
@@ -65,6 +66,12 @@ class SlabsConfigSolver():
             and adapt ``'shape'`` to ``'trapezoidal'`` if a tuple was given for slit
 
 
+        retrieve_error: 'ignore', 'raise'
+            if Spectrum cannot be calculated or retrieved from Database, then
+            returns ``None`` as a Spectrum object. The rest of the code should
+            deal with it. Else, raises an error immediatly. 
+            
+
         Examples
         --------
         
@@ -85,6 +92,8 @@ class SlabsConfigSolver():
         self.Iexpcalib = Iexpcalib
         self.plotquantity = plotquantity
         self.unit = unit
+        assert retrieve_error in ['ignore', 'raise']
+        self.retrieve_error = retrieve_error
 
         # Get slit defaults
         self.slit = slit
@@ -211,11 +220,6 @@ class SlabsConfigSolver():
                 source = cfg.pop('source')       # type: str
             else:
                 source = self.source
-            if 'Tvib1' in cfg and 'Tvib2' in cfg and 'Tvib3' in cfg and 'Tvib' not in cfg:
-                Tvib1 = cfg.pop('Tvib1')
-                Tvib2 = cfg.pop('Tvib2')
-                Tvib3 = cfg.pop('Tvib3')
-                cfg['Tvib'] = (Tvib1, Tvib2, Tvib3)
 
             if source == 'database':
 
@@ -227,16 +231,34 @@ class SlabsConfigSolver():
                     warn('`database` source mode used but `bandlist` is given')
 
                 dbi = cfg.pop('db')    # type: SpecDatabase
-
+                
+#                # Split columns in database if needed
+#                split_columns_list = []
+#                for k, v in cfg.items():
+#                    if isinstance(v, tuple):
+#                        split_columns_list.append(k)
+#                if split_columns_list:
+#                    dbi.df = expand_columns(dbi.df, split_columns_list)
+                
                 try:
-                    si = dbi.get_closest(
-                        scale_if_possible=True, verbose=verbose, **cfg)
+                    si = dbi.get_closest(scale_if_possible=True, verbose=verbose, 
+                                         **cfg)
                 except:
                     print(('An error occured while retrieving Spectrum from database: \n{0}'.format(
-                        sys.exc_info())))
-                    si = None
+                            sys.exc_info())))
+                    if self.retrieve_error == 'ignore':
+                        si = None
+                    elif self.retrieve_error == 'raise':
+                        raise
 
             elif source == 'calculate':
+                
+                # hack. get it working with multi Tvib.
+                if 'Tvib1' in cfg and 'Tvib2' in cfg and 'Tvib3' in cfg and 'Tvib' not in cfg:
+                    Tvib1 = cfg.pop('Tvib1')
+                    Tvib2 = cfg.pop('Tvib2')
+                    Tvib3 = cfg.pop('Tvib3')
+                    cfg['Tvib'] = (Tvib1, Tvib2, Tvib3)
 
                 if 'overpopulation' in cfg:
                     warn('`overpopulation` not used if not in from_bands source mode')
@@ -332,3 +354,51 @@ class SlabsConfigSolver():
         s.apply_slit(slit, verbose=False, **self.slit_options)
 
         return s, slabs, fconds
+
+
+#def expand_columns(df, split_columns, verbose=True):
+#    ''' Split columns in database if needed 
+#    
+#    Parameters
+#    ----------
+#    
+#    df: pandas DataFrame
+#        conditions of spectrum database 
+#    '''
+#    
+#    assert isinstance(split_columns, list)
+#
+#    # Deal with multiple columns
+#    for splitcolumn in split_columns:
+#        if splitcolumn in df.columns:
+#            dsplit = df[splitcolumn].str.split(',', expand=True)
+#            dsplit.rename(columns={k:splitcolumn+str(k+1) for k in dsplit.columns}, 
+#                                  inplace=True)
+#            dsplit = dsplit.apply(pd.to_numeric)
+##            df = pd.concat([df, dsplit], ignore_index=True).reindex(df.index)  # hopefully keep first index?
+#            if not any([c in df.columns for c in dsplit.columns]):
+#                df = pd.concat([df, dsplit], axis=1)
+#            else:
+#                if verbose:
+#                    print('Columns already expanded: {0}'.format([c for c in dsplit.columns
+#                          if c in df.columns]))
+#            
+#        else:
+#            raise KeyError('{0} given in split_columns but not in Database: {1}'.format(
+#                    splitcolumn, df.columns))
+##                    if splitcolumn in kwconditions:
+##                        v = kwconditions.pop(splitcolumn)
+##                        try:
+##                            v = v.split(',')
+##                        except AttributeError:
+##                            raise AttributeError('Key {0} is expected to be '.format(splitcolumn)+\
+##                                                 'a comma separated string. Got {0}'.format(v))
+##                        for k, vi in enumerate(v):
+##                            kwconditions[splitcolumn+str(k+1)] = vi
+##                    else:
+##                        raise KeyError('{0} given in split_columns but not in conditions: {1}'.format(
+##                                splitcolumn, dg.columns))
+#            
+#    return df
+#
+#                

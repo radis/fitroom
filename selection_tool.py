@@ -29,6 +29,7 @@ from numpy import array, meshgrid, empty_like, linspace
 from scipy.interpolate import griddata
 from six.moves import zip
 import sys
+#from neq.math.fitroom.solver import expand_columns
 
 
 class CaseSelector():
@@ -43,10 +44,10 @@ class CaseSelector():
 
     def __init__(self, dbInteractx=None, dbInteracty=None, xparam='', yparam='',
                  slbInteractx=None, slbInteracty=None, nfig=None,
-                 xmin=0, xmax=0, ymin=0, ymax=0):
+                 xmin=0, xmax=0, ymin=0, ymax=0,
+                 plot_data_color='k'):
         ''' Main tool to choose which cases to plot 
         
-
         Examples
         --------
         
@@ -90,6 +91,8 @@ class CaseSelector():
 #            assert(factoryx is not None and factoryy is not None)
 #            assert(x0=0, y0=0, xstep=0, ystep=0)
 
+        self.plot_data_color=plot_data_color
+        
         # Init figure
         if self.mode == 'database':
             fig, ax = self._plot_db_params()
@@ -148,7 +151,7 @@ class CaseSelector():
         '''
         
         # default:
-        kwargs.update({'color':'white'})
+        kwargs.update({'color':self.plot_data_color})
 
         # Get inputs
         dbInteractx = self.dbInteractx
@@ -170,7 +173,29 @@ class CaseSelector():
 
         x = dbInteractx.df[xparam]
         y = dbInteracty.df[yparam]
-
+ 
+#        try:
+#            x = dbInteractx.df[xparam]
+#        except KeyError:
+#            # maybe key needs to be expanded. (ex: asking for Tvib1=... while Tvib=(...,...) is given)
+#            # note @dev: done as a a posteriori hack/fix for multi Tvib modes. 
+#            if xparam[:-1] in dbInteractx.df:
+#                dbInteractx.df = expand_columns(dbInteractx.df, [xparam[:-1]])
+#                x = dbInteractx.df[xparam]
+#            else:
+#                raise
+#            
+#        try:
+#            y = dbInteracty.df[yparam]
+#        except KeyError:
+#            # maybe key needs to be expanded. (ex: asking for Tvib1=... while Tvib=(...,...) is given)
+#            # note @dev: done as a a posteriori hack/fix for multi Tvib modes. 
+#            if yparam[:-1] in dbInteracty.df:
+#                dbInteracty.df = expand_columns(dbInteracty.df, [yparam[:-1]])
+#                y = dbInteracty.df[yparam]
+#            else:
+#                raise
+            
         # Plot
         fig, ax = plt.subplots(num=nfig)
         if dbInteractx == dbInteracty:
