@@ -279,7 +279,7 @@ class Grid3x3():
             self.plot_all_slabs(s, slabs)
 
     def plot_for_export(self, style=['origin'], cases=[(1,1), (0,1), (2,1)],
-                        xlim=None, ylim=None):
+                        ls='-', xlim=None, ylim=None, labelvar='xy'):
         ''' Sum all center column in one case 
         
         Parameters
@@ -287,8 +287,24 @@ class Grid3x3():
         
         cases: list
             list of [(row, column)] to plot 
-            the first one is plot in solid line, the others in alternate with
-            '-.', ':', '-.'
+            
+        ls: str ('-', '.-', etc.), list, or dict
+            if str, use the same. If list, rotate. If dict, use ``cases`` 
+            as keys.
+            
+#            the first one is plot in solid line, the others in alternate with
+#            '-.', ':', '-.'
+            
+        Other Parameters
+        ----------------
+        
+        labelvar: 'x', 'y', 'xy'
+            which variable to add. default 'xy'
+            Ex::
+                
+                Tvib=, Trot=
+                Tvib=
+                Trot=
             
         '''
 
@@ -345,22 +361,35 @@ class Grid3x3():
                 s = s.replace('Tvib3', 'T$_\mathrm{vib_\mathrm{3}}$')
                 s = s.replace('Tvib', 'T$_\mathrm{vib}$')
                 s = s.replace('Trot', 'T$_\mathrm{rot}$')
+                s = s.replace('Tgas', 'T$_\mathrm{gas}$')
                 return s
 
-            label = make_up('{0} {1:.0f}K {2} {3:.0f}K'.format(xparam,
-                                                               xvalue,
-                                                               yparam,
-                                                               yvalue))
-            if index == 0:  # first one
-                ls = '-'
-            elif index % 3 == 0:
-                ls = '-.'
-            elif index % 3 == 1:
-                ls = ':'
+            # Label of each plot
+            if labelvar == 'xy':
+                label = make_up('{0} {1:.0f}K {2} {3:.0f}K'.format(xparam,xvalue,
+                                                                   yparam,yvalue))
+            elif labelvar == 'x':
+                label = make_up('{0} {1:.0f}K'.format(xparam,xvalue))
+            elif labelvar == 'y':
+                label = make_up('{0} {1:.0f}K'.format(yparam,yvalue))
+                
+            # Style:
+            if isinstance(ls, list):
+                ls_i = ls[index%len(ls)]
+#            if index == 0:  # first one
+#                ls = '-'
+#            elif index % 3 == 0:
+#                ls = '-.'
+#            elif index % 3 == 1:
+#                ls = ':'
+#            else:
+#                ls = '--'
+            elif isinstance(ls, dict):
+                ls_i = ls[(j, i)]
             else:
-                ls = '--'
+                ls_i = ls
             
-            axij.plot(w, ydata, label=label, ls=ls)
+            axij.plot(w, ydata, label=label, ls=ls_i)
 
             self.update_markers(fconfig, i, j)
 

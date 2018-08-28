@@ -182,8 +182,18 @@ class MultiSlabPlot():
 
         return label
 
-    def plot_for_export(self, style=['origin']):
+    def plot_for_export(self, style=['origin'],
+                        lw_multiplier=1):
         ''' Not used in Fitroom, but can be used by user to export / save figures
+        
+        Examples
+        --------
+        
+        ::
+            
+            fig0, fig1 = slabsTool.plot_for_export()
+            fig0.savefig('...')
+            
         '''
 
         ylabelsize = 24
@@ -200,20 +210,20 @@ class MultiSlabPlot():
         s = self.spectrum
         slabs = self.slabs.copy()
 
-        # Merge some.. TEMP
-        from neq.spec import SerialSlabs
-        if 'sPlasmaCO2b' in slabs:
-            sPlasmaCO2 = slabs.pop('sPlasmaCO2')
-            sPlasmaCO2b = slabs.pop('sPlasmaCO2b')
-            slabs['sPlasmaCO2'] = SerialSlabs(sPlasmaCO2, sPlasmaCO2b)
-        if 'sPlasmaCOb' in slabs:
-            sPlasmaCO = slabs.pop('sPlasmaCO')
-            sPlasmaCOb = slabs.pop('sPlasmaCOb')
-            slabs['sPlasmaCO'] = SerialSlabs(sPlasmaCO, sPlasmaCOb)
+#        # Merge some.. TEMP
+#        from neq.spec import SerialSlabs
+#        if 'sPlasmaCO2b' in slabs:
+#            sPlasmaCO2 = slabs.pop('sPlasmaCO2')
+#            sPlasmaCO2b = slabs.pop('sPlasmaCO2b')
+#            slabs['sPlasmaCO2'] = SerialSlabs(sPlasmaCO2, sPlasmaCO2b)
+#        if 'sPlasmaCOb' in slabs:
+#            sPlasmaCO = slabs.pop('sPlasmaCO')
+#            sPlasmaCOb = slabs.pop('sPlasmaCOb')
+#            slabs['sPlasmaCO'] = SerialSlabs(sPlasmaCO, sPlasmaCOb)
 
 #        plt.figure(figsize=(15,10))
         fig30, ax30 = plt.subplots(figsize=(20, 4))
-        fig31, [ax31, ax32] = plt.subplots(2, 1, figsize=(20, 5))
+        fig31, [ax31, ax32] = plt.subplots(2, 1, figsize=(20, 6.5))
 #        fig3, ax32 = plt.subplots(figsize=(15,10))
         ax3 = ax31, ax30, ax32
 
@@ -242,19 +252,19 @@ class MultiSlabPlot():
         w, I = s.get(plotquantity, Iunit=unit)
         ydata = norm_on(w, I) if normalize else I
 
-        ax3[1].plot(w, ydata, color='r', lw=1,
+        ax3[1].plot(w, ydata, color='r', lw=1*lw_multiplier,
                     label='Model')[0]
 #        if self.show_noslit_slabs and not normalize:
 #            ymax = ax3[1].get_ylim()[1]
 #            ax3[1].plot(*s.get(plotquantity+'_noslit', Iunit=unit),
-#                            color='r', lw=0.5, alpha=0.15, zorder=-1)[0]
+#                            color='r', lw=0.5*lw_multiplier, alpha=0.15, zorder=-1)[0]
 #            ax3[1].set_ylim(ymax=ymax)  # keep no slit yscale
         ax3[1].set_ylabel(self._format_label(unit), size=ylabelsize)
 
         ydata = norm_on(wexp, Iexpcalib) if normalize else Iexpcalib
 
         plot_stack(wexp, ydata, '-k',
-                   lw=1, zorder=-1, label='Experiment', ax=ax3[1])[0]
+                   lw=1*lw_multiplier, zorder=-1, label='Experiment', ax=ax3[1])[0]
         if self.plot_legend:
             ax3[1].legend()
 
@@ -276,9 +286,9 @@ class MultiSlabPlot():
 
             ls = '-' if i < 6 else '--'
             ax3[0].plot(*si.get('radiance', Iunit=unit), color=color,
-                        lw=1, ls=ls, label=name.replace('sP', 'P').replace('sR', 'R'))[0]
+                        lw=1*lw_multiplier, ls=ls, label=name.replace('sP', 'P').replace('sR', 'R'))[0]
             ax3[2].plot(*si.get('transmittance'), color=color,
-                        lw=1, ls=ls, label=name.replace('sP', 'P').replace('sR', 'R'))[0]
+                        lw=1*lw_multiplier, ls=ls, label=name.replace('sP', 'P').replace('sR', 'R'))[0]
         if self.show_noslit_slabs:
             colors = colorserie()
             ymax = ax3[0].get_ylim()[1]
@@ -288,15 +298,16 @@ class MultiSlabPlot():
                 else:
                     color = next(colors)
                 ax3[0].plot(*si.get('radiance_noslit', Iunit=unit), color=color,
-                            lw=0.5, ls=ls, alpha=0.15, zorder=-1)[0]
+                            lw=0.5*lw_multiplier, ls=ls, alpha=0.15, zorder=-1)[0]
 #                    ax3[0].set_ylim(ymax=ymax)  # keep no slit yscale
                 ax3[2].plot(*si.get('transmittance_noslit'), color=color,
-                            lw=0.5, ls=ls, alpha=0.15, zorder=-1)[0]
+                            lw=0.5*lw_multiplier, ls=ls, alpha=0.15, zorder=-1)[0]
             ax3[0].set_ylim(ymax=ymax)  # keep no slit yscale
 #            if not normalize:
 #                ax3[2].set_ylim((-0.008, 0.179)) # Todo: remove that
         ax3[2].set_ylim((0, 1))
 #            ax3[2].legend()
+        ax3[2].set_xlabel('Wavelength (nm)')
         ax3[1].set_xlabel('Wavelength (nm)')
         ax3[0].set_ylabel(self._format_label(unit), size=ylabelsize)
         ax3[2].set_ylabel(self._format_label(
@@ -309,7 +320,7 @@ class MultiSlabPlot():
 #        self._add_multicursor()
 
         for ax in ax3:
-            ax.set_xlim((4150, 4850))
+#            ax.set_xlim((4150, 4850))
             fix_style(style=style, ax=ax, tight_layout=False)
 
         if self.plot_legend:
@@ -317,8 +328,9 @@ class MultiSlabPlot():
                           1.0, 0.2], prop={'size': 24}, ncol=2)
 
         ax3[0].xaxis.label.set_visible(False)
-        ax3[2].xaxis.label.set_visible(False)
-        ax3[2].tick_params(labelbottom='off')
+#        ax3[1].xaxis.label.set_visible(True)
+        ax3[2].xaxis.label.set_visible(True)
+#        ax3[2].tick_params(labelbottom='off')
         ax3[0].tick_params(labelbottom='off')
 
         fig30.tight_layout()
