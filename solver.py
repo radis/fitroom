@@ -35,6 +35,7 @@ class SlabsConfigSolver():
                  s_exp=None,
                  plotquantity='radiance', unit='mW/cm2/sr/nm',
                  slit=None, slit_options='default',
+                 crop=None,
                  verbose=True, retrieve_error='ignore'):
         '''
         Parameters
@@ -65,6 +66,8 @@ class SlabsConfigSolver():
 
             and adapt ``'shape'`` to ``'trapezoidal'`` if a tuple was given for slit
 
+        crop: tuple, or None
+            if not ``None``, restrain to the given fitted interval.
 
         retrieve_error: 'ignore', 'raise'
             if Spectrum cannot be calculated or retrieved from Database, then
@@ -88,8 +91,8 @@ class SlabsConfigSolver():
         self.s_exp = s_exp
         if s_exp is not None:
             wexp, Iexpcalib = s_exp.get(plotquantity, Iunit=unit)
-        self.wexp = wexp
-        self.Iexpcalib = Iexpcalib
+            self.wexp = wexp
+            self.Iexpcalib = Iexpcalib
         self.plotquantity = plotquantity
         self.unit = unit
         assert retrieve_error in ['ignore', 'raise']
@@ -106,6 +109,10 @@ class SlabsConfigSolver():
                                 'shape': 'triangular', 'unit': 'nm'}
         self.slit_options = slit_options
 
+        self.crop = crop
+        if crop is not None:
+            raise NotImplementedError('crop not defined yet. Better crop the experimental spectrum directly')
+        
         self.verbose = verbose
 
         # not a public option, but can be changed manually
@@ -119,7 +126,7 @@ class SlabsConfigSolver():
         ''' Triggered on connection to FitRoom '''
         self.fitroom = fitroom         # type: FitRoom
 
-    def get_residual(self, s, norm='not_implemented'):
+    def get_residual(self, s, normalize=False):
         ''' Returns difference between experimental and simulated spectra
         By default, uses :func:`~radis.spectrum.compare.get_residual` function
         You can change the residual by overriding this function. 
@@ -141,14 +148,11 @@ class SlabsConfigSolver():
         Parameters
         ----------
 
-        Parameters
-        ----------
-
         s: Spectrum object
             simulated spectrum to compare with (stored) experimental spectrum
 
-        norm not implemented yet
-        # TODO
+        normalize: bool
+            not implemented yet   # TODO
 
         Notes
         -----
@@ -161,7 +165,9 @@ class SlabsConfigSolver():
         '''
 
         plotquantity = self.plotquantity
-        return get_residual(self.s_exp, s, plotquantity, ignore_nan=True)
+        
+        return get_residual(self.s_exp, s, plotquantity, ignore_nan=True, 
+                            normalize=normalize)
 
 #        wexp = self.wexp
 #        Iexpcalib = self.Iexpcalib
