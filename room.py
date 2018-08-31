@@ -216,6 +216,22 @@ class DynVar():
                  'sPostCO2': slbPostCO2,
                  'sPostCO': slbPostCO,
                  }
+       
+    You can also use a function, for instance to maintain the equilibrium 
+    concentration in a fit on temperature::
+                        
+        from radis.tools.gascomp import get_eq_mole_fraction
+        get_co2_eq = lambda T: get_eq_mole_fraction('CO2:1', T, 1e5)
+        slbPlasmaCO2 = {
+                 'db':dbp,
+                 'Trot':1500,
+                 'Tvib':DynVar('self', 'Trot'),
+                 'path_length':0.025,
+                 'mole_fraction':DynVar('self', 'Trot', get_co2_eq),
+                 }
+                 
+    Here the CO2 Plasma slab is always evaluated with Tvib=Trot and x_co2 
+    at chemical equilibrium with T=Trot.
 
     '''
 

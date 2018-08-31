@@ -96,7 +96,7 @@ class SlabsConfigSolver():
         self.plotquantity = plotquantity
         self.unit = unit
         assert retrieve_error in ['ignore', 'raise']
-        self.retrieve_error = retrieve_error
+        self.retrieve_error = retrieve_error    #: str: 'ignore', 'raise'
 
         # Get slit defaults
         self.slit = slit
