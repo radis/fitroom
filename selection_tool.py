@@ -320,7 +320,8 @@ class CaseSelector():
         return
 
     def precompute_residual(self, Slablist, xspace='database', yspace='database',
-                            contour='contourf'):
+                            contour='contourf', normalize=False,
+                            vmin=None, vmax=None):
         ''' Plot residual for all points in database.
 
         Parameters
@@ -393,7 +394,7 @@ class CaseSelector():
                             fconfig))
                     return
 
-                resij = resij = get_residual(s)
+                resij = resij = get_residual(s, normalize=normalize)
                 res.append(resij)
 
             res = array(res)
@@ -428,19 +429,23 @@ class CaseSelector():
                             fconfig))
                         return
 
-                    resij = get_residual(s)
+                    resij = get_residual(s, normalize=normalize)
 
                     res[i][j] = resij
 
         try:
             if contour=='contourf':
-                cf = ax1.contourf(xx, yy, res, 40, cmap=plt.get_cmap('viridis_r'))
+                cf = ax1.contourf(xx, yy, res, 40, cmap=plt.get_cmap('viridis_r'),
+                                  vmin=vmin, vmax=vmax)
             elif contour=='contour':
-                cf = ax1.contour(xx, yy, res, 40, cmap=plt.get_cmap('viridis_r'))
+                cf = ax1.contour(xx, yy, res, 40, cmap=plt.get_cmap('viridis_r'),
+                                  vmin=vmin, vmax=vmax)
             elif isinstance(contour, float):
                 # Add your own label
-                cf = ax1.contourf(xx, yy, res, 40, cmap=plt.get_cmap('viridis_r'))
-                cs2 = ax1.contour(xx, yy, res, 40, levels=[contour])
+                cf = ax1.contourf(xx, yy, res, 40, cmap=plt.get_cmap('viridis_r'),
+                                  vmin=vmin, vmax=vmax)
+                cs2 = ax1.contour(xx, yy, res, 40, levels=[contour],
+                                  vmin=vmin, vmax=vmax)
 #                self.cs2 = cs2
 #                self.clabel = ax1.clabel(cs2, cs2.levels, inline=True)                
             

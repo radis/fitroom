@@ -280,7 +280,7 @@ class Grid3x3():
             self.plot_all_slabs(s, slabs)
 
     def plot_for_export(self, style=['origin'], cases=[(1,1), (0,1), (2,1)],
-                        ls='-', xlim=None, ylim=None, labelvar='xy'):
+                        ls='-', lw=1, xlim=None, ylim=None, labelvar='xy'):
         ''' Sum all center column in one case 
         
         Parameters
@@ -289,7 +289,7 @@ class Grid3x3():
         cases: list
             list of [(row, column)] to plot 
             
-        ls: str ('-', '.-', etc.), list, or dict
+        ls: str ('-', '-.', etc.), list, or dict
             if str, use the same. If list, rotate. If dict, use ``cases`` 
             as keys.
             
@@ -380,8 +380,15 @@ class Grid3x3():
                 ls_i = ls[(j, i)]
             else:
                 ls_i = ls
-            
-            axij.plot(w, ydata, label=label, ls=ls_i)
+            # Width:
+            if isinstance(lw, list):
+                lw_i = lw[index%len(lw)]
+            elif isinstance(lw, dict):
+                lw_i = lw[(j, i)]
+            else:
+                lw_i = lw
+                
+            axij.plot(w, ydata, label=label, ls=ls_i, lw=lw_i)
 
             self.update_markers(fconfig, i, j)
 
