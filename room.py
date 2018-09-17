@@ -71,24 +71,24 @@ class FitRoom():
         self.Slablist = Slablist
         self.perfmode = perfmode
 
-    def add_tool(self, tool):
+    def add_tool(self, tool, verbose=True):
         if isinstance(tool, SlabsConfigSolver):
-            print('Adding SlabsConfigSolver')
+            if verbose: print('Adding SlabsConfigSolver')
             self.solver = tool
         elif isinstance(tool, Grid3x3):
-            print('Adding Grid3x3')
+            if verbose: print('Adding Grid3x3')
             self.gridTool = tool
         elif isinstance(tool, MultiSlabPlot):
-            print('Adding MultiSlabPlot')
+            if verbose: print('Adding MultiSlabPlot')
             self.slabsTool = tool
         elif isinstance(tool, CaseSelector):
-            print('Adding CaseSelector')
+            if verbose: print('Adding CaseSelector')
             self.selectTool = tool
         elif isinstance(tool, Overpopulator):
-            print('Adding Overpopulator')
+            if verbose: print('Adding Overpopulator')
             self.overpTool = tool
         elif isinstance(tool, SlitTool):
-            print('Adding SlitTool')
+            if verbose: print('Adding SlitTool')
             self.slitTool = tool
         else:
             raise ValueError(
