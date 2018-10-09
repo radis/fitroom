@@ -18,7 +18,7 @@ from scipy.interpolate import splev, splrep
 from warnings import warn
 from radis import SpecDatabase, Spectrum  # imported for static debugger
 from radis.spectrum.compare import get_residual
-from neq.spec import SpectrumFactory
+from radis import SpectrumFactory
 from neq.misc.debug import printdbg
 from neq.misc.basics import is_float
 import sys

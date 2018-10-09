@@ -211,7 +211,7 @@ class MultiSlabPlot():
         slabs = self.slabs.copy()
 
 #        # Merge some.. TEMP
-#        from neq.spec import SerialSlabs
+#        from radis import SerialSlabs
 #        if 'sPlasmaCO2b' in slabs:
 #            sPlasmaCO2 = slabs.pop('sPlasmaCO2')
 #            sPlasmaCO2b = slabs.pop('sPlasmaCO2b')

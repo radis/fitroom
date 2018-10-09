@@ -18,7 +18,7 @@ from matplotlib.widgets import MultiCursor
 from neq.plot import plot_stack
 from neq.plot.toolbar import add_tools
 from neq.plot.pretty import make_up
-from neq.spec import Spectrum   # for IDE hints
+from radis import Spectrum   # for IDE hints
 import warnings
 from numpy import nan
 from publib import set_style, fix_style
