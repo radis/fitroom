@@ -279,22 +279,27 @@ class Grid3x3():
         if i == 1 and j == 1:
             self.plot_all_slabs(s, slabs)
 
-    def plot_for_export(self, style=['origin'], cases=[(1,1), (0,1), (2,1)],
-                        ls='-', lw=1, xlim=None, ylim=None, labelvar='xy'):
-        ''' Sum all center column in one case 
+    def plot_for_export(self, style='origin', cases=[],
+                        ls='-', lw=1, xlim=None, ylim=None, labelvar='xy',
+                        color=None, labelunit='K',
+                        cutwings=0):
+        ''' Sum all center column in one case.
         
         Parameters
         ----------
         
         cases: list
-            list of [(row, column)] to plot 
+            list of [(row, column)] to plot. If ``None`` or [], use a vertical 
+            line, i.e. ::
+                
+                cases=[(1,1), (0,1), (2,1)]
             
         ls: str ('-', '-.', etc.), list, or dict
             if str, use the same. If list, rotate. If dict, use ``cases`` 
             as keys.
             
-#            the first one is plot in solid line, the others in alternate with
-#            '-.', ':', '-.'
+            the first one is plot in solid line, the others in alternate with
+            '-.', ':', '-.'
             
         Other Parameters
         ----------------
@@ -306,8 +311,14 @@ class Grid3x3():
                 Tvib=, Trot=
                 Tvib=
                 Trot=
+        
+        cutwings:
+            see :func:`~neq.plot.utils.plot_stack`
             
         '''
+        
+        if not cases:
+            cases = [(1,1), (0,1), (2,1)]
 
         set_style(style)
 
@@ -331,7 +342,8 @@ class Grid3x3():
         axij.format_coord = self.format_coord
 
         ydata = norm_on(wexp, Iexpcalib) if normalize else Iexpcalib
-        plot_stack(wexp, ydata, '-', lw=2, ax=axij, label='Experiment')
+        plot_stack(wexp, ydata, '-', lw=3, ax=axij, cutwings=cutwings,
+                   label='Experiment')
         
         for index, (j, i) in enumerate(cases):   # reversed? seems more logical this way.
 #            color = ['b', 'r', 'g'][(i+j)]
@@ -357,13 +369,23 @@ class Grid3x3():
             yvalue = fconfig[slbInteracty][yparam]
             
             # Label of each plot
-            if labelvar == 'xy':
-                label = make_up('{0} {1:.0f}K {2} {3:.0f}K'.format(xparam,xvalue,
-                                                                   yparam,yvalue))
-            elif labelvar == 'x':
-                label = make_up('{0} {1:.0f}K'.format(xparam,xvalue))
-            elif labelvar == 'y':
-                label = make_up('{0} {1:.0f}K'.format(yparam,yvalue))
+            if labelunit == 'K':            
+                if labelvar == 'xy':
+                    label = make_up('{0} {1:.0f}K {2} {3:.0f}K'.format(xparam,xvalue,
+                                                                       yparam,yvalue))
+                elif labelvar == 'x':
+                    label = make_up('{0} {1:.0f}K'.format(xparam,xvalue))
+                elif labelvar == 'y':
+                    label = make_up('{0} {1:.0f}K'.format(yparam,yvalue))
+            else:
+                if labelvar == 'xy':
+                    label = make_up('{0} {1:.2f}{4} {2} {3:.0f}K'.format(xparam,xvalue,
+                                                                       yparam,yvalue, labelunit))
+                elif labelvar == 'x':
+                    label = make_up('{0} {1:.2f}{2}'.format(xparam,xvalue, labelunit))
+                elif labelvar == 'y':
+                    label = make_up('{0} {1:.2f}{2}'.format(yparam,yvalue, labelunit))
+                    
                 
             # Style:
             if isinstance(ls, list):
@@ -387,8 +409,15 @@ class Grid3x3():
                 lw_i = lw[(j, i)]
             else:
                 lw_i = lw
+            # Color:
+            if isinstance(color, list):
+                color_i = color[index%len(color)]
+            elif isinstance(lw, dict):
+                color_i = color[(j, i)]
+            else:
+                color_i = color
                 
-            axij.plot(w, ydata, label=label, ls=ls_i, lw=lw_i)
+            axij.plot(w, ydata, label=label, color=color_i, ls=ls_i, lw=lw_i)
 
             self.update_markers(fconfig, i, j)
 

@@ -29,6 +29,7 @@ from numpy import array, meshgrid, empty_like, linspace
 from scipy.interpolate import griddata
 from six.moves import zip
 import sys
+from radis.misc.progress_bar import ProgressBar
 #from neq.math.fitroom.solver import expand_columns
 
 
@@ -337,7 +338,18 @@ class CaseSelector():
             values of points to precompute. If 'database', residual is calculated
             for all points in database. Default 'database'.
 
+        Examples
+        --------
+        
+        When ``yparam`` is mole_fraction and we want to calculate for many mole 
+        fraction conditions from 0 to 1. ::
+            
+            selectTool.precompute_residual(Slablist, normalize=normalize,
+                               yspace=np.linspace(0.1, 1, 10))
+        
         '''
+        from warnings import catch_warnings, filterwarnings
+        from radis.misc.warning import SlitDispersionWarning
 
         if not hasattr(self, 'fitroom'):
             raise AttributeError('Tool not connected to Fitroom')
@@ -379,7 +391,9 @@ class CaseSelector():
 
             res = []  # np.empty_like(xx)
 
-            for xvari, yvarj in zip(xspace, yspace):
+            pb = ProgressBar(len(xspace))
+            for i, (xvari, yvarj) in enumerate(zip(xspace, yspace)):
+                pb.update(i)
                 config0 = {k: c.copy() for k, c in Slablist.items()}
                 config0[slbInteractx][xparam] = xvari
                 config0[slbInteracty][yparam] = yvarj
@@ -387,7 +401,10 @@ class CaseSelector():
 
             #        fexp = r"12_StepAndGlue_30us_Cathode_0us_stacked.txt"
 
-                s, slabs, fconfig = calc_slabs(**config0)
+                with catch_warnings():
+                    filterwarnings('ignore', category=SlitDispersionWarning)
+                    filterwarnings('ignore', category=UserWarning) # ignore all for the moment
+                    s, slabs, fconfig = calc_slabs(**config0)
 
                 if s is None:   # spectrum not calculated
                     print('Spectrum not calculated. Couldnt calculate residuals: {0}'.format(
@@ -396,6 +413,7 @@ class CaseSelector():
 
                 resij = resij = get_residual(s, normalize=normalize)
                 res.append(resij)
+            pb.done()
 
             res = array(res)
             # Create a 2D grid by interpolating database data
@@ -413,7 +431,9 @@ class CaseSelector():
 
             res = empty_like(yy, dtype=np.float64)
 
+            pb = ProgressBar(len(xspace))
             for i, xvari in enumerate(xspace):
+                pb.update(i)
                 for j, yvarj in enumerate(yspace):
                     config0 = {k: c.copy() for k, c in Slablist.items()}
                     config0[slbInteractx][xparam] = xvari
@@ -422,7 +442,10 @@ class CaseSelector():
 
                 #        fexp = r"12_StepAndGlue_30us_Cathode_0us_stacked.txt"
 
-                    s, slabs, fconfig = calc_slabs(**config0)
+                    with catch_warnings():
+                        filterwarnings('ignore', category=SlitDispersionWarning)
+                        filterwarnings('ignore', category=UserWarning) # ignore all for the moment
+                        s, slabs, fconfig = calc_slabs(**config0)
     
                     if s is None:   # spectrum not calculated
                         print('Spectrum not calculated. Couldnt calculate residuals'.format(
@@ -432,6 +455,7 @@ class CaseSelector():
                     resij = get_residual(s, normalize=normalize)
 
                     res[i][j] = resij
+            pb.done()
 
         try:
             if contour=='contourf':
@@ -447,7 +471,9 @@ class CaseSelector():
                 cs2 = ax1.contour(xx, yy, res, 40, levels=[contour],
                                   vmin=vmin, vmax=vmax)
 #                self.cs2 = cs2
-#                self.clabel = ax1.clabel(cs2, cs2.levels, inline=True)                
+#                self.clabel = ax1.clabel(cs2, cs2.levels, inline=True) 
+            else:
+                raise ValueError('Unexpected: {0}'.format(contour))
             
         except TypeError:
             print(sys.exc_info())

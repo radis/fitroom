@@ -183,8 +183,18 @@ class MultiSlabPlot():
         return label
 
     def plot_for_export(self, style=['origin'],
-                        lw_multiplier=1):
+                        lw_multiplier=1,
+                        skip_exp_range=[]):
         ''' Not used in Fitroom, but can be used by user to export / save figures
+        
+        Other Parameters
+        ----------------
+        
+        lw_multiplier: float
+            multiply line widths
+            
+        skip_exp_range: [(wmin, wmax), (wmin2, wmax2), etc.]
+            dont plot these ranges for experimental spectrum. Default []
         
         Examples
         --------
@@ -239,11 +249,19 @@ class MultiSlabPlot():
 
         plotquantity = self.plotquantity
         unit = self.unit
+        if plotquantity == 'radiance':
+            Iunit = unit
+        else:
+            Iunit = 'mW/cm2/sr/nm'
         normalize = self.normalize
         norm_on = self.normalizer
 
         wexp = self.wexp
         Iexpcalib = self.Iexpcalib
+        
+        for (wmin, wmax) in skip_exp_range:
+            b = (wmin <= wexp) & (wexp <= wmax)
+            Iexpcalib[b] = nan
 
         slit = self.fitroom.solver.slit
         slit_options = self.fitroom.solver.slit_options
@@ -285,7 +303,7 @@ class MultiSlabPlot():
                 color = next(colors)
 
             ls = '-' if i < 6 else '--'
-            ax3[0].plot(*si.get('radiance', Iunit=unit), color=color,
+            ax3[0].plot(*si.get('radiance', Iunit=Iunit), color=color,
                         lw=1*lw_multiplier, ls=ls, label=name.replace('sP', 'P').replace('sR', 'R'))[0]
             ax3[2].plot(*si.get('transmittance'), color=color,
                         lw=1*lw_multiplier, ls=ls, label=name.replace('sP', 'P').replace('sR', 'R'))[0]
@@ -297,7 +315,7 @@ class MultiSlabPlot():
                     color = slab_colors[name]
                 else:
                     color = next(colors)
-                ax3[0].plot(*si.get('radiance_noslit', Iunit=unit), color=color,
+                ax3[0].plot(*si.get('radiance_noslit', Iunit=Iunit), color=color,
                             lw=0.5*lw_multiplier, ls=ls, alpha=0.15, zorder=-1)[0]
 #                    ax3[0].set_ylim(ymax=ymax)  # keep no slit yscale
                 ax3[2].plot(*si.get('transmittance_noslit'), color=color,
@@ -358,6 +376,10 @@ class MultiSlabPlot():
 
         plotquantity = self.plotquantity
         unit = self.unit
+        if plotquantity == 'radiance':
+            Iunit = self.unit
+        else:
+            Iunit = 'mW/cm2/sr/nm'   # TODO: or None?
         normalize = self.normalize
         norm_on = self.normalizer
 
@@ -411,11 +433,11 @@ class MultiSlabPlot():
                 for i, (name, s) in enumerate(slabs.items()):
                     s.apply_slit(slit, verbose=False, **slit_options)
                     color = next(colors)
-                    line3up[i].set_data(*s.get('radiance', Iunit=unit))
+                    line3up[i].set_data(*s.get('radiance', Iunit=Iunit))
                     line3down[i].set_data(*s.get('transmittance'))
                     if self.show_noslit_slabs:
                         line3up_noslit[i].set_data(
-                            *s.get('radiance_noslit', Iunit=unit))
+                            *s.get('radiance_noslit', Iunit=Iunit))
                         line3down_noslit[i].set_data(
                             *s.get('transmittance_noslit'))
         except KeyError:  # first time: init lines
@@ -424,7 +446,7 @@ class MultiSlabPlot():
                 si.apply_slit(slit, verbose=False, **slit_options)
                 color = next(colors)
                 ls = '-' if i < 6 else '--'
-                line3up[i] = ax3[0].plot(*si.get('radiance', Iunit=unit), color=color,
+                line3up[i] = ax3[0].plot(*si.get('radiance', Iunit=Iunit), color=color,
                                          lw=0.5, ls=ls, label=name)[0]
                 line3down[i] = ax3[2].plot(*si.get('transmittance'), color=color,
                                            lw=0.5, ls=ls, label=name)[0]
@@ -433,7 +455,7 @@ class MultiSlabPlot():
                 ymax = ax3[0].get_ylim()[1]
                 for i, (name, si) in enumerate(slabs.items()):
                     color = next(colors)
-                    line3up_noslit[i] = ax3[0].plot(*si.get('radiance_noslit', Iunit=unit), color=color,
+                    line3up_noslit[i] = ax3[0].plot(*si.get('radiance_noslit', Iunit=Iunit), color=color,
                                                     lw=0.5, ls=ls, alpha=0.15, zorder=-1)[0]
 #                    ax3[0].set_ylim(ymax=ymax)  # keep no slit yscale
                     line3down_noslit[i] = ax3[2].plot(*si.get('transmittance_noslit'), color=color,
