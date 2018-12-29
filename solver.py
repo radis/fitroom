@@ -126,7 +126,7 @@ class SlabsConfigSolver():
         ''' Triggered on connection to FitRoom '''
         self.fitroom = fitroom         # type: FitRoom
 
-    def get_residual(self, s, normalize=False):
+    def get_residual(self, s, normalize=False, normalize_how='max'):
         ''' Returns difference between experimental and simulated spectra
         By default, uses :func:`~radis.spectrum.compare.get_residual` function
         You can change the residual by overriding this function. 
@@ -167,7 +167,7 @@ class SlabsConfigSolver():
         plotquantity = self.plotquantity
         
         return get_residual(self.s_exp, s, plotquantity, ignore_nan=True, 
-                            normalize=normalize)
+                            normalize=normalize, normalize_how=normalize_how)
 
 #        wexp = self.wexp
 #        Iexpcalib = self.Iexpcalib

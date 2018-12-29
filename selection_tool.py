@@ -321,7 +321,7 @@ class CaseSelector():
         return
 
     def precompute_residual(self, Slablist, xspace='database', yspace='database',
-                            contour='contourf', normalize=False,
+                            contour='contourf', normalize=False, normalize_how='max',
                             vmin=None, vmax=None):
         ''' Plot residual for all points in database.
 
@@ -337,6 +337,12 @@ class CaseSelector():
         yspace: array, or 'database'
             values of points to precompute. If 'database', residual is calculated
             for all points in database. Default 'database'.
+
+        Other Parameters
+        ----------------
+        
+        vmin, vmax: float
+            used for colorbar
 
         Examples
         --------
@@ -411,7 +417,8 @@ class CaseSelector():
                             fconfig))
                     return
 
-                resij = resij = get_residual(s, normalize=normalize)
+                resij = resij = get_residual(s, normalize=normalize, 
+                                             normalize_how=normalize_how)
                 res.append(resij)
             pb.done()
 
@@ -452,7 +459,8 @@ class CaseSelector():
                             fconfig))
                         return
 
-                    resij = get_residual(s, normalize=normalize)
+                    resij = get_residual(s, normalize=normalize, 
+                                             normalize_how=normalize_how)
 
                     res[i][j] = resij
             pb.done()

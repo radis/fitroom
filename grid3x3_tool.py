@@ -56,6 +56,8 @@ class Grid3x3():
         :meth:`~neq.math.fitroom.grid3x3_tool.plot_for_export`
            
         '''
+        
+        set_style('origin')
 
         plt.figure(2, figsize=(16, 12)).clear()
         fig2, ax2 = plt.subplots(3, 3, sharex=True, sharey=True,
@@ -218,6 +220,7 @@ class Grid3x3():
         axij.format_coord = self.format_coord
 
         ydata = norm_on(wexp, Iexpcalib) if normalize else Iexpcalib
+        norm_factor_exp = ydata.max()/Iexpcalib.max()
         try:
             lineexp[(i, j)]  # does not change anyway .set_data(wexp, ydata)
         except KeyError:
@@ -243,14 +246,21 @@ class Grid3x3():
         w, I = s.get(plotquantity, wunit='nm', Iunit=unit)
 
         ydata = norm_on(w, I) if normalize else I
+        # get normalizing factor (to print it)
+        # Note: it can be used to have an idea of mole fractions by setting 
+        # mole_fraction = 1 and using normalize
+        norm_factor = ydata.max()/I.max()
+        rnorm_factor = norm_factor/norm_factor_exp  # relative norm factor
 
         try:
             linesim[(i, j)].set_data(w, ydata)
-            legends2[(i, j)].texts[0].set_text('res: {0:.3g}'.format(res))
+            legends2[(i, j)].texts[0].set_text('res {0:.3g}{1}'.format(res,
+                     ' norm {0:.2f}'.format(rnorm_factor) if rnorm_factor!=1 else ''))
         except KeyError:
             line, = axij.plot(w, ydata, 'r')
             linesim[(i, j)] = line
-            legends2[(i, j)] = axij.legend((line,), ('res: {0:.3g}'.format(res), ),
+            legends2[(i, j)] = axij.legend((line,), ('res {0:.3g}{1}'.format(res,
+                     ' norm {0:.2f}'.format(rnorm_factor) if rnorm_factor!=1 else ''),),
                                            loc='upper left', prop={'size': 10})
 
         self.update_markers(fconfig, i, j)
@@ -274,6 +284,8 @@ class Grid3x3():
                 axij.set_title('{0} {1:.1f}'.format(
                     xparam, fconfig[slbInteractx][xparam]), size=20)
         # TODO: add a set of all labels on line, instead (deals with different values per line)
+
+        fix_style('origin', axij)
 
         # If centered, also update the multislab tool
         if i == 1 and j == 1:
