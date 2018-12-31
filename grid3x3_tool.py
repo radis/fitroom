@@ -56,6 +56,8 @@ class Grid3x3():
         :meth:`~neq.math.fitroom.grid3x3_tool.plot_for_export`
            
         '''
+        # TODO: read slbInteractx, slbInteracty, xparam, yparam from Fitroom
+        # and remove them as parameters here. Same for selectTool.
         
         set_style('origin')
 

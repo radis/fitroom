@@ -31,7 +31,8 @@ except:
 
 class FitRoom():
 
-    def __init__(self, Slablist, perfmode=False):
+    def __init__(self, Slablist, slbInteractx, slbInteracty, xparam, yparam,
+                 perfmode=False):
         ''' 
         Parameters
         ----------
@@ -70,6 +71,11 @@ class FitRoom():
 
         self.Slablist = Slablist
         self.perfmode = perfmode
+        
+        self.slbInteractx = slbInteractx
+        self.slbInteracty = slbInteracty
+        self.xparam = xparam
+        self.yparam = yparam
 
     def add_tool(self, tool, verbose=True):
         if isinstance(tool, SlabsConfigSolver):

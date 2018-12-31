@@ -17,6 +17,7 @@ import numpy as np
 from scipy.interpolate import splev, splrep
 from warnings import warn
 from radis import SpecDatabase, Spectrum  # imported for static debugger
+from radis.tools.database import SpecList, _scalable_inputs
 from radis.spectrum.compare import get_residual
 from radis import SpectrumFactory
 from neq.misc.debug import printdbg
@@ -35,7 +36,7 @@ class SlabsConfigSolver():
                  s_exp=None,
                  plotquantity='radiance', unit='mW/cm2/sr/nm',
                  slit=None, slit_options='default',
-                 crop=None,
+                 crop=None, retrieve_mode='safe', 
                  verbose=True, retrieve_error='ignore'):
         '''
         Parameters
@@ -57,6 +58,10 @@ class SlabsConfigSolver():
 
         Other Parameters
         ----------------
+        
+        get_closest: bool
+            when retrieving spectra from database, get cloest if set to True. Else
+            get unique. 
 
         slit_options:
             if ``'default'``, use::
@@ -73,7 +78,29 @@ class SlabsConfigSolver():
             if Spectrum cannot be calculated or retrieved from Database, then
             returns ``None`` as a Spectrum object. The rest of the code should
             deal with it. Else, raises an error immediatly. 
-            
+        
+        retrieve_mode: 'safe', 'strict', 'closest'
+            how to retrieve spectra when reading from database:
+                
+                - if 'strict', only retrieve the spectra that exactly match 
+                the given conditions (allow scaling path_length or mole_fraction, still)
+                
+                - if 'safe', requires an exact match for all conditions (as in 
+                'strict'), except for the 2 user defined variable conditions 
+                ``xparam`` and ``yparam`` 
+                
+                - if 'closest', retrieves the closest spectrum in the database 
+                
+                    .. warning:: 
+                        'closest' can induce user errors!!!. Ex: a Trot=1500 K 
+                        spectrum can be used instead of a Trot=1550 K spectrum
+                        if the latter is not available, without user necessarily
+                        noticing. If you have any doubt, print the conditions
+                        of the spectra used in the tools. Ex::
+                            
+                            for s in gridTool.spectra:
+                                print(s)
+                
 
         Examples
         --------
@@ -112,6 +139,9 @@ class SlabsConfigSolver():
         self.crop = crop
         if crop is not None:
             raise NotImplementedError('crop not defined yet. Better crop the experimental spectrum directly')
+        
+        # Database retrieve options
+        self.retrieve_mode = retrieve_mode   #: str 'safe', 'strict', 'closest'
         
         self.verbose = verbose
 
@@ -247,14 +277,41 @@ class SlabsConfigSolver():
 #                    dbi.df = expand_columns(dbi.df, split_columns_list)
                 
                 try:
-                    si = dbi.get_closest(scale_if_possible=True, verbose=verbose, 
-                                         **cfg)
+                    if self.retrieve_mode == 'strict':
+                        si = dbi.get_unique(scale_if_possible=True, verbose=verbose,
+                                             **cfg)
+                    elif self.retrieve_mode == 'safe':
+                        # all parameters are enforced, except the 2 chosen by the user (xparam, yparam)
+                        if slabname == self.fitroom.slbInteractx:    
+                            cfg_fixed = {k:v for k,v in cfg.items() if k not in 
+                                         _scalable_inputs+[self.fitroom.xparam]}
+                        elif slabname == self.fitroom.slbInteracty:    
+                            cfg_fixed = {k:v for k,v in cfg.items() if k not in 
+                                         _scalable_inputs+[self.fitroom.yparam]}
+                        else:    
+                            cfg_fixed = {k:v for k,v in cfg.items() if k not in 
+                                         _scalable_inputs}
+                        # Get spectra corresponding to fixed parameters 
+                        slist = dbi.get(**cfg_fixed, verbose=False)
+                        if len(slist) == 0:
+                            # give more insights:
+                            dbi.get_closest(scale_if_possible=True, verbose=True, **cfg_fixed)
+                            raise ValueError('Spectrum not found with these conditions. '+\
+                                             'See closest spectrum above')
+                        # Within this list, get the closest ones
+                        si = SpecList(*slist).get_closest(scale_if_possible=True, verbose=verbose, 
+                                             **cfg)
+                    elif self.retrieve_mode == 'closest':
+                        si = dbi.get_closest(scale_if_possible=True, verbose=verbose, 
+                                             **cfg)
+                    else:
+                        raise NotImplementedError(self.retrieve_mode)
                 except:
                     print(('An error occured while retrieving Spectrum from database: \n{0}'.format(
                             sys.exc_info())))
                     if self.retrieve_error == 'ignore':
                         si = None
-                    elif self.retrieve_error == 'raise':
+                    else: # self.retrieve_error == 'raise':
                         raise
 
             elif source == 'calculate':
