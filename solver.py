@@ -411,6 +411,12 @@ class SlabsConfigSolver():
             
         # Calculate the Line of Sight model
         s = config(**slabs)
+        # Keep initial conditions in output Spectrum
+        for slabname, si in slabs.items():
+            s.conditions['{0}'.format(slabname)] = '*'*80
+            for k, v in si.conditions.items():
+                s.conditions['{0}_{1}'.format(slabname, k)] = v
+        
         # (for developers: helps IDE find autocompletion)
 #        assert isinstance(s, Spectrum)
 

@@ -25,6 +25,7 @@ from neq.plot.toolbar import add_tools
 import warnings
 from numpy import nan
 from publib import set_style, fix_style
+from brokenaxes import brokenaxes
 
 
 class MultiSlabPlot():
@@ -181,11 +182,24 @@ class MultiSlabPlot():
         label = label.replace('m2', 'm$^2$')
 
         return label
-
-    def plot_for_export(self, style=['origin'],
+    
+    def plot_broken(self, style=['origin'], 
+                        xlim=None,
                         lw_multiplier=1,
-                        skip_exp_range=[]):
-        ''' Not used in Fitroom, but can be used by user to export / save figures
+                        skip_exp_range=[],
+                        cutwings=0,
+                        verbose=True):
+
+        ''' Not used in Fitroom, but can be used by user to export / save figure
+        with broken axes
+        
+        Parameters
+        ----------
+        
+        xlim: tuple, or list of tuple
+            if None, all range is plot. If tuple, only this range is plot. 
+            If list of tuple, broken axes are used.
+            Only works for ``fig0`` though. Not Implemented for ``fig1``.
         
         Other Parameters
         ----------------
@@ -196,6 +210,99 @@ class MultiSlabPlot():
         skip_exp_range: [(wmin, wmax), (wmin2, wmax2), etc.]
             dont plot these ranges for experimental spectrum. Default []
         
+        cutwings:
+            see :func:`~neq.plot.utils.plot_stack`
+            
+        Examples
+        --------
+        
+        ::
+            
+            fig0 = slabsTool.plot_broken()
+            fig0.savefig('...')
+            
+        '''
+
+        ylabelsize = 24
+
+        set_style(style)
+
+        s = self.spectrum
+        
+        if verbose:
+            print('Export Spectrum with conditions:')
+            print('--------------------------------')
+            print(s)
+        
+#        plt.figure(figsize=(15,10))
+        if xlim is None or isinstance(xlim, tuple):
+            fig30, ax30 = plt.subplots(figsize=(8, 6))
+        elif isinstance(xlim, list):
+            fig30 = plt.figure(figsize=(8, 6))
+            ax30 = brokenaxes(xlims=xlim)
+        else:
+            raise ValueError
+
+        # Init variables
+
+        plotquantity = self.plotquantity
+        unit = self.unit
+        normalize = self.normalize
+        norm_on = self.normalizer
+
+        wexp = self.wexp
+        Iexpcalib = self.Iexpcalib
+        
+        for (wmin, wmax) in skip_exp_range:
+            b = (wmin <= wexp) & (wexp <= wmax)
+            Iexpcalib[b] = nan
+
+        # Central axe: model vs experiment
+        w, I = s.get(plotquantity, Iunit=unit)
+        ydata = norm_on(w, I) if normalize else I
+
+        ax30.plot(w, ydata, color='r', lw=1*lw_multiplier,
+                    label='Model')[0]
+        yunit = 'norm' if normalize else self._format_label(unit)
+        ax30.set_ylabel(yunit, size=ylabelsize)
+
+        ydata = norm_on(wexp, Iexpcalib) if normalize else Iexpcalib
+
+        plot_stack(wexp, ydata, '-k',
+                   lw=1.5*lw_multiplier, zorder=-1, label='Experiment', ax=ax30,
+                   cutwings=cutwings)[0]
+
+        def colorserie():
+            i = 0
+            colorlist = ['r', 'b', 'g', 'y', 'k', 'm']
+            while True:
+                yield colorlist[i % len(colorlist)]
+                i += 1
+
+        ax30.set_xlabel('Wavelength (nm)')
+        ax30.set_ylabel('{0} ({1})'.format(self._format_label(self.plotquantity), 
+                        yunit), size=ylabelsize)
+
+        return fig30
+
+    def plot_for_export(self, style=['origin'],
+                        lw_multiplier=1,
+                        skip_exp_range=[],
+                        cutwings=0):
+        ''' Not used in Fitroom, but can be used by user to export / save figures
+
+        Other Parameters
+        ----------------
+        
+        lw_multiplier: float
+            multiply line widths
+            
+        skip_exp_range: [(wmin, wmax), (wmin2, wmax2), etc.]
+            dont plot these ranges for experimental spectrum. Default []
+        
+        cutwings:
+            see :func:`~neq.plot.utils.plot_stack`
+            
         Examples
         --------
         
@@ -234,7 +341,6 @@ class MultiSlabPlot():
 #        plt.figure(figsize=(15,10))
         fig30, ax30 = plt.subplots(figsize=(20, 4))
         fig31, [ax31, ax32] = plt.subplots(2, 1, figsize=(20, 6.5))
-#        fig3, ax32 = plt.subplots(figsize=(15,10))
         ax3 = ax31, ax30, ax32
 
 #        plt.figure(figsize=(12,8))
@@ -269,6 +375,7 @@ class MultiSlabPlot():
         # Central axe: model vs experiment
         w, I = s.get(plotquantity, Iunit=unit)
         ydata = norm_on(w, I) if normalize else I
+        yunit = 'norm' if normalize else self._format_label(unit)
 
         ax3[1].plot(w, ydata, color='r', lw=1*lw_multiplier,
                     label='Model')[0]
@@ -277,12 +384,13 @@ class MultiSlabPlot():
 #            ax3[1].plot(*s.get(plotquantity+'_noslit', Iunit=unit),
 #                            color='r', lw=0.5*lw_multiplier, alpha=0.15, zorder=-1)[0]
 #            ax3[1].set_ylim(ymax=ymax)  # keep no slit yscale
-        ax3[1].set_ylabel(self._format_label(unit), size=ylabelsize)
+        ax3[1].set_ylabel(yunit, size=ylabelsize)
 
         ydata = norm_on(wexp, Iexpcalib) if normalize else Iexpcalib
 
         plot_stack(wexp, ydata, '-k',
-                   lw=1*lw_multiplier, zorder=-1, label='Experiment', ax=ax3[1])[0]
+                   lw=1.5*lw_multiplier, zorder=-1, label='Experiment', ax=ax3[1],
+                   cutwings=cutwings)[0]
         if self.plot_legend:
             ax3[1].legend()
 
