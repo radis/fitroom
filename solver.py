@@ -292,7 +292,7 @@ class SlabsConfigSolver():
                             cfg_fixed = {k:v for k,v in cfg.items() if k not in 
                                          _scalable_inputs}
                         # Get spectra corresponding to fixed parameters 
-                        slist = dbi.get(**cfg_fixed, verbose=False)
+                        slist = dbi.get(verbose=False, **cfg_fixed)
                         if len(slist) == 0:
                             # give more insights:
                             dbi.get_closest(scale_if_possible=True, verbose=True, **cfg_fixed)
