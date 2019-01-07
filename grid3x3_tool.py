@@ -296,7 +296,7 @@ class Grid3x3():
     def plot_for_export(self, style='origin', cases=[],
                         ls='-', lw=1, xlim=None, ylim=None, labelvar='xy',
                         color=None, labelunit='K',
-                        cutwings=0):
+                        cutwings=0, kwargs_exp={}):
         ''' Sum all center column in one case.
         
         Parameters
@@ -329,6 +329,10 @@ class Grid3x3():
         cutwings:
             see :func:`~neq.plot.utils.plot_stack`
             
+        kwargs_exp: dict
+            parameters forwarded to `~neq.plot.utils.plot_stack` to plot the 
+            experiment
+            
         '''
         
         if not cases:
@@ -356,8 +360,11 @@ class Grid3x3():
         axij.format_coord = self.format_coord
 
         ydata = norm_on(wexp, Iexpcalib) if normalize else Iexpcalib
-        plot_stack(wexp, ydata, '-', lw=3, ax=axij, cutwings=cutwings,
-                   label='Experiment')
+        kwargs_exp_default = {
+                'lw':3,
+                'label':'Experiment'}
+        kwargs_exp_default.update(kwargs_exp)
+        plot_stack(wexp, ydata, '-', ax=axij, cutwings=cutwings, **kwargs_exp)
         
         for index, (j, i) in enumerate(cases):   # reversed? seems more logical this way.
 #            color = ['b', 'r', 'g'][(i+j)]
@@ -555,3 +562,85 @@ class Grid3x3():
         fig2.canvas.show()
         plt.show()
         plt.pause(0.05)
+
+#    def plot_for_export_1times3(self, xspace=None, yspace=None):
+#        '''
+#        See Also
+#        --------
+#        
+#        plot_for_export
+#        
+#        '''
+#
+#        if xspace is None:
+#            xspace = self.xspace  # use last ones
+#        if yspace is None:
+#            yspace = self.yspace  # use last ones
+#
+#        slbInteractx = self.slbInteractx
+#        slbInteracty = self.slbInteracty
+#        xparam = self.xparam
+#        yparam = self.yparam
+#
+#        # update defaults
+#        self.xspace = xspace
+#        self.yspace = yspace
+#
+#        # update center
+#        self.fitroom.Slablist[slbInteractx][xparam] = xspace[1]
+#        self.fitroom.Slablist[slbInteracty][yparam] = yspace[1]
+#
+#        plt.figure(2, figsize=(16, 5)).clear()
+#        fig2, ax2 = plt.subplots(1, 3, sharex=True, sharey=True,
+#                                 num=2)
+#        
+#        # dont calculate these when the figure is not shown (for performance)
+#        if self.fitroom.perfmode:
+#            try:  # works in Qt
+#                updateSideAxes = not fig2.canvas.manager.window.isMinimized()
+#            except:
+#                updateSideAxes = True
+#        else:
+#            updateSideAxes = True
+#
+#        # Do the calculations
+#        for i, xvari in enumerate(xspace):
+#            for j, yvarj in enumerate(list(yspace[1])):
+#                if not (i == 1 and j == 1) and not updateSideAxes:
+#                    continue
+#                s = spectra[(i, j)]
+#                config0 = self.fitroom.get_config()   # create a copy
+#                config0[slbInteractx][xparam] = xvari
+#                config0[slbInteracty][yparam] = yvarj
+#                self.fitroom.eval_dynvar(config0)  # update dynamic parameters
+#                self.calc_case(i, j, **config0)   # here we calculate
+#                self.plot_case(i, j, **config0)   # here we plot
+#
+#        # Plot title with all slabs conditions
+#        # use last one, dont print variable parameter
+#        del config0[slbInteractx][xparam]
+#        # note that DynPara are the last one only!
+#        del config0[slbInteracty][yparam]
+#        # TODO: use intersect dict function
+#        msg = ''
+#        for k, cfgi in config0.items():
+#            msg += k+' - '
+#            msg += ' '.join(
+#                ['{0}:{1:.3g}'.format(k, float(v)) for (k, v) in cfgi.items()
+#                 if not k in ['db', 'factory', 'bandlist', 'source',
+#                              'overpopulation',  # readable but too many lines
+#                              ]])
+#            msg += ' || '
+#        msg = msg[:-4]
+#        msg = textwrap.wrap(msg, width=200)
+#        fig2.suptitle('\n'.join(msg), size=10)
+#        fig2.tight_layout()
+#        fig2.subplots_adjust(top=0.93-0.02*len(msg))
+#
+#        # Add cursor than spans over all subplots
+#        self._add_multicursor()
+#
+#        # Show figure
+#        fig2.canvas.show()
+#        plt.show()
+#        plt.pause(0.05)

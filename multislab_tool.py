@@ -25,7 +25,6 @@ from neq.plot.toolbar import add_tools
 import warnings
 from numpy import nan
 from publib import set_style, fix_style
-from brokenaxes import brokenaxes
 
 
 class MultiSlabPlot():
@@ -238,6 +237,11 @@ class MultiSlabPlot():
         if xlim is None or isinstance(xlim, tuple):
             fig30, ax30 = plt.subplots(figsize=(8, 6))
         elif isinstance(xlim, list):
+            try:
+                from brokenaxes import brokenaxes
+            except ImportError:
+                raise ImportError("You need the brokenaxes package for this. "+\
+                                  ">>> pip install brokenaxes")
             fig30 = plt.figure(figsize=(8, 6))
             ax30 = brokenaxes(xlims=xlim)
         else:
@@ -288,7 +292,8 @@ class MultiSlabPlot():
     def plot_for_export(self, style=['origin'],
                         lw_multiplier=1,
                         skip_exp_range=[],
-                        cutwings=0):
+                        cutwings=0,
+                        figsize=[(20, 4), (20, 6.5)]):
         ''' Not used in Fitroom, but can be used by user to export / save figures
 
         Other Parameters
@@ -339,8 +344,8 @@ class MultiSlabPlot():
 #            slabs['sPlasmaCO'] = SerialSlabs(sPlasmaCO, sPlasmaCOb)
 
 #        plt.figure(figsize=(15,10))
-        fig30, ax30 = plt.subplots(figsize=(20, 4))
-        fig31, [ax31, ax32] = plt.subplots(2, 1, figsize=(20, 6.5))
+        fig30, ax30 = plt.subplots(figsize=figsize[0])
+        fig31, [ax31, ax32] = plt.subplots(2, 1, figsize=figsize[1])
         ax3 = ax31, ax30, ax32
 
 #        plt.figure(figsize=(12,8))
