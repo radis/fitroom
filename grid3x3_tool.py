@@ -192,13 +192,23 @@ class Grid3x3():
 
         return
 
-    def plot_case(self, i, j, **slabsconfig):
+    def plot_case(self, i, j, ax_out=None, plot_all_labels=False, **slabsconfig):
         ''' notice j, i and not i, j 
         i is y, j is x? or the other way round. It's always complicated
         with indexes anyway... (y goes up but j goes down) you see what i mean
-        it works, anyway '''
+        it works, anyway
+        
+        Other Parameters
+        ----------------
+        
+        ax_out: ax
+            if None, plot to the GridTool. Else, plot to this ax (used for export)
+            
+        plot_all_labels: bool
+            force plot all labels
+            
+        '''
 
-        ax2 = self.ax
         lineexp = self.lineexp
         linesim = self.linesim
         legends2 = self.legends2
@@ -218,17 +228,28 @@ class Grid3x3():
 
         get_residual = self.fitroom.solver.get_residual
 
-        axij = ax2[j][i]   # note it's (j,i) not (i,j)
+        if ax_out is None:
+            ax2 = self.ax
+            axij = ax2[j][i]   # note it's (j,i) not (i,j)
+        else:
+            axij = ax_out
         axij.format_coord = self.format_coord
 
         ydata = norm_on(wexp, Iexpcalib) if normalize else Iexpcalib
         norm_factor_exp = ydata.max()/Iexpcalib.max()
-        try:
-            lineexp[(i, j)]  # does not change anyway .set_data(wexp, ydata)
-        except KeyError:
-            lines, = plot_stack(wexp, ydata, '-k', lw=2, ax=axij)
-            lineexp[(i, j)] = lines
-
+        
+        # Plot experiment
+        if ax_out is None:
+            # Plot on GridTool
+            try:
+                lineexp[(i, j)]  # does not change anyway .set_data(wexp, ydata)
+            except KeyError:
+                lines, = plot_stack(wexp, ydata, '-k', lw=2, ax=axij)
+                lineexp[(i, j)] = lines
+        else:
+            # Plot externally
+            plot_stack(wexp, ydata, '-k', lw=2, ax=axij)
+            
         # Get calculated spectra
         # type: Spectrum # saved by calc_case. None if failed
         s = self.spectra[(i, j)]
@@ -254,31 +275,37 @@ class Grid3x3():
         norm_factor = ydata.max()/I.max()
         rnorm_factor = norm_factor/norm_factor_exp  # relative norm factor
 
-        try:
-            linesim[(i, j)].set_data(w, ydata)
-            legends2[(i, j)].texts[0].set_text('res {0:.3g}{1}'.format(res,
-                     ' norm {0:.2f}'.format(rnorm_factor) if rnorm_factor!=1 else ''))
-        except KeyError:
-            line, = axij.plot(w, ydata, 'r')
-            linesim[(i, j)] = line
-            legends2[(i, j)] = axij.legend((line,), ('res {0:.3g}{1}'.format(res,
-                     ' norm {0:.2f}'.format(rnorm_factor) if rnorm_factor!=1 else ''),),
-                                           loc='upper left', prop={'size': 10})
+        # Plot calculation
+        if ax_out is None:
+            # Plot on GridTool
+            try:
+                linesim[(i, j)].set_data(w, ydata)
+                legends2[(i, j)].texts[0].set_text('res {0:.3g}{1}'.format(res,
+                         ' norm {0:.2f}'.format(rnorm_factor) if rnorm_factor!=1 else ''))
+            except KeyError:
+                line, = axij.plot(w, ydata, 'r')
+                linesim[(i, j)] = line
+                legends2[(i, j)] = axij.legend((line,), ('res {0:.3g}{1}'.format(res,
+                         ' norm {0:.2f}'.format(rnorm_factor) if rnorm_factor!=1 else ''),),
+                                               loc='upper left', prop={'size': 10})
 
-        self.update_markers(fconfig, i, j)
+            self.update_markers(fconfig, i, j)
+        else:
+            # Plot externally
+            axij.plot(w, ydata, 'r')
 
         # Remember than case (i,j) corresponds to ax2[j,i] which means: j = rows,
         # i = columns
-        if j == 2:
+        if j == 2 or plot_all_labels:
             axij.set_xlabel('Wavelength')
-        if i == 0:
+        if i == 0 or plot_all_labels:
             if yparam in ['mole_fraction', 'path_length']:  # special format
                 axij.set_ylabel('{0} {1:.2g}'.format(
                     yparam, fconfig[slbInteracty][yparam]))
             else:
                 axij.set_ylabel('{0} {1:.1f}'.format(
                     yparam, fconfig[slbInteracty][yparam]))
-        if j == 0:
+        if j == 0 or plot_all_labels:
             if xparam in ['mole_fraction', 'path_length']:  # special format
                 axij.set_title('{0} {1:.2g}'.format(
                     xparam, fconfig[slbInteractx][xparam]), size=20)
@@ -290,8 +317,98 @@ class Grid3x3():
         fix_style('origin', axij)
 
         # If centered, also update the multislab tool
-        if i == 1 and j == 1:
+        if i == 1 and j == 1 and ax_out is None:
             self.plot_all_slabs(s, slabs)
+
+    def _add_multicursor(self):
+        ''' Add vertical bar (if not there already)'''
+
+        if self.multi2 is None:
+            ax = self.ax
+#            multi2 = MultiCursor(self.fig.canvas, (*ax[0], *ax[1], *ax[2]),
+#                                 color='r', lw=1,
+#                                alpha=0.2, horizOn=False, vertOn=True)
+           # Python 2 compatible (but ugly... switch to Python3 now!)
+            multi2 = MultiCursor(self.fig.canvas, (ax[0][0], ax[0][1], ax[0][2],
+                                                   ax[1][0], ax[1][1], ax[1][2],
+                                                   ax[2][0], ax[2][1], ax[2][2]),
+                                 color='r', lw=1,
+                                 alpha=0.2, horizOn=False, vertOn=True)
+            self.multi2 = multi2
+        else:
+            pass
+
+    def plot_3times3(self, xspace=None, yspace=None):
+
+        if xspace is None:
+            xspace = self.xspace  # use last ones
+        if yspace is None:
+            yspace = self.yspace  # use last ones
+
+        slbInteractx = self.slbInteractx
+        slbInteracty = self.slbInteracty
+        xparam = self.xparam
+        yparam = self.yparam
+
+        # update defaults
+        self.xspace = xspace
+        self.yspace = yspace
+
+        # update center
+        self.fitroom.Slablist[slbInteractx][xparam] = xspace[1]
+        self.fitroom.Slablist[slbInteracty][yparam] = yspace[1]
+
+        fig2 = self.fig
+
+        # dont calculate these when the figure is not shown (for performance)
+        if self.fitroom.perfmode:
+            try:  # works in Qt
+                updateSideAxes = not fig2.canvas.manager.window.isMinimized()
+            except:
+                updateSideAxes = True
+        else:
+            updateSideAxes = True
+
+        # Do the calculations
+        for i, xvari in enumerate(xspace):
+            for j, yvarj in enumerate(yspace[::-1]):
+                if not (i == 1 and j == 1) and not updateSideAxes:
+                    continue
+                config0 = self.fitroom.get_config()   # create a copy
+                config0[slbInteractx][xparam] = xvari
+                config0[slbInteracty][yparam] = yvarj
+                self.fitroom.eval_dynvar(config0)  # update dynamic parameters
+                self.calc_case(i, j, **config0)   # here we calculate
+                self.plot_case(i, j, **config0)   # here we plot
+
+        # Plot title with all slabs conditions
+        # use last one, dont print variable parameter
+        del config0[slbInteractx][xparam]
+        # note that DynPara are the last one only!
+        del config0[slbInteracty][yparam]
+        # TODO: use intersect dict function
+        msg = ''
+        for k, cfgi in config0.items():
+            msg += k+' - '
+            msg += ' '.join(
+                ['{0}:{1:.3g}'.format(k, float(v)) for (k, v) in cfgi.items()
+                 if not k in ['db', 'factory', 'bandlist', 'source',
+                              'overpopulation',  # readable but too many lines
+                              ]])
+            msg += ' || '
+        msg = msg[:-4]
+        msg = textwrap.wrap(msg, width=200)
+        fig2.suptitle('\n'.join(msg), size=10)
+        fig2.tight_layout()
+        fig2.subplots_adjust(top=0.93-0.02*len(msg))
+
+        # Add cursor than spans over all subplots
+        self._add_multicursor()
+
+        # Show figure
+        fig2.canvas.show()
+        plt.show()
+        plt.pause(0.05)
 
     def plot_for_export(self, style='origin', cases=[],
                         ls='-', lw=1, xlim=None, ylim=None, labelvar='xy',
@@ -473,174 +590,45 @@ class Grid3x3():
         plt.legend(loc='best', fontsize=18)        
         return fig2, ax2
 
-    def _add_multicursor(self):
-        ''' Add vertical bar (if not there already)'''
+    def plot_for_export_1times3(self, cases=[],
+                        ls='-', lw=1, xlim=None, ylim=None, labelvar='xy',
+                        color=None, labelunit='K',
+                        cutwings=0, kwargs_exp={}):
+        '''
+        See Also
+        --------
+        
+        plot_for_export
+        
+        '''
 
-        if self.multi2 is None:
-            ax = self.ax
-#            multi2 = MultiCursor(self.fig.canvas, (*ax[0], *ax[1], *ax[2]),
-#                                 color='r', lw=1,
-#                                alpha=0.2, horizOn=False, vertOn=True)
-           # Python 2 compatible (but ugly... switch to Python3 now!)
-            multi2 = MultiCursor(self.fig.canvas, (ax[0][0], ax[0][1], ax[0][2],
-                                                   ax[1][0], ax[1][1], ax[1][2],
-                                                   ax[2][0], ax[2][1], ax[2][2]),
-                                 color='r', lw=1,
-                                 alpha=0.2, horizOn=False, vertOn=True)
-            self.multi2 = multi2
-        else:
-            pass
-
-    def plot_3times3(self, xspace=None, yspace=None):
-
-        if xspace is None:
-            xspace = self.xspace  # use last ones
-        if yspace is None:
-            yspace = self.yspace  # use last ones
-
-        slbInteractx = self.slbInteractx
-        slbInteracty = self.slbInteracty
-        xparam = self.xparam
-        yparam = self.yparam
-
-        # update defaults
-        self.xspace = xspace
-        self.yspace = yspace
-
-        # update center
-        self.fitroom.Slablist[slbInteractx][xparam] = xspace[1]
-        self.fitroom.Slablist[slbInteracty][yparam] = yspace[1]
-
-        fig2 = self.fig
-
-        # dont calculate these when the figure is not shown (for performance)
-        if self.fitroom.perfmode:
-            try:  # works in Qt
-                updateSideAxes = not fig2.canvas.manager.window.isMinimized()
-            except:
-                updateSideAxes = True
-        else:
-            updateSideAxes = True
-
-        # Do the calculations
-        for i, xvari in enumerate(xspace):
-            for j, yvarj in enumerate(yspace[::-1]):
-                if not (i == 1 and j == 1) and not updateSideAxes:
-                    continue
-                config0 = self.fitroom.get_config()   # create a copy
-                config0[slbInteractx][xparam] = xvari
-                config0[slbInteracty][yparam] = yvarj
-                self.fitroom.eval_dynvar(config0)  # update dynamic parameters
-                self.calc_case(i, j, **config0)   # here we calculate
-                self.plot_case(i, j, **config0)   # here we plot
-
-        # Plot title with all slabs conditions
-        # use last one, dont print variable parameter
-        del config0[slbInteractx][xparam]
-        # note that DynPara are the last one only!
-        del config0[slbInteracty][yparam]
-        # TODO: use intersect dict function
-        msg = ''
-        for k, cfgi in config0.items():
-            msg += k+' - '
-            msg += ' '.join(
-                ['{0}:{1:.3g}'.format(k, float(v)) for (k, v) in cfgi.items()
-                 if not k in ['db', 'factory', 'bandlist', 'source',
-                              'overpopulation',  # readable but too many lines
-                              ]])
-            msg += ' || '
-        msg = msg[:-4]
-        msg = textwrap.wrap(msg, width=200)
-        fig2.suptitle('\n'.join(msg), size=10)
-        fig2.tight_layout()
-        fig2.subplots_adjust(top=0.93-0.02*len(msg))
-
-        # Add cursor than spans over all subplots
-        self._add_multicursor()
+        fig2, ax2 = plt.subplots(1, 3, sharex=True, sharey=True, figsize=(16, 5))
+        
+        # Plot
+        for idx, (j, i) in enumerate(cases):  # reversed? seems more logical this way.
+            self.plot_case(i, j, ax_out=ax2[idx],
+                            plot_all_labels=True)   # here we plot
 
         # Show figure
         fig2.canvas.show()
         plt.show()
         plt.pause(0.05)
+        
+        # Update labels
+        ax2[0].set_xlabel('')
+        ax2[1].set_xlabel('Wavelength (nm)')
+        ax2[2].set_xlabel('')
+        ax2[0].set_ylabel('')
+        ax2[1].set_ylabel('')
+        ax2[2].set_ylabel('')
+        
+        fig2.tight_layout()
+        
+        # Update plots
 
-#    def plot_for_export_1times3(self, xspace=None, yspace=None):
-#        '''
-#        See Also
-#        --------
-#        
-#        plot_for_export
-#        
-#        '''
-#
-#        if xspace is None:
-#            xspace = self.xspace  # use last ones
-#        if yspace is None:
-#            yspace = self.yspace  # use last ones
-#
-#        slbInteractx = self.slbInteractx
-#        slbInteracty = self.slbInteracty
-#        xparam = self.xparam
-#        yparam = self.yparam
-#
-#        # update defaults
-#        self.xspace = xspace
-#        self.yspace = yspace
-#
-#        # update center
-#        self.fitroom.Slablist[slbInteractx][xparam] = xspace[1]
-#        self.fitroom.Slablist[slbInteracty][yparam] = yspace[1]
-#
-#        plt.figure(2, figsize=(16, 5)).clear()
-#        fig2, ax2 = plt.subplots(1, 3, sharex=True, sharey=True,
-#                                 num=2)
-#        
-#        # dont calculate these when the figure is not shown (for performance)
-#        if self.fitroom.perfmode:
-#            try:  # works in Qt
-#                updateSideAxes = not fig2.canvas.manager.window.isMinimized()
-#            except:
-#                updateSideAxes = True
-#        else:
-#            updateSideAxes = True
-#
-#        # Do the calculations
-#        for i, xvari in enumerate(xspace):
-#            for j, yvarj in enumerate(list(yspace[1])):
-#                if not (i == 1 and j == 1) and not updateSideAxes:
-#                    continue
-#                s = spectra[(i, j)]
-#                config0 = self.fitroom.get_config()   # create a copy
-#                config0[slbInteractx][xparam] = xvari
-#                config0[slbInteracty][yparam] = yvarj
-#                self.fitroom.eval_dynvar(config0)  # update dynamic parameters
-#                self.calc_case(i, j, **config0)   # here we calculate
-#                self.plot_case(i, j, **config0)   # here we plot
-#
-#        # Plot title with all slabs conditions
-#        # use last one, dont print variable parameter
-#        del config0[slbInteractx][xparam]
-#        # note that DynPara are the last one only!
-#        del config0[slbInteracty][yparam]
-#        # TODO: use intersect dict function
-#        msg = ''
-#        for k, cfgi in config0.items():
-#            msg += k+' - '
-#            msg += ' '.join(
-#                ['{0}:{1:.3g}'.format(k, float(v)) for (k, v) in cfgi.items()
-#                 if not k in ['db', 'factory', 'bandlist', 'source',
-#                              'overpopulation',  # readable but too many lines
-#                              ]])
-#            msg += ' || '
-#        msg = msg[:-4]
-#        msg = textwrap.wrap(msg, width=200)
-#        fig2.suptitle('\n'.join(msg), size=10)
-#        fig2.tight_layout()
-#        fig2.subplots_adjust(top=0.93-0.02*len(msg))
-#
-#        # Add cursor than spans over all subplots
-#        self._add_multicursor()
-#
-#        # Show figure
-#        fig2.canvas.show()
-#        plt.show()
-#        plt.pause(0.05)
+        if xlim is not None:
+            plt.xlim(xlim)
+        if ylim is not None:
+            plt.ylim(ylim)
+            
+        return fig2, ax2
