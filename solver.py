@@ -66,8 +66,7 @@ class SlabsConfigSolver():
         slit_options:
             if ``'default'``, use::
 
-                {'norm_by':'area', 'shape':'triangular',
-                                                  'unit':'nm'}
+                {'norm_by':'area', 'shape':'triangular', 'unit':'nm', 'verbose':False}
 
             and adapt ``'shape'`` to ``'trapezoidal'`` if a tuple was given for slit
 
@@ -134,6 +133,8 @@ class SlabsConfigSolver():
             else:
                 slit_options = {'norm_by': 'area',
                                 'shape': 'triangular', 'unit': 'nm'}
+        if 'verbose' not in slit_options:
+            slit_options['verbose'] = False
         self.slit_options = slit_options
 
         self.crop = crop
@@ -412,16 +413,17 @@ class SlabsConfigSolver():
         # Calculate the Line of Sight model
         s = config(**slabs)
         # Keep initial conditions in output Spectrum
-        for slabname, si in slabs.items():
-            s.conditions['{0}'.format(slabname)] = '*'*80
-            for k, v in si.conditions.items():
-                s.conditions['{0}_{1}'.format(slabname, k)] = v
+        if len(slabs) > 1 :
+            for slabname, si in slabs.items():
+                s.conditions['{0}'.format(slabname)] = '*'*80
+                for k, v in si.conditions.items():
+                    s.conditions['{0}_{1}'.format(slabname, k)] = v
         
         # (for developers: helps IDE find autocompletion)
 #        assert isinstance(s, Spectrum)
 
         if slit:
-            s.apply_slit(slit, verbose=False, **self.slit_options)
+            s.apply_slit(slit, **self.slit_options)
 
         return s, slabs, fconds
 

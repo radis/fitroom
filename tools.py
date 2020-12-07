@@ -6,7 +6,7 @@ Created on Thu Aug  3 16:27:38 2017
 """
 
 from __future__ import absolute_import
-from neq.misc import norm_on
+from radis.misc.arrays import norm_on
 
 
 def Normalizer(wmin, wmax, how='mean'):
