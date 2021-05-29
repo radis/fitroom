@@ -11,53 +11,53 @@ Created on Mon Sep 18 01:58:04 2017
 from __future__ import absolute_import
 from __future__ import print_function
 import matplotlib.pyplot as plt
-from neq.misc.debug import printdbg
+from radis.misc.debug import printdbg
 
 try:
-    from neq.math.fitroom import CaseSelector
-    from neq.math.fitroom import Grid3x3
-    from neq.math.fitroom import MultiSlabPlot
-    from neq.math.fitroom import SlabsConfigSolver
-    from neq.math.fitroom import Overpopulator
-    from neq.math.fitroom import SlitTool
-except:
     from .selection_tool import CaseSelector
     from .grid3x3_tool import Grid3x3
     from .multislab_tool import MultiSlabPlot
     from .solver import SlabsConfigSolver
     from .noneq_tool import Overpopulator
     from .slit_tool import SlitTool
+except:  # if ran directly from this file
+    from fitroom import CaseSelector
+    from fitroom import Grid3x3
+    from fitroom import MultiSlabPlot
+    from fitroom import SlabsConfigSolver
+    from fitroom import Overpopulator
+    from fitroom import SlitTool
 
 
 class FitRoom():
 
     def __init__(self, Slablist, slbInteractx, slbInteracty, xparam, yparam,
                  perfmode=False):
-        ''' 
+        '''
         Parameters
         ----------
 
         perfmode: boolean
             if ``True`` we try to optimize calculation times (ex: minimized windows
             are not recalculated)
-            
+
 
         Examples
         --------
-        
+
         See the working case in :mod:`~neq.test.math.test_fitroom`. In particular, run
         :func:`~neq.test.math.test_fitroom.test_start_fitroom`
-            
+
         See Also
         --------
-        
+
         :class:`~neq.math.fitroom.selection_tool.CaseSelector`,
         :class:`~neq.math.fitroom.grid3x3_tool.Grid3x3`,
         :class:`~neq.math.fitroom.multislab_tool.MultiSlabPlot`,
         :class:`~neq.math.fitroom.solver.SlabsConfigSolver`,
         :class:`~neq.math.fitroom.noneq_tool.Overpopulator`,
-        :class:`~neq.math.fitroom.slit_tool.SlitTool` 
-        
+        :class:`~neq.math.fitroom.slit_tool.SlitTool`
+
         '''
         self.tools = []
 
@@ -71,7 +71,7 @@ class FitRoom():
 
         self.Slablist = Slablist
         self.perfmode = perfmode
-        
+
         self.slbInteractx = slbInteractx
         self.slbInteracty = slbInteracty
         self.xparam = xparam
@@ -158,8 +158,8 @@ class FitRoom():
 
     def eval_dynvar(self, config):
         ''' Evaluate dynamic links for a given configuration. Changes updated
-        config (inplace) 
-        Note that 'self' in DynVar can be used to refer to the current slab 
+        config (inplace)
+        Note that 'self' in DynVar can be used to refer to the current slab
         '''
 
         # Evaluate dynamic quantities
@@ -182,9 +182,9 @@ class DynVar():
     ----------
 
     slab: str
-        slab config name in Slablist. Note that ``'self'`` in DynVar can be used 
+        slab config name in Slablist. Note that ``'self'`` in DynVar can be used
         to refer to the DynVar's own slab. Ex::
-            
+
             slabPlasma={
                     'Trot':2000,
                     'Tvib':DynVar('self', 'Trot'),
@@ -198,7 +198,7 @@ class DynVar():
 
     Examples
     --------
-    
+
     ::
 
         slbPostCO2 = {
@@ -209,23 +209,23 @@ class DynVar():
                 'path_length':0.7,
                 'mole_fraction':0.35,
                  }
-    
+
         slbPostCO = {
               'db':dbco,
               'Tgas':slbPostCO2['Tgas'],
-              'path_length':DynVar('sPostCO2', 'path_length', lambda x:x),  
+              'path_length':DynVar('sPostCO2', 'path_length', lambda x:x),
                             # evaluated at runtime using names in Slablist
               'mole_fraction':0.01,
                }
-     
+
        Slablist = {
                  'sPostCO2': slbPostCO2,
                  'sPostCO': slbPostCO,
                  }
-       
-    You can also use a function, for instance to maintain the equilibrium 
+
+    You can also use a function, for instance to maintain the equilibrium
     concentration in a fit on temperature::
-                        
+
         from radis.tools.gascomp import get_eq_mole_fraction
         get_co2_eq = lambda T: get_eq_mole_fraction('CO2:1', T, 1e5)
         slbPlasmaCO2 = {
@@ -235,8 +235,8 @@ class DynVar():
                  'path_length':0.025,
                  'mole_fraction':DynVar('self', 'Trot', get_co2_eq),
                  }
-                 
-    Here the CO2 Plasma slab is always evaluated with Tvib=Trot and x_co2 
+
+    Here the CO2 Plasma slab is always evaluated with Tvib=Trot and x_co2
     at chemical equilibrium with T=Trot.
 
     '''

@@ -20,8 +20,8 @@ from radis import SpecDatabase, Spectrum  # imported for static debugger
 from radis.tools.database import SpecList, _scalable_inputs
 from radis.spectrum.compare import get_residual
 from radis import SpectrumFactory
-from neq.misc.debug import printdbg
-from neq.misc.basics import is_float
+from radis.misc.debug import printdbg
+from radis.misc.basics import is_float
 import sys
 import pandas as pd
 

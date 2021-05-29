@@ -4,7 +4,7 @@ Created on Sun Sep 17 14:46:31 2017
 
 @author: erwan
 
-Non-equilibrium tool to define overpopulations 
+Non-equilibrium tool to define overpopulations
 
 -------------------------------------------------------------------------------
 
@@ -16,36 +16,36 @@ from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import patches
-from neq.phys.conv import cm2eV
+from radis.phys.convert import cm2eV
 
 
 class Overpopulator():
 
     def __init__(self, slab, levels='all', nfig=None):
-        ''' 
+        '''
         Parameters
         ----------
 
         slab:
-            slab to connect to. Must be a slab calculated with from_band source 
+            slab to connect to. Must be a slab calculated with from_band source
             mode
 
 
         Examples
         --------
-        
+
         See the working case in :mod:`~neq.test.math.test_fitroom`. In particular, run
         :func:`~neq.test.math.test_fitroom.test_start_fitroom`
-            
+
         See Also
         --------
-        
+
         :class:`~neq.math.fitroom.selection_tool.CaseSelector`,
         :class:`~neq.math.fitroom.grid3x3_tool.Grid3x3`,
         :class:`~neq.math.fitroom.multislab_tool.MultiSlabPlot`,
         :class:`~neq.math.fitroom.solver.SlabsConfigSolver`,
         :class:`~neq.math.fitroom.room.FitRoom`,
-        :class:`~neq.math.fitroom.slit_tool.SlitTool` 
+        :class:`~neq.math.fitroom.slit_tool.SlitTool`
         '''
 
         self.nfig = nfig
@@ -135,13 +135,13 @@ class Overpopulator():
 
 
 class DraggablePoint:
-    ''' A draggable point. Modified to allow vertical movement only 
+    ''' A draggable point. Modified to allow vertical movement only
 
 
     Initial source code
     ---------
 
-    from Idealist 
+    from Idealist
     @https://stackoverflow.com/questions/21654008/matplotlib-drag-overlapping-points-interactively
 
     '''

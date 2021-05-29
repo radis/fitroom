@@ -16,8 +16,8 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 from radis.tools.slit import (get_slit_function, get_effective_FWHM, get_FWHM)
 from radis.spectrum.utils import WAVELEN_UNITS, WAVENUM_UNITS
-from neq.phys.conv import nm2cm, cm2nm
-from neq.misc import is_float
+from radis.phys.convert import nm2cm, cm2nm
+from radis.misc.basics import is_float
 import numpy as np
 from six import string_types
 import warnings

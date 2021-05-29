@@ -15,9 +15,8 @@ from __future__ import print_function
 import matplotlib.pyplot as plt
 import textwrap
 from matplotlib.widgets import MultiCursor
-from neq.plot import plot_stack
-from neq.plot.toolbar import add_tools
-from neq.plot.pretty import make_up
+from radis.misc.plot import split_and_plot_by_parts as plot_stack
+from radis.spectrum.utils import make_up
 from radis import Spectrum   # for IDE hints
 import warnings
 from numpy import nan
@@ -32,33 +31,33 @@ class Grid3x3():
                  normalizer=None,
                  s_exp=None
                  ):
-        ''' Where the output of a :class:`~neq.math.fitroom.selection_tool.CaseSelector` 
-        is shown. 
-        
+        ''' Where the output of a :class:`~neq.math.fitroom.selection_tool.CaseSelector`
+        is shown.
+
         Examples
         --------
-        
+
         See the working case in :mod:`~neq.test.math.test_fitroom`. In particular, run
         :func:`~neq.test.math.test_fitroom.test_start_fitroom`
-            
+
         See Also
         --------
-        
+
         :class:`~neq.math.fitroom.selection_tool.CaseSelector`,
         :class:`~neq.math.fitroom.multislab_tool.MultiSlabPlot`,
         :class:`~neq.math.fitroom.solver.SlabsConfigSolver`,
         :class:`~neq.math.fitroom.noneq_tool.Overpopulator`,
         :class:`~neq.math.fitroom.room.FitRoom`,
-        :class:`~neq.math.fitroom.slit_tool.SlitTool` 
-        
+        :class:`~neq.math.fitroom.slit_tool.SlitTool`
+
         When you're happy with a fit, use:
-            
+
         :meth:`~neq.math.fitroom.grid3x3_tool.plot_for_export`
-           
+
         '''
         # TODO: read slbInteractx, slbInteracty, xparam, yparam from Fitroom
         # and remove them as parameters here. Same for selectTool.
-        
+
         set_style('origin')
 
         plt.figure(2, figsize=(16, 12)).clear()
@@ -68,6 +67,7 @@ class Grid3x3():
         self.fig = fig2
         self.ax = ax2
         try:
+            from neq.plot.toolbar import add_tools # TODO: replace
             add_tools()       # includes a Ruler
         except:
             pass
@@ -152,7 +152,7 @@ class Grid3x3():
         self.fig.canvas.draw()
 
     def calc_case(self, i, j, **slabsconfig):
-        ''' notice j, i and not i, j 
+        ''' notice j, i and not i, j
         i is y, j is x? or the other way round. It's always complicated
         with indexes anyway... (y goes up but j goes down) you see what i mean
         it works, anyway '''
@@ -193,20 +193,20 @@ class Grid3x3():
         return
 
     def plot_case(self, i, j, ax_out=None, plot_all_labels=False, **slabsconfig):
-        ''' notice j, i and not i, j 
+        ''' notice j, i and not i, j
         i is y, j is x? or the other way round. It's always complicated
         with indexes anyway... (y goes up but j goes down) you see what i mean
         it works, anyway
-        
+
         Other Parameters
         ----------------
-        
+
         ax_out: ax
             if None, plot to the GridTool. Else, plot to this ax (used for export)
-            
+
         plot_all_labels: bool
             force plot all labels
-            
+
         '''
 
         lineexp = self.lineexp
@@ -237,7 +237,7 @@ class Grid3x3():
 
         ydata = norm_on(wexp, Iexpcalib) if normalize else Iexpcalib
         norm_factor_exp = ydata.max()/Iexpcalib.max()
-        
+
         # Plot experiment
         if ax_out is None:
             # Plot on GridTool
@@ -249,7 +249,7 @@ class Grid3x3():
         else:
             # Plot externally
             plot_stack(wexp, ydata, '-k', lw=2, ax=axij)
-            
+
         # Get calculated spectra
         # type: Spectrum # saved by calc_case. None if failed
         s = self.spectra[(i, j)]
@@ -270,7 +270,7 @@ class Grid3x3():
 
         ydata = norm_on(w, I) if normalize else I
         # get normalizing factor (to print it)
-        # Note: it can be used to have an idea of mole fractions by setting 
+        # Note: it can be used to have an idea of mole fractions by setting
         # mole_fraction = 1 and using normalize
         norm_factor = ydata.max()/I.max()
         rnorm_factor = norm_factor/norm_factor_exp  # relative norm factor
@@ -415,43 +415,43 @@ class Grid3x3():
                         color=None, labelunit='K',
                         cutwings=0, kwargs_exp={}):
         ''' Sum all center column in one case.
-        
+
         Parameters
         ----------
-        
+
         cases: list
-            list of [(row, column)] to plot. If ``None`` or [], use a vertical 
+            list of [(row, column)] to plot. If ``None`` or [], use a vertical
             line, i.e. ::
-                
+
                 cases=[(1,1), (0,1), (2,1)]
-            
+
         ls: str ('-', '-.', etc.), list, or dict
-            if str, use the same. If list, rotate. If dict, use ``cases`` 
+            if str, use the same. If list, rotate. If dict, use ``cases``
             as keys.
-            
+
             the first one is plot in solid line, the others in alternate with
             '-.', ':', '-.'
-            
+
         Other Parameters
         ----------------
-        
+
         labelvar: 'x', 'y', 'xy'
             which variable to add. default 'xy'
             Ex::
-                
+
                 Tvib=, Trot=
                 Tvib=
                 Trot=
-        
+
         cutwings:
             see :func:`~neq.plot.utils.plot_stack`
-            
+
         kwargs_exp: dict
-            parameters forwarded to `~neq.plot.utils.plot_stack` to plot the 
+            parameters forwarded to `~neq.plot.utils.plot_stack` to plot the
             experiment
-            
+
         '''
-        
+
         if not cases:
             cases = [(1,1), (0,1), (2,1)]
 
@@ -482,7 +482,7 @@ class Grid3x3():
                 'label':'Experiment'}
         kwargs_exp_default.update(kwargs_exp)
         plot_stack(wexp, ydata, '-', ax=axij, cutwings=cutwings, **kwargs_exp)
-        
+
         for index, (j, i) in enumerate(cases):   # reversed? seems more logical this way.
 #            color = ['b', 'r', 'g'][(i+j)]
 
@@ -502,12 +502,12 @@ class Grid3x3():
             w, I = s.get(plotquantity, wunit='nm', Iunit=unit)
 
             ydata = norm_on(w, I) if normalize else I
-            
+
             xvalue = fconfig[slbInteractx][xparam]
             yvalue = fconfig[slbInteracty][yparam]
-            
+
             # Label of each plot
-            if labelunit == 'K':            
+            if labelunit == 'K':
                 if labelvar == 'xy':
                     label = make_up('{0} {1:.0f}K {2} {3:.0f}K'.format(xparam,xvalue,
                                                                        yparam,yvalue))
@@ -523,8 +523,8 @@ class Grid3x3():
                     label = make_up('{0} {1:.2f}{2}'.format(xparam,xvalue, labelunit))
                 elif labelvar == 'y':
                     label = make_up('{0} {1:.2f}{2}'.format(yparam,yvalue, labelunit))
-                    
-                
+
+
             # Style:
             if isinstance(ls, list):
                 ls_i = ls[index%len(ls)]
@@ -554,7 +554,7 @@ class Grid3x3():
                 color_i = color[(j, i)]
             else:
                 color_i = color
-                
+
             axij.plot(w, ydata, label=label, color=color_i, ls=ls_i, lw=lw_i)
 
             self.update_markers(fconfig, i, j)
@@ -587,7 +587,7 @@ class Grid3x3():
         if ylim is not None:
             plt.ylim(ylim)
 
-        plt.legend(loc='best', fontsize=18)        
+        plt.legend(loc='best', fontsize=18)
         return fig2, ax2
 
     def plot_for_export_1times3(self, cases=[],
@@ -597,13 +597,13 @@ class Grid3x3():
         '''
         See Also
         --------
-        
+
         plot_for_export
-        
+
         '''
 
         fig2, ax2 = plt.subplots(1, 3, sharex=True, sharey=True, figsize=(16, 5))
-        
+
         # Plot
         for idx, (j, i) in enumerate(cases):  # reversed? seems more logical this way.
             self.plot_case(i, j, ax_out=ax2[idx],
@@ -613,7 +613,7 @@ class Grid3x3():
         fig2.canvas.show()
         plt.show()
         plt.pause(0.05)
-        
+
         # Update labels
         ax2[0].set_xlabel('')
         ax2[1].set_xlabel('Wavelength (nm)')
@@ -621,14 +621,14 @@ class Grid3x3():
         ax2[0].set_ylabel('')
         ax2[1].set_ylabel('')
         ax2[2].set_ylabel('')
-        
+
         fig2.tight_layout()
-        
+
         # Update plots
 
         if xlim is not None:
             plt.xlim(xlim)
         if ylim is not None:
             plt.ylim(ylim)
-            
+
         return fig2, ax2

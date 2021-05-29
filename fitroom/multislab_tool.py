@@ -19,9 +19,8 @@ from __future__ import print_function
 import matplotlib.pyplot as plt
 from matplotlib.widgets import MultiCursor
 from mpldatacursor import HighlightingDataCursor
-from neq.phys.conv import cm2eV
-from neq.plot import plot_stack
-from neq.plot.toolbar import add_tools
+from radis.phys.convert import cm2eV
+from radis.misc.plot import split_and_plot_by_parts as plot_stack
 import warnings
 from numpy import nan
 from publib import set_style, fix_style
@@ -90,6 +89,7 @@ class MultiSlabPlot():
 
         self.fig, self.ax = self._init_plot(nfig=nfig)
         try:
+            from neq.plot.toolbar import add_tools       #TODO : replace
             add_tools()       # includes a Ruler
         except:
             pass
