@@ -1,7 +1,7 @@
 # fitroom
 
 
-https://user-images.githubusercontent.com/16088743/119992452-dacb7d00-bfca-11eb-9a4c-d368ae4fdcd7.mp4
+https://user-images.githubusercontent.com/16088743/120166810-4ac14980-c1fd-11eb-9dd5-8fb037db8793.mp4
 
 
 
