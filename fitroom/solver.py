@@ -30,6 +30,75 @@ class SlabsConfigSolver():
     '''
     Machinery related to solving a specific Slabs configuration: parse the database,
     get the correct slab input, then calls the appropriate functions in neq.spec engine
+
+    Parameters
+    ----------
+
+    config: dict
+        list of Slabs that represent the Spatial model (to solve RTE)
+
+    source: 'database', 'calculate', 'from_bands'
+        Whether to calculate spectra from scratch, retrieve them from a database,
+        or combine vibrational bands
+        Mode can be overriden by a 'source' parameter in every slab
+
+    s_exp: :class:`~radis.spectrum.spectrum.Spectrum` 
+        experimental spectrum
+
+    plotquantity: 'radiance', 'transmittance_noslit', etc.
+
+
+    Other Parameters
+    ----------------
+
+    get_closest: bool
+        when retrieving spectra from database, get cloest if set to True. Else
+        get unique. 
+
+    slit_options:
+        if ``'default'``, use::
+
+            {'norm_by':'area', 'shape':'triangular', 'unit':'nm', 'verbose':False}
+
+        and adapt ``'shape'`` to ``'trapezoidal'`` if a tuple was given for slit
+
+    crop: tuple, or None
+        if not ``None``, restrain to the given fitted interval.
+
+    retrieve_error: 'ignore', 'raise'
+        if Spectrum cannot be calculated or retrieved from Database, then
+        returns ``None`` as a Spectrum object. The rest of the code should
+        deal with it. Else, raises an error immediatly. 
+
+    retrieve_mode: 'safe', 'strict', 'closest'
+        how to retrieve spectra when reading from database:
+
+            - if 'strict', only retrieve the spectra that exactly match 
+            the given conditions (allow scaling path_length or mole_fraction, still)
+
+            - if 'safe', requires an exact match for all conditions (as in 
+            'strict'), except for the 2 user defined variable conditions 
+            ``xparam`` and ``yparam`` 
+
+            - if 'closest', retrieves the closest spectrum in the database 
+
+                .. warning:: 
+                    'closest' can induce user errors!!!. Ex: a Trot=1500 K 
+                    spectrum can be used instead of a Trot=1550 K spectrum
+                    if the latter is not available, without user necessarily
+                    noticing. If you have any doubt, print the conditions
+                    of the spectra used in the tools. Ex::
+
+                        for s in gridTool.spectra:
+                            print(s)
+
+
+    Examples
+    --------
+
+    See the working case in :mod:`~neq.test.math.test_fitroom`. In particular, run
+    :func:`~neq.test.math.test_fitroom.test_start_fitroom`
+
     '''
 
     def __init__(self, config, source=None,
@@ -38,79 +107,8 @@ class SlabsConfigSolver():
                  slit=None, slit_options='default',
                  crop=None, retrieve_mode='safe',
                  verbose=True, retrieve_error='ignore'):
-        '''
-        Parameters
-        ----------
-
-        config: dict
-            list of Slabs that represent the Spatial model (to solve RTE)
-
-        source: 'database', 'calculate', 'from_bands'
-            Whether to calculate spectra from scratch, retrieve them from a database,
-            or combine vibrational bands
-            Mode can be overriden by a 'source' parameter in every slab
-
-        s_exp: :class:`~radis.spectrum.spectrum.Spectrum` 
-            experimental spectrum
-
-        plotquantity: 'radiance', 'transmittance_noslit', etc.
-
-
-        Other Parameters
-        ----------------
-
-        get_closest: bool
-            when retrieving spectra from database, get cloest if set to True. Else
-            get unique. 
-
-        slit_options:
-            if ``'default'``, use::
-
-                {'norm_by':'area', 'shape':'triangular', 'unit':'nm', 'verbose':False}
-
-            and adapt ``'shape'`` to ``'trapezoidal'`` if a tuple was given for slit
-
-        crop: tuple, or None
-            if not ``None``, restrain to the given fitted interval.
-
-        retrieve_error: 'ignore', 'raise'
-            if Spectrum cannot be calculated or retrieved from Database, then
-            returns ``None`` as a Spectrum object. The rest of the code should
-            deal with it. Else, raises an error immediatly. 
-
-        retrieve_mode: 'safe', 'strict', 'closest'
-            how to retrieve spectra when reading from database:
-
-                - if 'strict', only retrieve the spectra that exactly match 
-                the given conditions (allow scaling path_length or mole_fraction, still)
-
-                - if 'safe', requires an exact match for all conditions (as in 
-                'strict'), except for the 2 user defined variable conditions 
-                ``xparam`` and ``yparam`` 
-
-                - if 'closest', retrieves the closest spectrum in the database 
-
-                    .. warning:: 
-                        'closest' can induce user errors!!!. Ex: a Trot=1500 K 
-                        spectrum can be used instead of a Trot=1550 K spectrum
-                        if the latter is not available, without user necessarily
-                        noticing. If you have any doubt, print the conditions
-                        of the spectra used in the tools. Ex::
-
-                            for s in gridTool.spectra:
-                                print(s)
-
-
-        Examples
-        --------
-
-        See the working case in :mod:`~neq.test.math.test_fitroom`. In particular, run
-        :func:`~neq.test.math.test_fitroom.test_start_fitroom`
-
-        '''
-
-#        self.dbInteractx = dbInteractx
-#        self.dbInteracty = dbInteracty
+        #        self.dbInteractx = dbInteractx
+        #        self.dbInteracty = dbInteracty
 
         self.config = config
 
