@@ -281,20 +281,17 @@ class SlabsConfigSolver():
                                             **cfg)
                     elif self.retrieve_mode == 'safe':
                         # all parameters are enforced, except the 2 chosen by the user (xparam, yparam)
+                        cfg_fixed = {k: v for k, v in cfg.items() if k not in
+                                     _scalable_inputs}
                         if slabname == self.fitroom.slbInteractx:
-                            cfg_fixed = {k: v for k, v in cfg.items() if k not in
-                                         _scalable_inputs+[self.fitroom.xparam]}
-                        elif slabname == self.fitroom.slbInteracty:
-                            cfg_fixed = {k: v for k, v in cfg.items() if k not in
-                                         _scalable_inputs+[self.fitroom.yparam]}
-                        else:
-                            cfg_fixed = {k: v for k, v in cfg.items() if k not in
-                                         _scalable_inputs}
+                            cfg_fixed.pop(self.fitroom.xparam)
+                        if slabname == self.fitroom.slbInteracty:
+                            cfg_fixed.pop(self.fitroom.yparam)
                         # Get spectra corresponding to fixed parameters
                         slist = dbi.get(verbose=False, **cfg_fixed)
                         if len(slist) == 0:
                             # give more insights:
-                            dbi.get_closest(scale_if_possible=True, verbose=True, **cfg_fixed)
+                            dbi.get_closest(scale_if_possible=True, verbose=2, **cfg_fixed)
                             raise ValueError('Spectrum not found with these conditions. ' +
                                              'See closest spectrum above')
                         # Within this list, get the closest ones
