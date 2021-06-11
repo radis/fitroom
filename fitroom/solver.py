@@ -283,9 +283,9 @@ class SlabsConfigSolver():
                         # all parameters are enforced, except the 2 chosen by the user (xparam, yparam)
                         cfg_fixed = {k: v for k, v in cfg.items() if k not in
                                      _scalable_inputs}
-                        if slabname == self.fitroom.slbInteractx:
+                        if slabname == self.fitroom.slbInteractx and self.fitroom.xparam in cfg_fixed.keys():
                             cfg_fixed.pop(self.fitroom.xparam)
-                        if slabname == self.fitroom.slbInteracty:
+                        if slabname == self.fitroom.slbInteracty and self.fitroom.yparam in cfg_fixed.keys():
                             cfg_fixed.pop(self.fitroom.yparam)
                         # Get spectra corresponding to fixed parameters
                         slist = dbi.get(verbose=False, **cfg_fixed)
