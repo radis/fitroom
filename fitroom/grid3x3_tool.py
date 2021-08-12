@@ -265,6 +265,7 @@ class Grid3x3():
             return
 
         # calculate residuals
+        s = s.take(plotquantity)
         res = get_residual(s)
         w, I = s.get(plotquantity, wunit='nm', Iunit=unit)
 

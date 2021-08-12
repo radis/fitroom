@@ -19,6 +19,7 @@ from __future__ import print_function
 import matplotlib.pyplot as plt
 from matplotlib.widgets import MultiCursor
 from mpldatacursor import HighlightingDataCursor
+from radis import Spectrum
 from radis.phys.convert import cm2eV
 from radis.misc.plot import split_and_plot_by_parts as plot_stack
 import warnings
@@ -459,7 +460,7 @@ class MultiSlabPlot():
 
         return fig30, fig31
 
-    def plot_all_slabs(self, s, slabs):
+    def plot_all_slabs(self, s: Spectrum, slabs):
 
         if s is None:
             self._plot_failed(
@@ -532,35 +533,35 @@ class MultiSlabPlot():
             with warnings.catch_warnings():
                 warnings.filterwarnings(
                     'ignore', "interpolating slit function over spectrum grid")
-                for i, (name, s) in enumerate(slabs.items()):
-                    s.apply_slit(slit, **slit_options)
+                for i, (name, si) in enumerate(slabs.items()):
+                    si.apply_slit(slit, **slit_options)
                     color = next(colors)
-                    line3up[i].set_data(*s.get('radiance', Iunit=Iunit, wunit=self.wunit))
-                    line3down[i].set_data(*s.get('transmittance', wunit=self.wunit))
+                    line3up[i].set_data(*si.take('radiance').get('radiance', Iunit=Iunit, wunit=self.wunit))
+                    line3down[i].set_data(*si.take('transmittance').get('transmittance', wunit=self.wunit))
                     if self.show_noslit_slabs:
                         line3up_noslit[i].set_data(
-                            *s.get('radiance_noslit', Iunit=Iunit, wunit=self.wunit))
+                            *si.get('radiance_noslit', Iunit=Iunit, wunit=self.wunit))
                         line3down_noslit[i].set_data(
-                            *s.get('transmittance_noslit', wunit=self.wunit))
+                            *si.get('transmittance_noslit', wunit=self.wunit))
         except KeyError:  # first time: init lines
             colors = colorserie()
             for i, (name, si) in enumerate(slabs.items()):
                 si.apply_slit(slit, **slit_options)
                 color = next(colors)
                 ls = '-' if i < 6 else '--'
-                line3up[i] = ax3[0].plot(*si.get('radiance', Iunit=Iunit, wunit=self.wunit), color=color,
+                line3up[i] = ax3[0].plot(*si.take('radiance').get('radiance', Iunit=Iunit, wunit=self.wunit), color=color,
                                          lw=0.5, ls=ls, label=name)[0]
-                line3down[i] = ax3[2].plot(*si.get('transmittance', wunit=self.wunit), color=color,
+                line3down[i] = ax3[2].plot(*si.take('transmittance').get('transmittance', wunit=self.wunit), color=color,
                                            lw=0.5, ls=ls, label=name)[0]
             if self.show_noslit_slabs:
                 colors = colorserie()
                 ymax = ax3[0].get_ylim()[1]
                 for i, (name, si) in enumerate(slabs.items()):
                     color = next(colors)
-                    line3up_noslit[i] = ax3[0].plot(*si.get('radiance_noslit', Iunit=Iunit, wunit=self.wunit), color=color,
+                    line3up_noslit[i] = ax3[0].plot(*si.take('radiance_noslit').get('radiance_noslit', Iunit=Iunit, wunit=self.wunit), color=color,
                                                     lw=0.5, ls=ls, alpha=0.15, zorder=-1)[0]
 #                    ax3[0].set_ylim(ymax=ymax)  # keep no slit yscale
-                    line3down_noslit[i] = ax3[2].plot(*si.get('transmittance_noslit', wunit=self.wunit), color=color,
+                    line3down_noslit[i] = ax3[2].plot(*si.take('transmittance_noslit').get('transmittance_noslit', wunit=self.wunit), color=color,
                                                       lw=0.5, ls=ls, alpha=0.15, zorder=-1)[0]
                 ax3[0].set_ylim(ymax=ymax)  # keep no slit yscale
 #            if not normalize:
