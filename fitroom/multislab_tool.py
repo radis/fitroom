@@ -540,9 +540,9 @@ class MultiSlabPlot():
                     line3down[i].set_data(*si.take('transmittance').get('transmittance', wunit=self.wunit))
                     if self.show_noslit_slabs:
                         line3up_noslit[i].set_data(
-                            *si.get('radiance_noslit', Iunit=Iunit, wunit=self.wunit))
+                            *si.take('radiance_noslit').get('radiance_noslit', Iunit=Iunit, wunit=self.wunit))
                         line3down_noslit[i].set_data(
-                            *si.get('transmittance_noslit', wunit=self.wunit))
+                            *si.take('transmittance_noslit').get('transmittance_noslit', wunit=self.wunit))
         except KeyError:  # first time: init lines
             colors = colorserie()
             for i, (name, si) in enumerate(slabs.items()):
