@@ -267,9 +267,9 @@ class Grid3x3():
             return
 
         # calculate residuals
-        s = s.take(plotquantity)
         res = get_residual(s)
-        w, I = s.get(plotquantity, wunit=wunit, Iunit=unit)
+        w, I = s.take(plotquantity).get(plotquantity, wunit=wunit, Iunit=unit)
+
 
         ydata = norm_on(w, I) if normalize else I
         # get normalizing factor (to print it)
