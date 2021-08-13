@@ -193,9 +193,8 @@ class SlabsConfigSolver():
 
         '''
 
-        plotquantity = self.plotquantity
-
-        return get_residual(self.s_exp, s, plotquantity, ignore_nan=True,
+        plotquantity = self.plotquantity     
+        return get_residual(self.s_exp, s.take(plotquantity), plotquantity, ignore_nan=True, 
                             normalize=normalize, normalize_how=normalize_how)
 
 #        wexp = self.wexp
