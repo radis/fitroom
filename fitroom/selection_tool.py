@@ -46,7 +46,7 @@ class CaseSelector():
     def __init__(self, dbInteractx=None, dbInteracty=None, xparam='', yparam='',
                  slbInteractx=None, slbInteracty=None, nfig=None,
                  xmin=0, xmax=0, ymin=0, ymax=0,
-                 plot_data_color='k', plotquantity='radiance'):
+                 plot_data_color='k'):
         ''' Main tool to choose which cases to plot 
         
         Examples
@@ -84,7 +84,6 @@ class CaseSelector():
         self.xparam = xparam
         self.yparam = yparam
         self.nfig = nfig
-        self.plotquantity = plotquantity
 
         if dbInteractx is not None and dbInteracty is not None:
             self.mode = 'database'
@@ -323,7 +322,7 @@ class CaseSelector():
 
     def precompute_residual(self, Slablist, xspace='database', yspace='database',
                             contour='contourf', normalize=False, normalize_how='max',
-                            vmin=None, vmax=None, plotquantity=None):
+                            vmin=None, vmax=None):
         ''' Plot residual for all points in database.
 
         Parameters
@@ -369,9 +368,6 @@ class CaseSelector():
         slbInteracty = self.slbInteracty
         xparam = self.xparam
         yparam = self.yparam
-        if plotquantity is None:
-            plotquantity = self.plotquantity
-            print('{0} is taken by default'.format(plotquantity))
 
         calc_slabs = self.fitroom.solver.calc_slabs
         get_residual = self.fitroom.solver.get_residual
@@ -421,7 +417,7 @@ class CaseSelector():
                             fconfig))
                     return
 
-                resij = resij = get_residual(s.take(plotquantity), normalize=normalize, 
+                resij = resij = get_residual(s, normalize=normalize, 
                                              normalize_how=normalize_how)
                 res.append(resij)
             pb.done()
@@ -463,7 +459,7 @@ class CaseSelector():
                             fconfig))
                         return
 
-                    resij = get_residual(s.take(plotquantity), normalize=normalize, 
+                    resij = get_residual(s, normalize=normalize, 
                                              normalize_how=normalize_how)
 
                     res[i][j] = resij
