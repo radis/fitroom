@@ -13,6 +13,7 @@ get the correct slab input, then calls the appropriate functions in neq.spec eng
 
 from __future__ import absolute_import
 from __future__ import print_function
+from typing import Union
 import numpy as np
 from scipy.interpolate import splev, splrep
 from warnings import warn
@@ -155,7 +156,7 @@ class SlabsConfigSolver():
         ''' Triggered on connection to FitRoom '''
         self.fitroom = fitroom         # type: FitRoom
 
-    def get_residual(self, s, normalize=False, normalize_how='max'):
+    def get_residual(self, s: Spectrum, normalize=False, normalize_how='max'):
         ''' Returns difference between experimental and simulated spectra
         By default, uses :func:`~radis.spectrum.compare.get_residual` function
         You can change the residual by overriding this function. 
@@ -229,7 +230,7 @@ class SlabsConfigSolver():
 #
 #        return error
 
-    def calc_slabs(self, **slabsconfig):
+    def calc_slabs(self, **slabsconfig) -> Union[Spectrum, dict, dict]:
         '''
         Parameters
         ----------

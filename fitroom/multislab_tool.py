@@ -493,7 +493,7 @@ class MultiSlabPlot():
         slit_options = self.fitroom.solver.slit_options
 
         # Central axe: model vs experiment
-        w, I = s.get(plotquantity, Iunit=unit, wunit=self.wunit)
+        w, I = s.take(plotquantity).get(plotquantity, Iunit=unit, wunit=self.wunit)
         ydata = norm_on(w, I) if normalize else I
         try:
             line3cent[1].set_data(w, ydata)
