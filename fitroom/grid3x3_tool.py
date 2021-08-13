@@ -27,7 +27,7 @@ class Grid3x3():
 
     def __init__(self, slbInteractx=None, slbInteracty=None,
                  xparam='', yparam='',
-                 plotquantity='radiance', unit='mW/cm2/sr/nm',
+                 plotquantity='radiance', unit='mW/cm2/sr/nm', wunit='nm',
                  normalizer=None,
                  s_exp=None
                  ):
@@ -88,12 +88,13 @@ class Grid3x3():
 
         self.plotquantity = plotquantity
         self.unit = unit
+        self.wunit = wunit
         self.normalize = normalizer is not None
         self.normalizer = normalizer
 
         self.s_exp = s_exp
         if s_exp is not None:
-            wexp, Iexpcalib = s_exp.get(plotquantity, Iunit=unit)
+            wexp, Iexpcalib = s_exp.get(plotquantity, wunit=wunit, Iunit=unit)
         self.wexp = wexp
         self.Iexpcalib = Iexpcalib
 
@@ -220,6 +221,7 @@ class Grid3x3():
 
         plotquantity = self.plotquantity
         unit = self.unit
+        wunit = self.wunit
         normalize = self.normalize
         norm_on = self.normalizer
 
@@ -266,7 +268,8 @@ class Grid3x3():
 
         # calculate residuals
         res = get_residual(s)
-        w, I = s.take(plotquantity).get(plotquantity, wunit='nm', Iunit=unit)
+        w, I = s.take(plotquantity).get(plotquantity, wunit=wunit, Iunit=unit)
+
 
         ydata = norm_on(w, I) if normalize else I
         # get normalizing factor (to print it)
@@ -467,6 +470,7 @@ class Grid3x3():
 
         plotquantity = self.plotquantity
         unit = self.unit
+        wunit = self.wunit
         normalize = self.normalize
         norm_on = self.normalizer
 
@@ -499,7 +503,7 @@ class Grid3x3():
                 return
 
             # calculate residuals
-            w, I = s.get(plotquantity, wunit='nm', Iunit=unit)
+            w, I = s.get(plotquantity, wunit=wunit, Iunit=unit)
 
             ydata = norm_on(w, I) if normalize else I
 
