@@ -30,87 +30,85 @@ class SlabsConfigSolver():
     '''
     Machinery related to solving a specific Slabs configuration: parse the database,
     get the correct slab input, then calls the appropriate functions in neq.spec engine
+
+    Parameters
+    ----------
+
+    config: dict
+        list of Slabs that represent the Spatial model (to solve RTE)
+
+    source: 'database', 'calculate', 'from_bands'
+        Whether to calculate spectra from scratch, retrieve them from a database,
+        or combine vibrational bands
+        Mode can be overriden by a 'source' parameter in every slab
+
+    s_exp: :class:`~radis.spectrum.spectrum.Spectrum` 
+        experimental spectrum
+
+    plotquantity: 'radiance', 'transmittance_noslit', etc.
+
+
+    Other Parameters
+    ----------------
+
+    get_closest: bool
+        when retrieving spectra from database, get cloest if set to True. Else
+        get unique. 
+
+    slit_options:
+        if ``'default'``, use::
+
+            {'norm_by':'area', 'shape':'triangular', 'unit':'nm', 'verbose':False}
+
+        and adapt ``'shape'`` to ``'trapezoidal'`` if a tuple was given for slit
+
+    crop: tuple, or None
+        if not ``None``, restrain to the given fitted interval.
+
+    retrieve_error: 'ignore', 'raise'
+        if Spectrum cannot be calculated or retrieved from Database, then
+        returns ``None`` as a Spectrum object. The rest of the code should
+        deal with it. Else, raises an error immediatly. 
+
+    retrieve_mode: 'safe', 'strict', 'closest'
+        how to retrieve spectra when reading from database:
+
+            - if 'strict', only retrieve the spectra that exactly match 
+            the given conditions (allow scaling path_length or mole_fraction, still)
+
+            - if 'safe', requires an exact match for all conditions (as in 
+            'strict'), except for the 2 user defined variable conditions 
+            ``xparam`` and ``yparam`` 
+
+            - if 'closest', retrieves the closest spectrum in the database 
+
+                .. warning:: 
+                    'closest' can induce user errors!!!. Ex: a Trot=1500 K 
+                    spectrum can be used instead of a Trot=1550 K spectrum
+                    if the latter is not available, without user necessarily
+                    noticing. If you have any doubt, print the conditions
+                    of the spectra used in the tools. Ex::
+
+                        for s in gridTool.spectra:
+                            print(s)
+
+
+    Examples
+    --------
+
+    See the working case in :mod:`~neq.test.math.test_fitroom`. In particular, run
+    :func:`~neq.test.math.test_fitroom.test_start_fitroom`
+
     '''
 
     def __init__(self, config, source=None,
                  s_exp=None,
                  plotquantity='radiance', unit='mW/cm2/sr/nm',
                  slit=None, slit_options='default',
-                 crop=None, retrieve_mode='safe', 
+                 crop=None, retrieve_mode='safe',
                  verbose=True, retrieve_error='ignore'):
-        '''
-        Parameters
-        ----------
-
-        config: dict
-            list of Slabs that represent the Spatial model (to solve RTE)
-
-        source: 'database', 'calculate', 'from_bands'
-            Whether to calculate spectra from scratch, retrieve them from a database,
-            or combine vibrational bands
-            Mode can be overriden by a 'source' parameter in every slab
-
-        s_exp: :class:`~radis.spectrum.spectrum.Spectrum` 
-            experimental spectrum
-
-        plotquantity: 'radiance', 'transmittance_noslit', etc.
-
-
-        Other Parameters
-        ----------------
-        
-        get_closest: bool
-            when retrieving spectra from database, get cloest if set to True. Else
-            get unique. 
-
-        slit_options:
-            if ``'default'``, use::
-
-                {'norm_by':'area', 'shape':'triangular', 'unit':'nm', 'verbose':False}
-
-            and adapt ``'shape'`` to ``'trapezoidal'`` if a tuple was given for slit
-
-        crop: tuple, or None
-            if not ``None``, restrain to the given fitted interval.
-
-        retrieve_error: 'ignore', 'raise'
-            if Spectrum cannot be calculated or retrieved from Database, then
-            returns ``None`` as a Spectrum object. The rest of the code should
-            deal with it. Else, raises an error immediatly. 
-        
-        retrieve_mode: 'safe', 'strict', 'closest'
-            how to retrieve spectra when reading from database:
-                
-                - if 'strict', only retrieve the spectra that exactly match 
-                the given conditions (allow scaling path_length or mole_fraction, still)
-                
-                - if 'safe', requires an exact match for all conditions (as in 
-                'strict'), except for the 2 user defined variable conditions 
-                ``xparam`` and ``yparam`` 
-                
-                - if 'closest', retrieves the closest spectrum in the database 
-                
-                    .. warning:: 
-                        'closest' can induce user errors!!!. Ex: a Trot=1500 K 
-                        spectrum can be used instead of a Trot=1550 K spectrum
-                        if the latter is not available, without user necessarily
-                        noticing. If you have any doubt, print the conditions
-                        of the spectra used in the tools. Ex::
-                            
-                            for s in gridTool.spectra:
-                                print(s)
-                
-
-        Examples
-        --------
-        
-        See the working case in :mod:`~neq.test.math.test_fitroom`. In particular, run
-        :func:`~neq.test.math.test_fitroom.test_start_fitroom`
-            
-        '''
-
-#        self.dbInteractx = dbInteractx
-#        self.dbInteracty = dbInteracty
+        #        self.dbInteractx = dbInteractx
+        #        self.dbInteracty = dbInteracty
 
         self.config = config
 
@@ -140,10 +138,10 @@ class SlabsConfigSolver():
         self.crop = crop
         if crop is not None:
             raise NotImplementedError('crop not defined yet. Better crop the experimental spectrum directly')
-        
+
         # Database retrieve options
         self.retrieve_mode = retrieve_mode   #: str 'safe', 'strict', 'closest'
-        
+
         self.verbose = verbose
 
         # not a public option, but can be changed manually
@@ -195,8 +193,7 @@ class SlabsConfigSolver():
 
         '''
 
-        plotquantity = self.plotquantity
-        
+        plotquantity = self.plotquantity     
         return get_residual(self.s_exp, s.take(plotquantity), plotquantity, ignore_nan=True, 
                             normalize=normalize, normalize_how=normalize_how)
 
@@ -268,7 +265,7 @@ class SlabsConfigSolver():
                     warn('`database` source mode used but `bandlist` is given')
 
                 dbi = cfg.pop('db')    # type: SpecDatabase
-                
+
 #                # Split columns in database if needed
 #                split_columns_list = []
 #                for k, v in cfg.items():
@@ -276,47 +273,44 @@ class SlabsConfigSolver():
 #                        split_columns_list.append(k)
 #                if split_columns_list:
 #                    dbi.df = expand_columns(dbi.df, split_columns_list)
-                
+
                 try:
                     if self.retrieve_mode == 'strict':
                         si = dbi.get_unique(scale_if_possible=True, verbose=verbose,
-                                             **cfg)
+                                            **cfg)
                     elif self.retrieve_mode == 'safe':
                         # all parameters are enforced, except the 2 chosen by the user (xparam, yparam)
-                        if slabname == self.fitroom.slbInteractx:    
-                            cfg_fixed = {k:v for k,v in cfg.items() if k not in 
-                                         _scalable_inputs+[self.fitroom.xparam]}
-                        elif slabname == self.fitroom.slbInteracty:    
-                            cfg_fixed = {k:v for k,v in cfg.items() if k not in 
-                                         _scalable_inputs+[self.fitroom.yparam]}
-                        else:    
-                            cfg_fixed = {k:v for k,v in cfg.items() if k not in 
-                                         _scalable_inputs}
-                        # Get spectra corresponding to fixed parameters 
+                        cfg_fixed = {k: v for k, v in cfg.items() if k not in
+                                     _scalable_inputs}
+                        if slabname == self.fitroom.slbInteractx and self.fitroom.xparam in cfg_fixed.keys():
+                            cfg_fixed.pop(self.fitroom.xparam)
+                        if slabname == self.fitroom.slbInteracty and self.fitroom.yparam in cfg_fixed.keys():
+                            cfg_fixed.pop(self.fitroom.yparam)
+                        # Get spectra corresponding to fixed parameters
                         slist = dbi.get(verbose=False, **cfg_fixed)
                         if len(slist) == 0:
                             # give more insights:
-                            dbi.get_closest(scale_if_possible=True, verbose=True, **cfg_fixed)
-                            raise ValueError('Spectrum not found with these conditions. '+\
+                            dbi.get_closest(scale_if_possible=True, verbose=2, **cfg_fixed)
+                            raise ValueError('Spectrum not found with these conditions. ' +
                                              'See closest spectrum above')
                         # Within this list, get the closest ones
-                        si = SpecList(*slist).get_closest(scale_if_possible=True, verbose=verbose, 
-                                             **cfg)
+                        si = SpecList(*slist).get_closest(scale_if_possible=True, verbose=verbose,
+                                                          **cfg)
                     elif self.retrieve_mode == 'closest':
-                        si = dbi.get_closest(scale_if_possible=True, verbose=verbose, 
+                        si = dbi.get_closest(scale_if_possible=True, verbose=verbose,
                                              **cfg)
                     else:
                         raise NotImplementedError(self.retrieve_mode)
                 except:
                     print(('An error occured while retrieving Spectrum from database: \n{0}'.format(
-                            sys.exc_info())))
+                        sys.exc_info())))
                     if self.retrieve_error == 'ignore':
                         si = None
-                    else: # self.retrieve_error == 'raise':
+                    else:  # self.retrieve_error == 'raise':
                         raise
 
             elif source == 'calculate':
-                
+
                 # hack. get it working with multi Tvib.
                 if 'Tvib1' in cfg and 'Tvib2' in cfg and 'Tvib3' in cfg and 'Tvib' not in cfg:
                     Tvib1 = cfg.pop('Tvib1')
@@ -332,6 +326,7 @@ class SlabsConfigSolver():
                     warn('`calculate` source mode used but `bandlist` is given')
 
                 sfi = cfg.pop('factory')        # type: SpectrumFactory
+                cfg.pop('db', None)             # remove db if it exists
                 if 'Tvib' in cfg and 'Trot' in cfg:
                     si = sfi.non_eq_spectrum(**cfg)
                 elif 'Tgas' in cfg:
@@ -401,24 +396,24 @@ class SlabsConfigSolver():
 
                 slabs[slabname] = si.copy()
                 fconds[slabname] = fcondsi
-                
+
         # Add the value we want, recalculate if needed
-        required_quantities = set(['transmittance_noslit', 'radiance_noslit']) 
-        # TODO: deal with case where self.plotquantity is not any of the above, 
+        required_quantities = set(['transmittance_noslit', 'radiance_noslit'])
+        # TODO: deal with case where self.plotquantity is not any of the above,
         # or a convoluted value of them
         for required_quantity in required_quantities:
             for _, si in slabs.items():
                 si.update(required_quantity, verbose=False)
-            
+
         # Calculate the Line of Sight model
         s = config(**slabs)
         # Keep initial conditions in output Spectrum
-        if len(slabs) > 1 :
+        if len(slabs) > 1:
             for slabname, si in slabs.items():
                 s.conditions['{0}'.format(slabname)] = '*'*80
                 for k, v in si.conditions.items():
                     s.conditions['{0}_{1}'.format(slabname, k)] = v
-        
+
         # (for developers: helps IDE find autocompletion)
 #        assert isinstance(s, Spectrum)
 
@@ -428,49 +423,49 @@ class SlabsConfigSolver():
         return s, slabs, fconds
 
 
-#def expand_columns(df, split_columns, verbose=True):
-#    ''' Split columns in database if needed 
-#    
+# def expand_columns(df, split_columns, verbose=True):
+#    ''' Split columns in database if needed
+#
 #    Parameters
 #    ----------
-#    
+#
 #    df: pandas DataFrame
-#        conditions of spectrum database 
+#        conditions of spectrum database
 #    '''
-#    
+#
 #    assert isinstance(split_columns, list)
 #
 #    # Deal with multiple columns
 #    for splitcolumn in split_columns:
 #        if splitcolumn in df.columns:
 #            dsplit = df[splitcolumn].str.split(',', expand=True)
-#            dsplit.rename(columns={k:splitcolumn+str(k+1) for k in dsplit.columns}, 
+#            dsplit.rename(columns={k:splitcolumn+str(k+1) for k in dsplit.columns},
 #                                  inplace=True)
 #            dsplit = dsplit.apply(pd.to_numeric)
-##            df = pd.concat([df, dsplit], ignore_index=True).reindex(df.index)  # hopefully keep first index?
+# df = pd.concat([df, dsplit], ignore_index=True).reindex(df.index)  # hopefully keep first index?
 #            if not any([c in df.columns for c in dsplit.columns]):
 #                df = pd.concat([df, dsplit], axis=1)
 #            else:
 #                if verbose:
 #                    print('Columns already expanded: {0}'.format([c for c in dsplit.columns
 #                          if c in df.columns]))
-#            
+#
 #        else:
 #            raise KeyError('{0} given in split_columns but not in Database: {1}'.format(
 #                    splitcolumn, df.columns))
-##                    if splitcolumn in kwconditions:
+# if splitcolumn in kwconditions:
 ##                        v = kwconditions.pop(splitcolumn)
-##                        try:
+# try:
 ##                            v = v.split(',')
-##                        except AttributeError:
-##                            raise AttributeError('Key {0} is expected to be '.format(splitcolumn)+\
-##                                                 'a comma separated string. Got {0}'.format(v))
-##                        for k, vi in enumerate(v):
+# except AttributeError:
+# raise AttributeError('Key {0} is expected to be '.format(splitcolumn)+\
+# 'a comma separated string. Got {0}'.format(v))
+# for k, vi in enumerate(v):
 ##                            kwconditions[splitcolumn+str(k+1)] = vi
-##                    else:
-##                        raise KeyError('{0} given in split_columns but not in conditions: {1}'.format(
-##                                splitcolumn, dg.columns))
-#            
+# else:
+# raise KeyError('{0} given in split_columns but not in conditions: {1}'.format(
+# splitcolumn, dg.columns))
+#
 #    return df
 #
-#                
+#

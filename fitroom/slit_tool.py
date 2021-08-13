@@ -232,10 +232,9 @@ class SlitTool():
         fig = self.fig
         ax = self.ax
 
-        from neq.plot.toolbar import add_tools
         try:
-            add_tools()       # includes a Ruler to measure slit
-        except:
+            from radis.tools.plot_tools import add_ruler
+        except ImportError:
             pass
 
         # Check input

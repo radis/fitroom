@@ -48,23 +48,23 @@ class CaseSelector():
                  xmin=0, xmax=0, ymin=0, ymax=0,
                  plot_data_color='k'):
         ''' Main tool to choose which cases to plot 
-        
+
         Examples
         --------
-        
+
         See the working case in :mod:`~neq.test.math.test_fitroom`. In particular, run
         :func:`~neq.test.math.test_fitroom.test_start_fitroom`
-            
+
         See Also
         --------
-        
+
         :class:`~neq.math.fitroom.grid3x3_tool.Grid3x3`,
         :class:`~neq.math.fitroom.multislab_tool.MultiSlabPlot`,
         :class:`~neq.math.fitroom.solver.SlabsConfigSolver`,
         :class:`~neq.math.fitroom.noneq_tool.Overpopulator`,
         :class:`~neq.math.fitroom.room.FitRoom`,
         :class:`~neq.math.fitroom.slit_tool.SlitTool` 
-        
+
         '''
 
         # Init variables
@@ -92,8 +92,8 @@ class CaseSelector():
 #            assert(factoryx is not None and factoryy is not None)
 #            assert(x0=0, y0=0, xstep=0, ystep=0)
 
-        self.plot_data_color=plot_data_color
-        
+        self.plot_data_color = plot_data_color
+
         # Init figure
         if self.mode == 'database':
             fig, ax = self._plot_db_params()
@@ -143,16 +143,16 @@ class CaseSelector():
 
     def _plot_db_params(self, **kwargs):
         ''' Plot database 
-        
+
         Parameters
         ----------
-        
+
         kwargs: dict
             forwarded to plot
         '''
-        
+
         # default:
-        kwargs.update({'color':self.plot_data_color})
+        kwargs.update({'color': self.plot_data_color})
 
         # Get inputs
         dbInteractx = self.dbInteractx
@@ -174,29 +174,29 @@ class CaseSelector():
 
         x = dbInteractx.df[xparam]
         y = dbInteracty.df[yparam]
- 
+
 #        try:
 #            x = dbInteractx.df[xparam]
 #        except KeyError:
 #            # maybe key needs to be expanded. (ex: asking for Tvib1=... while Tvib=(...,...) is given)
-#            # note @dev: done as a a posteriori hack/fix for multi Tvib modes. 
+#            # note @dev: done as a a posteriori hack/fix for multi Tvib modes.
 #            if xparam[:-1] in dbInteractx.df:
 #                dbInteractx.df = expand_columns(dbInteractx.df, [xparam[:-1]])
 #                x = dbInteractx.df[xparam]
 #            else:
 #                raise
-#            
+#
 #        try:
 #            y = dbInteracty.df[yparam]
 #        except KeyError:
 #            # maybe key needs to be expanded. (ex: asking for Tvib1=... while Tvib=(...,...) is given)
-#            # note @dev: done as a a posteriori hack/fix for multi Tvib modes. 
+#            # note @dev: done as a a posteriori hack/fix for multi Tvib modes.
 #            if yparam[:-1] in dbInteracty.df:
 #                dbInteracty.df = expand_columns(dbInteracty.df, [yparam[:-1]])
 #                y = dbInteracty.df[yparam]
 #            else:
 #                raise
-            
+
         # Plot
         fig, ax = plt.subplots(num=nfig)
         if dbInteractx == dbInteracty:
@@ -340,19 +340,19 @@ class CaseSelector():
 
         Other Parameters
         ----------------
-        
+
         vmin, vmax: float
             used for colorbar
 
         Examples
         --------
-        
+
         When ``yparam`` is mole_fraction and we want to calculate for many mole 
         fraction conditions from 0 to 1. ::
-            
+
             selectTool.precompute_residual(Slablist, normalize=normalize,
                                yspace=np.linspace(0.1, 1, 10))
-        
+
         '''
         from warnings import catch_warnings, filterwarnings
         from radis.misc.warning import SlitDispersionWarning
@@ -409,15 +409,15 @@ class CaseSelector():
 
                 with catch_warnings():
                     filterwarnings('ignore', category=SlitDispersionWarning)
-                    filterwarnings('ignore', category=UserWarning) # ignore all for the moment
+                    filterwarnings('ignore', category=UserWarning)  # ignore all for the moment
                     s, slabs, fconfig = calc_slabs(**config0)
 
                 if s is None:   # spectrum not calculated
                     print('Spectrum not calculated. Couldnt calculate residuals: {0}'.format(
-                            fconfig))
+                        fconfig))
                     return
 
-                resij = resij = get_residual(s, normalize=normalize, 
+                resij = resij = get_residual(s, normalize=normalize,
                                              normalize_how=normalize_how)
                 res.append(resij)
             pb.done()
@@ -451,27 +451,27 @@ class CaseSelector():
 
                     with catch_warnings():
                         filterwarnings('ignore', category=SlitDispersionWarning)
-                        filterwarnings('ignore', category=UserWarning) # ignore all for the moment
+                        filterwarnings('ignore', category=UserWarning)  # ignore all for the moment
                         s, slabs, fconfig = calc_slabs(**config0)
-    
+
                     if s is None:   # spectrum not calculated
                         print('Spectrum not calculated. Couldnt calculate residuals'.format(
                             fconfig))
                         return
 
-                    resij = get_residual(s, normalize=normalize, 
-                                             normalize_how=normalize_how)
+                    resij = get_residual(s, normalize=normalize,
+                                         normalize_how=normalize_how)
 
                     res[i][j] = resij
             pb.done()
 
         try:
-            if contour=='contourf':
+            if contour == 'contourf':
                 cf = ax1.contourf(xx, yy, res, 40, cmap=plt.get_cmap('viridis_r'),
                                   vmin=vmin, vmax=vmax)
-            elif contour=='contour':
+            elif contour == 'contour':
                 cf = ax1.contour(xx, yy, res, 40, cmap=plt.get_cmap('viridis_r'),
-                                  vmin=vmin, vmax=vmax)
+                                 vmin=vmin, vmax=vmax)
             elif isinstance(contour, float):
                 # Add your own label
                 cf = ax1.contourf(xx, yy, res, 40, cmap=plt.get_cmap('viridis_r'),
@@ -479,10 +479,10 @@ class CaseSelector():
                 cs2 = ax1.contour(xx, yy, res, 40, levels=[contour],
                                   vmin=vmin, vmax=vmax)
 #                self.cs2 = cs2
-#                self.clabel = ax1.clabel(cs2, cs2.levels, inline=True) 
+#                self.clabel = ax1.clabel(cs2, cs2.levels, inline=True)
             else:
                 raise ValueError('Unexpected: {0}'.format(contour))
-            
+
         except TypeError:
             print(sys.exc_info())
             raise TypeError('An error occured (see details above). This may be due ' +
@@ -492,7 +492,7 @@ class CaseSelector():
         cbar = fig1.colorbar(cf)
         cbar.ax.set_ylabel('residual')
         if isinstance(contour, float):
-            cbar.ax.plot([0, 1], [contour]*2, 'k') 
+            cbar.ax.plot([0, 1], [contour]*2, 'k')
 
         # Add z value in infobar:
         Xflat, Yflat, Zflat = xx.flatten(), yy.flatten(), res.flatten()
@@ -509,6 +509,6 @@ class CaseSelector():
 
 
 if __name__ == '__main__':
-    
+
     from neq.test.math.test_fitroom import test_start_fitroom
     test_start_fitroom()

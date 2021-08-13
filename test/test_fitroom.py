@@ -94,7 +94,7 @@ def test_start_fitroom(*args, **kwargs):
     # %% Load Database
     # -----------------------------------------------------------------------------
 
-    db0 = SpecDatabase(getTestFile('HITRAN_CO2_test_spec_database'), lazy_loading=False)   # CO2
+    db0 = SpecDatabase(getTestFile('HITRAN_CO2_test_spec_database'), lazy_loading=False, nJobs=1)   # CO2
 
     # %% `Plot fit
 
