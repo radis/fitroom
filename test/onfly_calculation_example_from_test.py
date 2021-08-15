@@ -19,15 +19,16 @@ interface that displays:
 
 This example calculates spectra on-fly.
 
-Todo
------
+Calculated spectra are stored in a "HITRAN_CO2_test_spec_database" folder
+to be re-used, using the :py:meth:`~radis.lbl.factory.init_database` method
+of :py:class:`~radis.lbl.factory.SpectrumFactory` 
 
-interface
- - used keyboards keys to move rectangle selector
+
 """
 
 import warnings
 from radis.los.slabs import SerialSlabs#, MergeSlabs
+from radis.test.utils import setup_test_line_databases
 import numpy as np
 from numpy import linspace
 from fitroom import CaseSelector
@@ -54,13 +55,15 @@ def getTestFile(file):
 wav_min = 4165
 wav_max = 4200
 
+setup_test_line_databases()  # registers "HITRAN-CO2-TEST" for this example
+
 sf2 = SpectrumFactory(wavelength_min=wav_min,
                       wavelength_max=wav_max,
                       cutoff=1e-25,
                       isotope=[1, 2],
                       medium='air')
 sf2.load_databank('HITRAN-CO2-TEST')
-sf2.init_database(getTestFile('HITRAN_CO2_test_spec_database'))
+sf2.init_database('HITRAN_CO2_test_spec_database')
 # %% `Plot fit
 
 slbPlasmaCO2 = {'factory': sf2,
