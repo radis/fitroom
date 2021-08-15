@@ -148,7 +148,7 @@ fitroom.add_tool(solver)
 fitroom.add_tool(gridTool)
 fitroom.add_tool(slabsTool)
 fitroom.add_tool(selectTool)
-fitroom.add_tool(slitTool)
+
 
 # Map x, y
 # -----------
@@ -159,6 +159,8 @@ xspace = linspace(xvar*(1-xstep), xvar*(1+xstep), 3)
 yspace = linspace(yvar*(1+ystep), yvar*(1-ystep), 3)
 
 gridTool.plot_3times3(xspace, yspace)
+
+fitroom.add_tool(slitTool)
 
 select_xspace = (xspace.min()*0.9, xspace.max()*1.1)
 select_yspace = (yspace.min()*0.9, yspace.max()*1.1)
