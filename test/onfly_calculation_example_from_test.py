@@ -2,7 +2,28 @@
 """
 Created on Sun Aug 15 14:42:13 2021
 
-@author: BlehMaks
+@author: erwan, CorentinGrimaldi, BlehMaks
+
+Description
+-----
+
+Functions to build a 2D, multislabs fitting room with a pure Python (Matplotlib)
+interface that displays:
+
+    (1) a window to select conditions along two axis (to calculate, or retrieve
+    from a database)
+
+    (2) a window to plot 9 spectra corresponding to left, right and center conditions
+
+    (3) a window to decompose the center slab along the different slabs
+
+This example calculates spectra on-fly.
+
+Todo
+-----
+
+interface
+ - used keyboards keys to move rectangle selector
 """
 
 import warnings
