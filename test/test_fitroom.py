@@ -203,7 +203,7 @@ def test_start_fitroom(*args, **kwargs):
     fitroom.add_tool(slabsTool)
     fitroom.add_tool(selectTool)
 #    fitroom.add_tool(overpTool)
-    fitroom.add_tool(slitTool)
+    
 
     # Map x, y
     # -----------
@@ -214,7 +214,7 @@ def test_start_fitroom(*args, **kwargs):
     yspace = linspace(yvar*(1-ystep), yvar*(1+ystep), 3)
 
     gridTool.plot_3times3(xspace, yspace)
-
+    fitroom.add_tool(slitTool)
     # Precompute residual for all points
     # --------------
 
