@@ -10,13 +10,6 @@ An interactive interface for multi-dimensional fitting of emission & absorption 
 
 .. minigallery:: fitroom.FitRoom
 
-    :class:`~fitroom.selection_tool.CaseSelector`,
-    ,
-    ,
-    :class:`~fitroom.solver.SlabsConfigSolver`,
-    :class:`~fitroom.room.FitRoom`,
-    
-
 Features :
 
 - 2D fitting with :class:`~fitroom.grid3x3_tool.Grid3x3`
