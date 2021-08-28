@@ -11,7 +11,7 @@ An interactive interface for multi-dimensional fitting of emission & absorption 
 .. minigallery:: fitroom.FitRoom
 
 Features :
-
+ 
 - 2D fitting with :class:`~fitroom.grid3x3_tool.Grid3x3`
 - See the contribution of each slab in the line-of-sight with :class:`~fitroom.multislab_tool.MultiSlabPlot`
 - Update an instrumental slit function interactively with :class:`~fitroom.slit_tool.SlitTool`
@@ -22,7 +22,8 @@ Features :
     Trot_Plasma_CO2 = Trot_Plasma_CO
 
 - Spectra computed on the fly, or tabulated, powered by :py:mod:`radis`.
-- Automatic fitting with :class:`~fitroom.slit_tool.SlitTool`
+- arbitrary line-of-sight and number of fitted parameters by fitting a combination of :py:func:`~radis.los.slabs.SerialSlabs` and :py:func:`~radis.los.slabs.MergeSlabs`
+- Brute-force fitting with :class:`~fitroom.selection_tool.CaseSelector.precompute_residual`
 
 .. note:: 
 
