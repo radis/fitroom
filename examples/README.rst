@@ -1,2 +1,2 @@
-Fitroom Examples
-================
+Examples
+========

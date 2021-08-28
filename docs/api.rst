@@ -3,7 +3,7 @@
 API
 ===
 
-Documentation of each module and each function in Fitroom
+Documentation of all functions in Fitroom :
 
 .. currentmodule:: fitroom
 
@@ -18,3 +18,13 @@ Documentation of each module and each function in Fitroom
    :template: module.rst
 
    *
+
+
+- :class:`~fitroom.selection_tool.CaseSelector`,
+- :class:`~fitroom.grid3x3_tool.Grid3x3`,
+- :class:`~fitroom.multislab_tool.MultiSlabPlot`,
+- :class:`~fitroom.solver.SlabsConfigSolver`,
+- :class:`~fitroom.room.FitRoom`,
+- :class:`~fitroom.slit_tool.SlitTool`,
+- :class:`~fitroom.slit_tool.Overpopulator`
+

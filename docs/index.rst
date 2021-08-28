@@ -39,6 +39,14 @@ Features :
 
 
 
+See also the automatic fitting functions directly built in RADIS :
+
+- :py:func:`radis.lbl.factory.SpectrumFactory.fit_spectrum`
+
+- :py:func:`radis.tools.database.SpecDatabase.fit_spectrum`
+
+
+
 ---------------------------------------------------------------------
 
 * :ref:`modindex`
