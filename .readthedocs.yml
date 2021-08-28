@@ -9,7 +9,3 @@ python:
   use_system_site_packages: true
 
 requirements_file: docs/requirements.txt
-
-  # Build PDF
-formats:
-    - pdf
