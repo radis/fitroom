@@ -10,4 +10,11 @@ from radis.misc.arrays import norm_on
 
 
 def Normalizer(wmin, wmax, how='mean'):
+    """
+    Examples
+    --------
+    
+    .. minigallery:: fitroom.Normalizer
+
+    """
     return lambda w, a: norm_on(a, w, wmin=wmin, wmax=wmax, how=how)

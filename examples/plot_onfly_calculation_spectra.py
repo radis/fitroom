@@ -1,21 +1,27 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Aug 15 14:42:13 2021
 
-@author: erwan, CorentinGrimaldi, BlehMaks
+==============================================
+Use Fitroom with on-the-fly calculated spectra
+==============================================
+
+Compare experimental spectrum to a combination of precomputed spectra
+powered by the RADIS :py:class:`~radis.tools.database.SpecDatabase` class
+
 
 Description
------
+-----------
 
 Functions to build a 2D, multislabs fitting room with a pure Python (Matplotlib)
 interface that displays:
 
-    (1) a window to select conditions along two axis (to calculate, or retrieve
+- :py:class:`~fitroom.selection_tool.CaseSelector` : a window to select conditions along two axis (to calculate, or retrieve
     from a database)
 
-    (2) a window to plot 9 spectra corresponding to left, right and center conditions
+- :py:class:`~fitroom.grid3x3_tool.Grid3x3` : a window to plot 9 spectra corresponding to left, right and center conditions
 
-    (3) a window to decompose the center slab along the different slabs
+- :py:class:`~fitroom.multislab_tool.MultiSlabPlot` : a window to decompose the center slab along the different slabs
+
 
 This example calculates spectra on-fly.
 
@@ -35,14 +41,17 @@ from fitroom import CaseSelector
 from fitroom import Grid3x3
 from fitroom import MultiSlabPlot
 from fitroom import SlabsConfigSolver
-from fitroom import FitRoom, DynVar
+from fitroom import FitRoom
 from fitroom import SlitTool
 #from fitroom.tools import Normalizer
 from radis import SpectrumFactory
 from radis import Spectrum
 from os.path import join, dirname
 
-TEST_FOLDER_PATH = dirname(__file__)
+import matplotlib.pyplot as plt
+plt.ion()   # interactive mode; do not block figures
+
+TEST_FOLDER_PATH = dirname(".")
 
 def getTestFile(file):
     ''' Return the full path of a test file. Used by test functions not to
@@ -116,7 +125,7 @@ wunit = 'nm'
 #unit = 'default'
 
 s_exp = Spectrum.from_txt(getTestFile(r"measured_co2_bandhead_10kHz_30us.txt"),
-                          quantity=plotquantity, waveunit=wunit, unit=unit,
+                          quantity=plotquantity, wunit=wunit, unit=unit,
                           conditions={'medium': 'air'}).offset(-0.5, 'nm')
 normalizer = None  # Normalizer(4173, 4180, how='mean')
 
@@ -177,3 +186,5 @@ selectTool.ax.set_ylim(*select_yspace)
 selectTool.precompute_residual(Slablist, # plotquantity='radiance',
                                xspace=np.linspace(300, 2000, 3),
                                yspace=np.linspace(0, 1, 3))
+
+plt.show()

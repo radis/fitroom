@@ -20,34 +20,32 @@ from radis.phys.convert import cm2eV
 
 
 class Overpopulator():
+    '''
+    Parameters
+    ----------
+
+    slab:
+        slab to connect to. Must be a slab calculated with from_band source
+        mode
+
+
+    Examples
+    --------
+    
+    .. minigallery:: fitroom.noneq_tool.Overpopulator
+
+    See Also
+    --------
+
+    :class:`~fitroom.selection_tool.CaseSelector`,
+    :class:`~fitroom.grid3x3_tool.Grid3x3`,
+    :class:`~fitroom.multislab_tool.MultiSlabPlot`,
+    :class:`~fitroom.solver.SlabsConfigSolver`,
+    :class:`~fitroom.room.FitRoom`,
+    :class:`~fitroom.slit_tool.SlitTool`
+    '''
 
     def __init__(self, slab, levels='all', nfig=None):
-        '''
-        Parameters
-        ----------
-
-        slab:
-            slab to connect to. Must be a slab calculated with from_band source
-            mode
-
-
-        Examples
-        --------
-
-        See the working case in :mod:`~neq.test.math.test_fitroom`. In particular, run
-        :func:`~neq.test.math.test_fitroom.test_start_fitroom`
-
-        See Also
-        --------
-
-        :class:`~neq.math.fitroom.selection_tool.CaseSelector`,
-        :class:`~neq.math.fitroom.grid3x3_tool.Grid3x3`,
-        :class:`~neq.math.fitroom.multislab_tool.MultiSlabPlot`,
-        :class:`~neq.math.fitroom.solver.SlabsConfigSolver`,
-        :class:`~neq.math.fitroom.room.FitRoom`,
-        :class:`~neq.math.fitroom.slit_tool.SlitTool`
-        '''
-
         self.nfig = nfig
 
         if nfig is None:

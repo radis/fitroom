@@ -28,6 +28,44 @@ from publib import set_style, fix_style
 
 
 class MultiSlabPlot():
+    ''' Plot the center case in :class:`~neq.math.fitroom.selection_tool.CaseSelector`
+    by also showing emission and absorption separately, and all slabs
+    
+    Parameters
+    ----------
+    ...
+    
+    N_main_bands: int
+    show main emission bands in case an overpopulation tool is defined.
+    N_main_bands is the number of bands to show. Default 5.
+    keep_highlights: boolean
+    if ``True``, delete previous highlights when generating new case. Keeping
+    them can help remember the last band position. Default ``False``.
+    show_noslit_slabs: boolean
+    if ``True``, overlay slabs with non convoluted radiance / transmittance
+    show_slabs_with_slit: boolean
+    if ``True``, slit is applied to all slabs before display (this does not
+    change the way the radiative transfer equation is solved)
+    
+    Other Parameters
+    ----------------
+    wunit: 'nm', 'cm-1'
+    
+    Examples
+    --------
+    
+    .. minigallery:: fitroom.MultiSlabPlot
+    
+    See Also
+    --------
+    :class:`~fitroom.selection_tool.CaseSelector`,
+    :class:`~fitroom.grid3x3_tool.Grid3x3`,
+    :class:`~fitroom.solver.SlabsConfigSolver`,
+    :class:`~fitroom.noneq_tool.Overpopulator`,
+    :class:`~fitroom.room.FitRoom`,
+    :class:`~fitroom.slit_tool.SlitTool`
+    
+    '''
 
     def __init__(self,
                  plotquantity='radiance', unit='mW/cm2/sr/nm',
@@ -40,44 +78,6 @@ class MultiSlabPlot():
                  show_slabs_with_slit=True,
                  wunit='nm',
                  ):
-        ''' Plot the center case in :class:`~neq.math.fitroom.selection_tool.CaseSelector`
-        by also showing emission and absorption separately, and all slabs
-
-        Parameters
-        ----------
-        ...
-
-        N_main_bands: int
-            show main emission bands in case an overpopulation tool is defined.
-            N_main_bands is the number of bands to show. Default 5.
-        keep_highlights: boolean
-            if ``True``, delete previous highlights when generating new case. Keeping
-            them can help remember the last band position. Default ``False``.
-        show_noslit_slabs: boolean
-            if ``True``, overlay slabs with non convoluted radiance / transmittance
-        show_slabs_with_slit: boolean
-            if ``True``, slit is applied to all slabs before display (this does not
-            change the way the radiative transfer equation is solved)
-
-        Other Parameters
-        ----------------
-        wunit: 'nm', 'cm-1'
-
-        Examples
-        --------
-        See the working case in :mod:`~neq.test.math.test_fitroom`. In particular, run
-        :func:`~neq.test.math.test_fitroom.test_start_fitroom`
-
-        See Also
-        --------
-        :class:`~neq.math.fitroom.selection_tool.CaseSelector`,
-        :class:`~neq.math.fitroom.grid3x3_tool.Grid3x3`,
-        :class:`~neq.math.fitroom.solver.SlabsConfigSolver`,
-        :class:`~neq.math.fitroom.noneq_tool.Overpopulator`,
-        :class:`~neq.math.fitroom.room.FitRoom`,
-        :class:`~neq.math.fitroom.slit_tool.SlitTool`
-
-        '''
 
         # Init variables
         self.line3up = {}

@@ -30,35 +30,33 @@ except:  # if ran directly from this file
 
 
 class FitRoom():
-
+    '''
+    Parameters
+    ----------
+    
+    perfmode: boolean
+    if ``True`` we try to optimize calculation times (ex: minimized windows
+    are not recalculated)
+    
+    
+    Examples
+    --------
+    
+    .. minigallery:: fitroom.FitRoom
+    
+    See Also
+    --------
+    
+    :class:`~fitroom.selection_tool.CaseSelector`,
+    :class:`~fitroom.grid3x3_tool.Grid3x3`,
+    :class:`~fitroom.multislab_tool.MultiSlabPlot`,
+    :class:`~fitroom.solver.SlabsConfigSolver`,
+    :class:`~fitroom.noneq_tool.Overpopulator`,
+    :class:`~fitroom.slit_tool.SlitTool`
+    
+    '''
     def __init__(self, Slablist, slbInteractx, slbInteracty, xparam, yparam,
                  perfmode=False):
-        '''
-        Parameters
-        ----------
-
-        perfmode: boolean
-            if ``True`` we try to optimize calculation times (ex: minimized windows
-            are not recalculated)
-
-
-        Examples
-        --------
-
-        See the working case in :mod:`~neq.test.math.test_fitroom`. In particular, run
-        :func:`~neq.test.math.test_fitroom.test_start_fitroom`
-
-        See Also
-        --------
-
-        :class:`~neq.math.fitroom.selection_tool.CaseSelector`,
-        :class:`~neq.math.fitroom.grid3x3_tool.Grid3x3`,
-        :class:`~neq.math.fitroom.multislab_tool.MultiSlabPlot`,
-        :class:`~neq.math.fitroom.solver.SlabsConfigSolver`,
-        :class:`~neq.math.fitroom.noneq_tool.Overpopulator`,
-        :class:`~neq.math.fitroom.slit_tool.SlitTool`
-
-        '''
         self.tools = []
 
         # all possible tools:

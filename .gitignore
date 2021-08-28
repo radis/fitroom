@@ -6,6 +6,7 @@
 
 # Generated test files
 test/HITRAN_CO2_test_spec_database/*
+examples/HITRAN_CO2_test_spec_database/*
 .pytest_cache/*
 
 # Byte-compiled / optimized / DLL files

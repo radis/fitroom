@@ -24,6 +24,29 @@ from publib import set_style, fix_style
 
 
 class Grid3x3():
+    ''' Where the output of a :class:`~neq.math.fitroom.selection_tool.CaseSelector`
+    is shown.
+    
+    Examples
+    --------
+    
+    .. minigallery:: fitroom.Grid3x3
+    
+    See Also
+    --------
+    
+    :class:`~fitroom.selection_tool.CaseSelector`,
+    :class:`~fitroom.multislab_tool.MultiSlabPlot`,
+    :class:`~fitroom.solver.SlabsConfigSolver`,
+    :class:`~fitroom.noneq_tool.Overpopulator`,
+    :class:`~fitroom.room.FitRoom`,
+    :class:`~fitroom.slit_tool.SlitTool`
+    
+    When you're happy with a fit, use:
+    
+    :meth:`~fitroom.grid3x3_tool.plot_for_export`
+    
+    '''
 
     def __init__(self, slbInteractx=None, slbInteracty=None,
                  xparam='', yparam='',
@@ -31,30 +54,6 @@ class Grid3x3():
                  normalizer=None,
                  s_exp=None
                  ):
-        ''' Where the output of a :class:`~neq.math.fitroom.selection_tool.CaseSelector`
-        is shown.
-
-        Examples
-        --------
-
-        See the working case in :mod:`~neq.test.math.test_fitroom`. In particular, run
-        :func:`~neq.test.math.test_fitroom.test_start_fitroom`
-
-        See Also
-        --------
-
-        :class:`~neq.math.fitroom.selection_tool.CaseSelector`,
-        :class:`~neq.math.fitroom.multislab_tool.MultiSlabPlot`,
-        :class:`~neq.math.fitroom.solver.SlabsConfigSolver`,
-        :class:`~neq.math.fitroom.noneq_tool.Overpopulator`,
-        :class:`~neq.math.fitroom.room.FitRoom`,
-        :class:`~neq.math.fitroom.slit_tool.SlitTool`
-
-        When you're happy with a fit, use:
-
-        :meth:`~neq.math.fitroom.grid3x3_tool.plot_for_export`
-
-        '''
         # TODO: read slbInteractx, slbInteracty, xparam, yparam from Fitroom
         # and remove them as parameters here. Same for selectTool.
 
@@ -409,7 +408,7 @@ class Grid3x3():
         self._add_multicursor()
 
         # Show figure
-        fig2.canvas.show()
+        fig2.canvas.draw()
         plt.show()
         plt.pause(0.05)
 
@@ -614,7 +613,7 @@ class Grid3x3():
                             plot_all_labels=True)   # here we plot
 
         # Show figure
-        fig2.canvas.show()
+        fig2.canvas.draw()
         plt.show()
         plt.pause(0.05)
 
