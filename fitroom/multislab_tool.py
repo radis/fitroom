@@ -54,7 +54,7 @@ class MultiSlabPlot():
     Examples
     --------
     
-    .. minigallery:: fitroom.multislab_tool.MultiSlabPlot
+    .. minigallery:: fitroom.MultiSlabPlot
     
     See Also
     --------

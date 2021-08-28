@@ -30,7 +30,7 @@ class Grid3x3():
     Examples
     --------
     
-    .. minigallery:: fitroom.grid3x3_tool.Grid3x3
+    .. minigallery:: fitroom.Grid3x3
     
     See Also
     --------

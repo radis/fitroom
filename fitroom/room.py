@@ -42,7 +42,7 @@ class FitRoom():
     Examples
     --------
     
-    .. minigallery:: fitroom.room.FitRoom
+    .. minigallery:: fitroom.FitRoom
     
     See Also
     --------

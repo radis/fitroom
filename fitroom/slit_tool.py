@@ -39,7 +39,7 @@ class SlitTool():
     Examples
     --------
     
-    .. minigallery:: fitroom.slit_tool.SlitTool
+    .. minigallery:: fitroom.SlitTool
 
     See Also
     --------

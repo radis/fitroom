@@ -97,7 +97,7 @@ class SlabsConfigSolver():
     Examples
     --------
 
-    .. minigallery:: fitroom.solver.SlabsConfigSolver
+    .. minigallery:: fitroom.SlabsConfigSolver
 
     '''
 

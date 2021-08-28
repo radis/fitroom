@@ -14,7 +14,7 @@ def Normalizer(wmin, wmax, how='mean'):
     Examples
     --------
     
-    .. minigallery:: fitroom.tools.Normalizer
+    .. minigallery:: fitroom.Normalizer
 
     """
     return lambda w, a: norm_on(a, w, wmin=wmin, wmax=wmax, how=how)

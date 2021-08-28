@@ -39,7 +39,7 @@ class CaseSelector():
     Examples
     --------
 
-    .. minigallery:: fitroom.selection_tool.CaseSelector
+    .. minigallery:: fitroom.CaseSelector
 
     See Also
     --------
