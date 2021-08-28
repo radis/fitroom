@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Aug  3 15:49:53 2017
 
-@author: erwan
 """
 
 from .selection_tool import CaseSelector
@@ -12,3 +10,15 @@ from .solver import SlabsConfigSolver
 from .noneq_tool import Overpopulator
 from .room import FitRoom, DynVar
 from .slit_tool import SlitTool
+
+
+
+__all__ = [
+    "CaseSelector",
+    "Grid3x3",
+    "MultiSlabPlot",
+    "SlabsConfigSolver",
+    "Overpopulator",
+    "FitRoom", "DynVar",
+    "SlitTool"
+]

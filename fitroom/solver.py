@@ -97,8 +97,7 @@ class SlabsConfigSolver():
     Examples
     --------
 
-    See the working case in :mod:`~neq.test.math.test_fitroom`. In particular, run
-    :func:`~neq.test.math.test_fitroom.test_start_fitroom`
+    .. minigallery:: fitroom.solver.SlabsConfigSolver
 
     '''
 
@@ -194,9 +193,17 @@ class SlabsConfigSolver():
 
         '''
 
-        plotquantity = self.plotquantity     
-        return get_residual(self.s_exp, s.take(plotquantity), plotquantity, ignore_nan=True, 
+        plotquantity = self.plotquantity    
+        
+        try:
+            return get_residual(self.s_exp, s.take(plotquantity), plotquantity, ignore_nan=True, 
                             normalize=normalize, normalize_how=normalize_how)
+        except ValueError as err:
+            if "All values are nan" in str(err):
+                print(f'Spectrum {s.get_name()} has only nans. Couldnt calculate residuals.')
+                return None
+            raise
+
 
 #        wexp = self.wexp
 #        Iexpcalib = self.Iexpcalib

@@ -25,36 +25,34 @@ from warnings import warn
 
 
 class SlitTool():
-    ''' Tool to manipulate slit function '''
+    ''' Tool to manipulate slit function 
+    
+    Parameters
+    ----------
 
+    plot_unit: 'nm', 'cm-1'
+
+    overlay: str, or int, or tuple
+        plot a slit in background (to compare generated slit with experimental 
+        slit for instance)
+        
+    Examples
+    --------
+    
+    .. minigallery:: fitroom.slit_tool.SlitTool
+
+    See Also
+    --------
+    
+    :class:`~fitroom.selection_tool.CaseSelector`,
+    :class:`~fitroom.grid3x3_tool.Grid3x3`,
+    :class:`~fitroom.multislab_tool.MultiSlabPlot`,
+    :class:`~fitroom.solver.SlabsConfigSolver`,
+    :class:`~fitroom.noneq_tool.Overpopulator`,
+    :class:`~fitroom.room.FitRoom`
+    
+    '''
     def __init__(self, plot_unit='nm', overlay=None, overlay_options=None):
-        ''' 
-        Parameters
-        ----------
-
-        plot_unit: 'nm', 'cm-1'
-
-        overlay: str, or int, or tuple
-            plot a slit in background (to compare generated slit with experimental 
-            slit for instance)
-            
-        Examples
-        --------
-        
-        See the working case in :mod:`~neq.test.math.test_fitroom`. In particular, run
-        :func:`~neq.test.math.test_fitroom.test_start_fitroom`
-            
-        See Also
-        --------
-        
-        :class:`~neq.math.fitroom.selection_tool.CaseSelector`,
-        :class:`~neq.math.fitroom.grid3x3_tool.Grid3x3`,
-        :class:`~neq.math.fitroom.multislab_tool.MultiSlabPlot`,
-        :class:`~neq.math.fitroom.solver.SlabsConfigSolver`,
-        :class:`~neq.math.fitroom.noneq_tool.Overpopulator`,
-        :class:`~neq.math.fitroom.room.FitRoom`
-        
-        '''
 
         self.fitroom = None               # type: FitRoom
         self.plot_unit = plot_unit
