@@ -26,7 +26,7 @@ interface that displays:
 This example calculates spectra on-fly.
 
 Calculated spectra are stored in a "HITRAN_CO2_test_spec_database" folder
-to be re-used, using the :py:meth:`~radis.lbl.factory.init_database` method
+to be re-used, using the :py:meth:`~radis.lbl.loader.DatabankLoader.init_database` method
 of :py:class:`~radis.lbl.factory.SpectrumFactory` 
 
 

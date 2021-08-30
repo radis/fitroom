@@ -8,7 +8,14 @@ Fitroom
 An interactive interface for multi-dimensional fitting of emission & absorption spectra.
 
 
-.. minigallery:: fitroom.FitRoom
+
+.. video:: https://user-images.githubusercontent.com/16088743/120166810-4ac14980-c1fd-11eb-9dd5-8fb037db8793.mp4
+   :autoplay:
+   :nocontrols:
+   :width: 800
+   :height: 400
+
+
 
 Features :
  
@@ -31,20 +38,14 @@ Features :
     designing your own automatic fitting routines.
     
 
-
-.. video:: https://user-images.githubusercontent.com/16088743/120166810-4ac14980-c1fd-11eb-9dd5-8fb037db8793.mp4
-   :autoplay:
-   :nocontrols:
-   :width: 800
-   :height: 400
-
+.. minigallery:: fitroom.FitRoom
 
 
 See also the automatic fitting functions directly built in RADIS :
 
-- :py:func:`radis.lbl.factory.SpectrumFactory.fit_spectrum`
+- :py:class:`~radis.lbl.factory.SpectrumFactory` 's :py:meth:`~radis.lbl.factory.SpectrumFactory.fit_spectrum`
 
-- :py:func:`radis.tools.database.SpecDatabase.fit_spectrum`
+- :py:class:`~radis.tools.database.SpecDatabase` 's :py:meth:`~radis.tools.database.SpecDatabase.fit_spectrum`
 
 
 
